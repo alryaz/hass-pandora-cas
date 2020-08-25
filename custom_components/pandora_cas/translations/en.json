@@ -12,11 +12,11 @@
                 "data": {
                     "username": "Username",
                     "password": "Password",
-                    "polling_interval": "Polling Interval",
-                    "user_agent": "User Agent (optional)"
+                    "polling_interval": "Polling interval",
+                    "user_agent": "User Agent header (optional)"
                 },
                 "title": "Pandora Account Authentication",
-                "description": "Enter your credentials for your Pandora Online account.\n\nThese are the username and password you might be using to log onto https://p-on.ru/ or https://pro.p-on.ru/ websites, or \"Pandora Pro\" (iOS) or \"Pandora Online\" (Android) applications."
+                "description": "Enter your credentials for your Pandora Online account."
             }
         },
         "title": "Pandora Car Alarm System"

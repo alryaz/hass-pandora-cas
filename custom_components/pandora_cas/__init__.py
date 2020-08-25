@@ -26,10 +26,9 @@ from homeassistant.const import (CONF_USERNAME, CONF_PASSWORD, ATTR_NAME, ATTR_D
                                  ATTR_UNIT_OF_MEASUREMENT, ATTR_COMMAND)
 from homeassistant.core import ServiceCall, callback
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers import ConfigType
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.event import async_track_time_interval, async_track_point_in_time
-from homeassistant.helpers.typing import HomeAssistantType
+from homeassistant.helpers.typing import HomeAssistantType, ConfigType
 from homeassistant.loader import bind_hass
 from homeassistant.util import slugify, utcnow
 

@@ -49,7 +49,6 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry, 
             device_directive = platform_directive
         elif platform_directive is not None:
             device_directive = platform_directive.get(str(device.device_id))
-            print(device_directive)
             if device_directive is None:
                 device_directive = platform_directive.get(ATTR_DEFAULT)
 

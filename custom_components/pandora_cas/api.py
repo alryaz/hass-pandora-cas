@@ -215,8 +215,6 @@ class PandoraOnlineAccount:
         self._cookie_jar = aiohttp.CookieJar()
         self._user_agent = user_agent if user_agent else DEFAULT_USER_AGENT
 
-        print(repr(user_agent))
-
         #: last update timestamp
         self._last_update = -1
 

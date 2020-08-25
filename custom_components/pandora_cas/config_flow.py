@@ -10,7 +10,7 @@ from homeassistant import config_entries
 from homeassistant.config_entries import CONN_CLASS_CLOUD_POLL
 from homeassistant.const import CONF_USERNAME, CONF_PASSWORD
 from homeassistant.core import callback
-from homeassistant.helpers import ConfigType
+from homeassistant.helpers.typing import ConfigType
 
 from . import DOMAIN, DEFAULT_POLLING_INTERVAL, CONF_POLLING_INTERVAL, CONF_USER_AGENT
 from .api import PandoraOnlineAccount, PandoraOnlineException, AuthenticationException
