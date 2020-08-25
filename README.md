@@ -14,7 +14,7 @@
 > [![Репозиторий GitHub](https://img.shields.io/badge/GitHub-turbo--lab%2Fpandora--cas-blue)](https://github.com/turbo-lab/pandora-cas)
 > [![Donate](https://img.shields.io/badge/donate-Yandex-orange.svg)](https://money.yandex.ru/to/41001690673042)
 
-[![Расположение элементов по-умолчанию](https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/header.png)](https://github.com/alryaz/hass-pandora-cas/blob/master/images/screenshot_default.png)
+[![Расположение элементов по-умолчанию](https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/screenshot_default.png)](https://github.com/alryaz/hass-pandora-cas/blob/master/images/screenshot_default.png)
 
 Автомобиль тоже может быть частью умного дома. С помощью этого компонента вы сможете отслеживать состояние, управлять
 и автоматизировать свой автомобиль, если он оборудован охранной системой Pandora. После настройки ваши
@@ -167,7 +167,9 @@ pandora_cas:
 
 Пример того, как выглядит наполненная страница для устройства модели X-1911BT (нажмите для увеличения):
 
-[<img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/header.png" alt="Карточка устройства X-1911BT" height="250">](https://github.com/alryaz/hass-pandora-cas/blob/master/images/screenshot_default.png)
+[<img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/screenshot_device_card_1.png" alt="Карточка устройства X-1911BT, часть 1" width="31%">](https://github.com/alryaz/hass-pandora-cas/blob/master/images/screenshot_device_card_1.png)
+[<img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/screenshot_device_card_2.png" alt="Карточка устройства X-1911BT, часть 2" width="31%">](https://github.com/alryaz/hass-pandora-cas/blob/master/images/screenshot_device_card_2.png)
+[<img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/screenshot_device_card_3.png" alt="Карточка устройства X-1911BT, часть 3" width="31%">](https://github.com/alryaz/hass-pandora-cas/blob/master/images/screenshot_device_card_3.png)
 
 ## Датчики / Переключатели / Состояния
 
