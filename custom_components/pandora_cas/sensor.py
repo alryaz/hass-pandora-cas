@@ -1,137 +1,106 @@
-"""
-Reads vehicle status from BMW connected drive portal.
+"""Sensor platform for Pandora Car Alarm System."""
+__all__ = ["ENTITY_TYPES", "async_setup_entry"]
 
-For more details about this platform, please refer to the documentation at
-https://home-assistant.io/components/sensor.bmw_connected_drive/
-"""
 import logging
+from functools import partial
+from typing import Union
 
-from . import DOMAIN as PANDORA_DOMAIN
-from homeassistant.components.sensor import ENTITY_ID_FORMAT
-from homeassistant.const import (LENGTH_KILOMETERS,
-                                 TEMP_CELSIUS)
-from homeassistant.helpers.entity import Entity
-from homeassistant.helpers.icon import icon_for_battery_level
-from homeassistant.util import slugify
+from homeassistant.components.sensor import DOMAIN as PLATFORM_DOMAIN, ENTITY_ID_FORMAT
+from homeassistant.const import (
+    LENGTH_KILOMETERS,
+    TEMP_CELSIUS,
+    ATTR_NAME,
+    ATTR_ICON,
+    ATTR_UNIT_OF_MEASUREMENT,
+    VOLT,
+    SPEED_KILOMETERS_PER_HOUR,
+)
+
+from . import (
+    ATTR_ATTRIBUTE,
+    ATTR_STATE_SENSITIVE,
+    ATTR_FORMATTER,
+    ATTR_ADDITIONAL_ATTRIBUTES,
+    ATTR_DEFAULT,
+    PandoraCASEntity,
+    async_platform_setup_entry
+)
 
 _LOGGER = logging.getLogger(__name__)
 
-SENSOR_TYPES = {
-    'mileage': ["Milage", "mdi:map-marker-distance", LENGTH_KILOMETERS, True],
-    'fuel': ["Fuel level", 'mdi:gauge', "%", False],
-    'cabin_temp': ["Cabin temperature", 'mdi:thermometer', TEMP_CELSIUS, True],
-    'engine_temp': ["Engine temperature", 'mdi:thermometer', TEMP_CELSIUS, True],
-    'out_temp': ["Ambient temperature", 'mdi:thermometer', TEMP_CELSIUS, True],
-    'balance': ["Balance", "mdi:cash", "₽", False],
-    'speed': ["Speed", 'mdi:gauge', "km/h", True],
-    'engine_rpm': ["Engine RPM", 'mdi:gauge', None, True],
-    'gsm_level': ["GSM level", 'mdi:network-strength-2', None, True],
-    'battery': ["Battery voltage", 'mdi:car-battery', "V", True],
+ENTITY_TYPES = {
+    'mileage': {
+        ATTR_NAME: "Mileage",
+        ATTR_ICON: "mdi:map-marker-distance", ATTR_UNIT_OF_MEASUREMENT: LENGTH_KILOMETERS,
+        ATTR_ATTRIBUTE: 'mileage', ATTR_STATE_SENSITIVE: True,
+        ATTR_FORMATTER: lambda v: round(float(v), 2),
+        ATTR_ADDITIONAL_ATTRIBUTES: {},
+        ATTR_DEFAULT: True,
+    },
+    'fuel': {
+        ATTR_NAME: "Fuel Level",
+        ATTR_ICON: 'mdi:gauge', ATTR_UNIT_OF_MEASUREMENT: "%",
+        ATTR_ATTRIBUTE: 'fuel', ATTR_STATE_SENSITIVE: False,
+        ATTR_DEFAULT: True,
+    },
+    'interior_temperature': {
+        ATTR_NAME: "Interior Temperature",
+        ATTR_ICON: 'mdi:thermometer', ATTR_UNIT_OF_MEASUREMENT: TEMP_CELSIUS,
+        ATTR_ATTRIBUTE: 'interior_temperature', ATTR_STATE_SENSITIVE: True,
+    },
+    'engine_temperature': {
+        ATTR_NAME: "Engine Temperature",
+        ATTR_ICON: 'mdi:thermometer', ATTR_UNIT_OF_MEASUREMENT: TEMP_CELSIUS,
+        ATTR_ATTRIBUTE: 'engine_temperature', ATTR_STATE_SENSITIVE: True,
+    },
+    'exterior_temperature': {
+        ATTR_NAME: "Exterior Temperature",
+        ATTR_ICON: 'mdi:thermometer', ATTR_UNIT_OF_MEASUREMENT: TEMP_CELSIUS,
+        ATTR_ATTRIBUTE: 'outside_temperature', ATTR_STATE_SENSITIVE: True,
+    },
+    'balance': {
+        ATTR_NAME: "Balance",
+        ATTR_ICON: "mdi:cash", ATTR_UNIT_OF_MEASUREMENT: "₽",
+        ATTR_ATTRIBUTE: 'sim_balance', ATTR_STATE_SENSITIVE: False,
+        ATTR_DEFAULT: True,
+    },
+    'speed': {
+        ATTR_NAME: "Speed",
+        ATTR_ICON: 'mdi:gauge', ATTR_UNIT_OF_MEASUREMENT: SPEED_KILOMETERS_PER_HOUR,
+        ATTR_ATTRIBUTE: 'speed', ATTR_STATE_SENSITIVE: True,
+    },
+    'tachometer': {
+        ATTR_NAME: "Tachometer",
+        ATTR_ICON: 'mdi:gauge', ATTR_UNIT_OF_MEASUREMENT: "rpm",
+        ATTR_ATTRIBUTE: 'engine_rpm', ATTR_STATE_SENSITIVE: True,
+    },
+    'gsm_level': {
+        ATTR_NAME: "GSM Level",
+        ATTR_ICON: {ATTR_DEFAULT: 'mdi:network-strength-off',
+                    0: 'mdi:network-strength-1',
+                    1: 'mdi:network-strength-2',
+                    2: 'mdi:network-strength-3',
+                    3: 'mdi:network-strength-4'},
+        ATTR_ATTRIBUTE: 'gsm_level', ATTR_STATE_SENSITIVE: True,
+        ATTR_DEFAULT: True,
+    },
+    'battery_voltage': {
+        ATTR_NAME: "Battery voltage",
+        ATTR_ICON: 'mdi:car-battery', ATTR_UNIT_OF_MEASUREMENT: VOLT,
+        ATTR_ATTRIBUTE: 'battery_voltage', ATTR_STATE_SENSITIVE: True,
+        ATTR_DEFAULT: True,
+    },
 }
 
 
-def setup_platform(hass, config, add_entities, discovery_info=None):
-    account = hass.data[PANDORA_DOMAIN]
-    devices = []
-
-    for vehicle in account.account.vehicles:
-        for parameter, _ in sorted(SENSOR_TYPES.items()):
-            name = SENSOR_TYPES[parameter][0]
-            icon = SENSOR_TYPES[parameter][1]
-            unit = SENSOR_TYPES[parameter][2]
-            state_sensitive = SENSOR_TYPES[parameter][3]
-
-            device = PandoraSensor(account, 
-                                    vehicle,
-                                    parameter,
-                                    name,
-                                    icon,
-                                    unit,
-                                    state_sensitive)
-            devices.append(device)
-
-    add_entities(devices, True)
-
-
-class PandoraSensor(Entity):
-    """Representation of a BMW vehicle sensor."""
-
-    def __init__(self, account, vehicle, parameter: str, name: str, icon: str, unit: str, state_sensitive: bool):
-        """Constructor."""
-        self._vehicle = vehicle
-        self._account = account
-        self._parameter = parameter
-        self._name = "{} {}".format(self._vehicle.name, name)
-        self._state = None
-        self._icon = icon
-        self._unit = unit
-        self._state_sensitive = state_sensitive
-        self.entity_id = ENTITY_ID_FORMAT.format(
-            "{}_{}".format(slugify(str(self._vehicle.id)), slugify(name))
-        )
+class PandoraCASSensor(PandoraCASEntity):
+    """Representation of a Pandora Car Alarm System sensor."""
+    ENTITY_TYPES = ENTITY_TYPES
+    ENTITY_ID_FORMAT = ENTITY_ID_FORMAT
 
     @property
-    def should_poll(self) -> bool:
-        """Return False.
-
-        Data update is triggered from BMWConnectedDriveEntity.
-        """
-        return False
-
-    @property
-    def name(self) -> str:
-        """Return the name of the sensor."""
-        return self._name
-
-    @property
-    def state(self):
-        """Return the state of the sensor.
-
-        The return type of this call depends on the attribute that
-        is configured.
-        """
+    def state(self) -> Union[None, str, int, float]:
         return self._state
 
-    @property
-    def available(self):
-        """Return True if entity is available."""
-        return self._available
 
-    @property
-    def icon(self):
-        """Icon to use in the frontend, if any."""
-        return self._icon
-
-    @property
-    def unit_of_measurement(self) -> str:
-        """Get the unit of measurement."""
-        return self._unit
-
-    @property
-    def device_state_attributes(self):
-        """Return the state attributes of the sensor."""
-        return {
-            'car': self._vehicle.name
-        }
-
-    def update(self) -> None:
-        """Read new state data from the library."""
-        _LOGGER.debug('Updating %s', self._vehicle.name)
-        vehicle_state = self._vehicle.state
-
-        if vehicle_state.online == 1 or self._state_sensitive == False:
-            self._available = True
-            self._state = getattr(vehicle_state, self._parameter)
-        else:
-            self._available = False
-
-    def update_callback(self):
-        """Schedule a state update."""
-        self.schedule_update_ha_state(True)
-
-    async def async_added_to_hass(self):
-        """Add callback after being added to hass.
-
-        Show latest data after startup.
-        """
-        self._account.add_update_listener(self.update_callback)
+async_setup_entry = partial(async_platform_setup_entry, PLATFORM_DOMAIN, PandoraCASSensor, logger=_LOGGER)

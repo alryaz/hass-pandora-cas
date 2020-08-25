@@ -1,0 +1,24 @@
+{
+    "config": {
+        "abort": {
+            "account_already_exists": "Account with given username already exists"
+        },
+        "error": {
+            "invalid_credentials": "Invalid username/password provided",
+            "api_error": "Unknown API error occurred"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "username": "Username",
+                    "password": "Password",
+                    "polling_interval": "Polling Interval",
+                    "user_agent": "User Agent (optional)"
+                },
+                "title": "Pandora Account Authentication",
+                "description": "Enter your credentials for your Pandora Online account.\n\nThese are the username and password you might be using to log onto https://p-on.ru/ or https://pro.p-on.ru/ websites, or \"Pandora Pro\" (iOS) or \"Pandora Online\" (Android) applications."
+            }
+        },
+        "title": "Pandora Car Alarm System"
+    }
+}

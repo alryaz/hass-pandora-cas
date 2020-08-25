@@ -1,7 +1,4 @@
-# Describes the format for available services for bmw_connected_drive
-#
-# The services related to locking/unlocking are implemented in the lock
-# component to avoid redundancy.
+# WORK IN PROGRESS!
 
 lock:
   description: >
