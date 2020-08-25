@@ -1,106 +1,264 @@
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
-[![Donate](https://img.shields.io/badge/donate-Yandex-orange.svg)](https://money.yandex.ru/to/41001690673042)
+<img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/header.png" height="100" alt="Home Assistant + Pandora">
 
-# Home Assistant custom component for Pandora Car Alarm System
+# _Pandora Car Alarm System_ для Home Assistant
+> Автоматизация управления охранными системами Pandora и PanDECT<sup>®</sup> в Home Assistant.
+>
+>[![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
+>[![Лицензия](https://img.shields.io/badge/%D0%9B%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+>[![Поддержка](https://img.shields.io/badge/%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%B8%D0%B2%D0%B0%D0%B5%D1%82%D1%81%D1%8F%3F-%D0%B4%D0%B0-green.svg)](https://github.com/alryaz/hass-pandora-cas/graphs/commit-activity)  
+> Ветка @alryaz:  
+>[![Пожертвование Yandex](https://img.shields.io/badge/%D0%9F%D0%BE%D0%B6%D0%B5%D1%80%D1%82%D0%B2%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-Yandex-red.svg)](https://money.yandex.ru/to/410012369233217)
+>[![Пожертвование PayPal](https://img.shields.io/badge/%D0%9F%D0%BE%D0%B6%D0%B5%D1%80%D1%82%D0%B2%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-Paypal-blueviolet.svg)](https://www.paypal.me/alryaz)  
+> Оригинальный разработчик:  
+> [![Donate](https://img.shields.io/badge/donate-Yandex-orange.svg)](https://money.yandex.ru/to/41001690673042)
 
-**Русский** | [English](https://github.com/turbo-lab/pandora-cas/blob/master/README_EN.md)
+<!-- **Русский** | [English](https://github.com/alryaz/hass-pandora-cas/blob/master/README_EN.md) -->
 
-![Pandora](https://raw.githubusercontent.com/turbo-lab/pandora-cas/master/images/pandora.gif)
+Автомобиль тоже может быть частью умного дома. С помощью этого компонента вы сможете отслеживать состояние, управлять
+и автоматизировать свой автомобиль, если он оборудован охранной системой Pandora. После настройки ваши
+устройства Pandora и PanDECT<sup>®</sup> автоматически добавятся в _Home Assistant_.
 
-Автомобиль тоже может быть частью умного дома. С помощью этого компонента вы сможете отслеживать состояние, управлять и автоматизировать свой автомобиль, если он оборудован охранной системой Pandora. После настройки ваши автомобили автоматически обнаружатся и добавятся в Home Assistant.
+Компонент использует неофициальный API, полученный в результате reverse engineering, к официальному сайту Pandora
+`https://pro.p-on.ru`. Компонент реализует часть функциональности, доступной на сайте, и дополняется по мере выявления
+наиболее удобного способа взаимодействия.
 
-Компонент использует неофициальный API, полученный в результате reverse engineering, к официальному сайту Pandora `https://p-on.ru`. Функциональность компонента, в целом, повторяет функциональность, доступную на сайте или в мобильном приложении. Для настройки Вам следует использовать те же авторизационные данные, что вы используете на сайте Pandora.
+Для настройки Вам следует использовать те же авторизационные данные, что вы используете на сайте Pandora, или в
+мобильном приложении [Pandora Online](https://play.google.com/store/apps/details?id=ru.alarmtrade.pandora&hl=ru).
 
 На данный момент компонент поддерживает:
-
-- [Device Tracker](#device-tracker): Местоположение автомобиля.
-- [Sensors and Binary Sensors](#sensors): Температура, скорость, статус охраны, дверей и т.д.
-- [Services](#services): Команды, например: открыть/закрыть, завести/заглушить и др.
+- [Device Tracker](#platform_device_tracker): Местоположение автомобиля.
+- [Sensors](#platform_sensor): Температура, скорость, тахометр и т.д.
+- [Binary Sensors](#platform_binary_sensor): Статусы открытия, движения, и т.д.
+- [Switches](#platform_switch): Работа двигателя, активная охрана, и т.д.
+- [Lock](#platform_lock): Постановка на охрану
+- [Services](#services_provided): Команды, например: открыть/закрыть, завести/заглушить и др.
 
 ## Установка
 
+#### Посредством HACS _(рекомендованый способ)_
 1. Установить [HACS](https://hacs.xyz/docs/installation/manual)
-1. Зайти в HACS в управление Custom repositories и добавить URL этого репозитория ```https://github.com/turbo-lab/pandora-cas```, как Integration
-1. Установить компонент Pandora Car Alarm System
-1. Настроить компонент в файле `configuration.yaml` (см. следующий пункт)
-1. Перезапустить Home Assistant
+1. Зайти в HACS в управление _Custom Repositories_
+1. Добавить URL этого репозитория как _Integration_:  
+   ```https://github.com/alryaz/hass-pandora-cas```
+1. Установить компонент _Pandora Car Alarm System_
+1. Выполнить конфигурацию одним из нижеупомянутых способов
+1. _(опционально, для YAML)_ Перезапустить _Home Assistant_
+
+#### Ручная установка
+1. Скачать репозиторий:
+   1. Посредством Git:  
+      ```git clone https://github.com/alryaz/hass-pandora-cas.git hass-pandora-cas```
+   1. Через браузер: [ссылка](https://github.com/alryaz/hass-pandora-cas/archive/master.zip)  
+      Разархивировать папку `hass-pandora-cas-master` внутри архива в любую папку
+1. Перенести содержимое подпапки `custom_components` в аналогичную папку конфигурации _Home Assistant_
+   (при отсутствии папки `custom_components` в конфигурации, создать таковую)
+1. Выполнить конфигурацию одним из нижеупомянутых способов
+1. _(опционально, для YAML)_ Перезапустить _Home Assistant_
 
 ## Настройка
 
+### Базовая конфигурация
 Чтобы активировать компонент, добавьте эти строки в файл `configuration.yaml`:
 
 ```yaml
 # Фрагмент файла configuration.yaml
 pandora_cas:
-  username: YOUR_USERNAME
-  password: YOUR_PASSWORD
+  # Учётная запись на портале p-on.ru / pro.p-on.ru
+  password: !secret YOUR_PASSWORD  # обязательно
+  username: !secret YOUR_USERNAME  # обязательно
 ```
 
-Описание конфигурации:
+#### Использование нескольких учётных записей
+Компонент поддерживает работу с несколькими учётными записями.
+> Внимание! При добавлении двух учётных записей с одинковыми именами пользователя будет использована первая
+> разобранная системой конфигурация.
 
 ```yaml
 pandora_cas:
-  (map) (Optional) Настройки компонента Pandora Car Alarm System.
-
-  username:
-    (string)(Required): Логин от сайта p-on.ru.
-
-  password:
-    (string)(Required): Пароль от сайта p-on.ru.
-
-  polling_interval:
-    (integer)(Optional): Интервал обновления информации с сайта. Меньше значение - быстрее обновляется, но потребляет больше траффика. По-умолчанию: 60s, минимум: 10s
-
+    # Первая учётная запись
+  - username: !secret YOUR_USERNAME_1  # обязательно
+    password: !secret YOUR_PASSWORD_1  # обязательно
+    
+    # Вторая учётная запись
+  - username: !secret YOUR_USERNAME_2  # обязательно
+    password: !secret YOUR_PASSWORD_2  # обязательно
 ```
 
-## Device Tracker
+### Установка дополнительных параметров
 
-Для каждого автомобиля будет создан объект device_tracker.`PANDORA_ID`, где `PANDORA_ID` уникальный идентификатор автомобиля в системе Pandora. Доступны все обычные действия для Device Tracker: отслеживание местоположения [на карте](https://www.home-assistant.io/lovelace/map/), [треккинг пути](https://www.home-assistant.io/blog/2020/04/08/release-108/#lovelace-map-history), [контроль зон](https://www.home-assistant.io/docs/automation/trigger/#zone-trigger) и т.д.
+```yaml
+pandora_cas:
+  username: !secret YOUR_USERNAME  # обязательно
+  password: !secret YOUR_PASSWORD  # обязательно
+  
+  # Интервал обновления информации с сайта.
+  # Большая частота обновления может повлечь увеличение расходов на передачу данных.
+  # По-умолчанию: 60 секунд
+  # Минимальное значение: 10 секунд
+  polling_interval: 40
+  
+  # Использование конкретного User Agent в запросах к серверу
+  # Может быть полезным, если система отказывается работать с User Agent по-умолчанию.
+  user_agent: 'Mozilla/5.0 (X11; Ubuntu; Linux i686 on x86_64; rv:41.0) Gecko/20100101 Firefox/41.0'
+  ...
+```
 
-## Sensors
+#### Дополнительная конфигурация подключения платформ:
+Следующие примеры отражают возможные способы предварительной конфигурации добавляемых в Home Assistant объектов.
+Ознакомиться со списком добавляемых объектов по-умолчанию (при первом запуске/добавлении конфигурации) Вы
+можете в следующем разделе инструкции. Возможность предварительной конфигурации реализована для сохранения
+портативности конфигурации при переносе её на другие платформы.
+```yaml
+  ...
+  # В данном примере платформа `sensor` будет добавлена со всеми объектами:
+  sensor: True
 
-Для привязки к автомобилю в имени объекта сенсоров используется идентификатор `PANDORA_ID`, в то время как в человеко-читаемом названии используется название автомобиля с сайта Pandora. Это сделано для того, чтобы при изменении названия автомобиля на сайте не менялись имена объектов, а значит не будет необходимости перенастраивать lovelace UI и автоматизации.
+  # В данном примере платформа `device_tracker` не будет добавлена:
+  device_tracker: False
 
-| Объект | Назначение | Примечание |
-|-|-|-|
-| sensor.`PANDORA_ID`_milage  | Пробег | км |
-| sensor.`PANDORA_ID`_fuel_level |  | % |
-| sensor.`PANDORA_ID`_cabin_temperature | Температура салона | °C |
-| sensor.`PANDORA_ID`_engine_temperature | Температура двигателя | °C |
-| sensor.`PANDORA_ID`_ambient_temperature | Уличная температура | °C |
-| sensor.`PANDORA_ID`_balance | Баланс СИМ-карты | ₽ |
-| sensor.`PANDORA_ID`_speed | Скорость | км/ч |
-| sensor.`PANDORA_ID`_engine_rpm | Обороты двигателя | ? |
-| sensor.`PANDORA_ID`_gsm_level | Уровень сигнала GSM| 0 - 3 |
-| sensor.`PANDORA_ID`_battery_voltage | Напряжение аккумулятора | В |
-| binary_sensor.`PANDORA_ID`_connection_state | Связь с автомобилем | есть / нет |
-| binary_sensor.`PANDORA_ID`_engine_state | Статус двигателя | запущен / заглушен |
-| binary_sensor.`PANDORA_ID`_moving | Статус движения | в движении / без движения |
-| binary_sensor.`PANDORA_ID`_lock | Статус охраны | под охраной / снят с охраны |
-| binary_sensor.`PANDORA_ID`_coolant_heater | Статус предпускового подогревателя | включен / выключен |
-| binary_sensor.`PANDORA_ID`_left_front_door | Левая передняя дверь | отрыта / закрыта |
-| binary_sensor.`PANDORA_ID`_right_front_door | Правая передняя дверь | отрыта / закрыта |
-| binary_sensor.`PANDORA_ID`_left_back_door | Левая задняя дверь | отрыта / закрыта |
-| binary_sensor.`PANDORA_ID`_right_back_door | Правая задняя дверь | отрыта / закрыта |
-| binary_sensor.`PANDORA_ID`_trunk | Багажник | отрыт / закрыт |
-| binary_sensor.`PANDORA_ID`_hood | Капот | отрыт / закрыт |
+  # В данном примере, для всех устройств в аккаунте будут включены только указанные
+  # объекты платформы `binary_sensor`:
+  binary_sensor: ['moving', 'left_front_door']
 
-## Команды
+  # В данном примере, устройства:
+  # - PANDORA_ID_1 будет обладать переключателями `engine`, `tracking` и `coolant_heater`
+  # - PANDORA_ID_2 будет обладать всеми переключателями
+  # - PANDORA_ID_3 не будет иметь переключателей
+  # - PANDORA_ID_4 (не указано ниже) будет обладать переключателями `active_protection` и `engine`,
+  #   так как данные переключатели установлены параметром `default` для устройств, не имеющих
+  #   конкретизированную конфигурацию платформы
+  switch:
+    default: ['active_protection', 'engine']
+    PANDORA_ID_1: ['engine', 'tracking', 'coolant_heater']
+    PANDORA_ID_2: True
+    PANDORA_ID_3: False
+```
 
-Для команд обязательно нужно указывать идентификатор `PANDORA_ID`. Система должна понять какой именно автомобиль должен выполнить команду, если их несколько.
+## Датчики / Переключатели / Состояния
 
-> Внимание! Через 10с после выполнения команды производится принудительное автоматическое обновление состояния автомобиля.
+Для привязки к автомобилю в имени объекта сенсоров используется идентификатор `PANDORA_ID`, в то время как в
+человеко-читаемом названии используется название автомобиля с сайта Pandora. Это сделано для того, чтобы при
+изменении названия автомобиля на сайте не менялись имена объектов, а значит не будет необходимости перенастраивать
+lovelace UI и автоматизации.
 
-| Команда | Действие | Примечание |
-|-|-|-|
-| pandora_cas.lock | Поставить под охрану |  |
-| pandora_cas.unlock | Снять с охраны | Может быть запрещено настройками блока сигнализации |
-| pandora_cas.start_engine | Запустить двигатель |  |
-| pandora_cas.stop_engine | Остановить двигатель |  |
-| pandora_cas.turn_on_ext_channel | Активировать доп. канал | См. [пример использования](https://www.drive2.ru/l/526540176697066100/) |
-| pandora_cas.turn_off_ext_channel | Деактивировать доп. канал |  |
+> **ВНИМАНИЕ!**  
+> При добавлении объектов, компонент в отдельных случаях проверяет поддержку функционала конечным устройством.
+> Во избежание неожиданных ситуаций,  Вы можете ознакомиться с таблицами поддержки на официальном сайте Pandora:
+> [ссылка на документ](https://alarmtrade.ru/service/sravnitelnye-tablitsy-sistem-pandora-i-pandect/).
+
+### Платформа `sensor`
+<a id="platform_sensor"/>
+
+| Объект | Вкл. | Назначение | Примечание |
+| ------ | ---- | ---------- | ---------- | 
+| sensor.`PANDORA_ID`_mileage | ✓ | Пробег | км |
+| sensor.`PANDORA_ID`_fuel | ✓ | Наполненность топливом <sup>1</sup> | % |
+| sensor.`PANDORA_ID`_interior_temperature | ✓ | Температура салона | °C |
+| sensor.`PANDORA_ID`_engine_temperature | ✓ | Температура двигателя | °C |
+| sensor.`PANDORA_ID`_exterior_temperature | ✓ | Уличная температура | °C |
+| sensor.`PANDORA_ID`_balance | ✓ | Баланс СИМ-карты <sup>2</sup> | ₽ |
+| sensor.`PANDORA_ID`_speed |   | Скорость | км/ч |
+| sensor.`PANDORA_ID`_tachometer |   | Тахометр (обороты двигателя) | rpm |
+| sensor.`PANDORA_ID`_gsm_level | ✓ | Уровень сигнала GSM| 0 ... 3 |
+| sensor.`PANDORA_ID`_battery_voltage | ✓ | Напряжение аккумулятора | В |
+
+<sup>1</sup> В грядущих релизах будет реализовано отображение топлива в литрах в качестве атрибутов данного датчика.  
+<sup>2</sup> Будет изменено на реальную валюту СИМ-карты  
+
+### Платформа `binary_sensor`
+<a id="platform_binary_sensor"/>
+
+| Объект | Вкл. | Назначение | Примечание |
+| ------ | ---- | ---------- | ---------- |
+| binary_sensor.`PANDORA_ID`_connection_state | ✓ | Связь с автомобилем | есть / нет |
+| binary_sensor.`PANDORA_ID`_moving  | | Статус движения | в движении / без движения |
+| binary_sensor.`PANDORA_ID`_left_front_door | ✓ | Левая передняя дверь | открыта / закрыта |
+| binary_sensor.`PANDORA_ID`_right_front_door | ✓ | Правая передняя дверь | открыта / закрыта |
+| binary_sensor.`PANDORA_ID`_left_back_door | ✓ | Левая задняя дверь | открыта / закрыта |
+| binary_sensor.`PANDORA_ID`_right_back_door | ✓ | Правая задняя дверь | открыта / закрыта |
+| binary_sensor.`PANDORA_ID`_trunk | ✓ | Багажник | открыт / закрыт |
+| binary_sensor.`PANDORA_ID`_hood | ✓ | Капот | открыт / закрыт |
+| binary_sensor.`PANDORA_ID`_parking  |   | Режим паркнинга | включен / выключен |
+| binary_sensor.`PANDORA_ID`_brakes  |   | Педаль тормоза | нажата / отпущена |
+
+### Платформы `lock` и `switch`
+<a id="platform_lock"/>
+<a id="platform_switch"/>
+
+> Внимание! Через 10с после изменения состояния переключателя производится принудительное автоматическое обновление 
+> состояния автомобиля. Данный функционал вскоре будет возможно отключить вручную.
+
+| Объект | Вкл. | Назначение | Примечание |
+| ------ | ---- | ---------- | ---------- |
+| lock.`PANDORA_ID`_central_lock | ✓ | Статус блокировки замка | разблокирован / заблокирован |
+| switch.`PANDORA_ID`_active_protection | ✓ | Статус активной защиты | включена / выключена |
+| switch.`PANDORA_ID`_coolant_heater | ✓ | Статус предпускового подогревателя | включен / выключен |
+| switch.`PANDORA_ID`_engine | ✓ | Статус двигателя | запущен / заглушен |
+| switch.`PANDORA_ID`_tracking | | Статус отслеживания (GPS-трек) | включен / выключен |
+| switch.`PANDORA_ID`_service_mode |   | Режим сервиса <sup>3</sup> | включить / выключить |
+| switch.`PANDORA_ID`_ext_channel |   | Дополнительный канал <sup>3</sup> | включить / выключить |
+
+<sup>3</sup> Состояние не остслеживается  
+
+### Платформа `device_tracker`
+<a id="platform_device_tracker"/>
+
+Для каждого автомобиля будет создан объект device_tracker.pandora_`PANDORA_ID`, где `PANDORA_ID` уникальный идентификатор автомобиля в системе Pandora. Доступны все обычные действия для Device Tracker: отслеживание местоположения [на карте](https://www.home-assistant.io/lovelace/map/), [треккинг пути](https://www.home-assistant.io/blog/2020/04/08/release-108/#lovelace-map-history), [контроль зон](https://www.home-assistant.io/docs/automation/trigger/#zone-trigger) и т.д.
+
+## Команды / Службы
+<a id="services_provided"/>
+
+Ключевые команд включения/выключения определённых функций вынесены в отдельные выключатели (`switch`). Если же
+требуется выполнить какую-либо из нижеупомянутых команд вручную, то возможно вызвать сервис со следующими
+параметрами:
+
+```yaml
+# Именованый способ вызова команд
+- action: call-service
+  service: pandora_cas.start_engine
+  service_data:
+    device_id: 1231234123
+
+# Универсальный способ вызова команд
+action: call-service
+service: pandora_cas.remote_command
+service_data:
+  device_id: 1234141243
+  command_id: 1
+```
+
+Для команд обязательно нужно указывать идентификатор `PANDORA_ID` (`device_id`), который можно выявить путём обзора
+атрибутов любой из добавленных сущностей.
+
+Для универсального способа идентификаторы команд (`command_id`) обязательно должны быть числовыми. Для справки, ниже
+представлена таблица выявленных команд:
+
+| ID      | Код | Действие | Примечание |
+| ------- | --- | -------- | ---------- |
+| **1**   | `lock` | Поставить на охрану | Может быть запрещено настройками блока сигнализации |
+| **2**   | `unlock` | Снять с охраны | Может быть запрещено настройками блока сигнализации |
+| **4**   | `start_engine` | Запустить двигатель | |
+| **8**   | `stop_engine` | Остановить двигатель | |
+| **16**  | `enable_tracking` | Включить GPS-трекинг | Поддерживается не всеми устройствами  |
+| **32**  | `disable_tracking` | Выключить GPS-трекинг | Поддерживается не всеми устройствами  |
+| **17**  | `enable_active_security` | Включить активную безопасность | Поддерживается не всеми устройствами |
+| **18**  | `disable_active_security` | Выключить активную безопасность | Поддерживается не всеми устройствами |
+| **21**  | `turn_on_coolant_heater` | Включить преднагреватель | Поддерживается не всеми устройствами |
+| **22**  | `turn_off_coolant_heater` | Выключить преднагреватель | Поддерживается не всеми устройствами |
+| **33**  | `turn_on_ext_channel` | Включить дополнительный канал | Поддерживается не всеми устройствами |
+| **34**  | `turn_off_ext_channel` | Выключить дополнительный канал | Поддерживается не всеми устройствами |
+| **40**  | `enable_service_mode` | Включить сервисный режим | |
+| **41**  | `disable_service_mode` | Выключить сервисный режим | |
+| **23**  | `trigger_horn` | Издать сигнал клаксона | |
+| **24**  | `trigger_light` | Включить освещение | |
+| **255** | `check` | Команда CHECK | ? |
+| **100** | `additional_command_1` | Дополнительная команда №1 | Настраивается инструментами конфигурации блока сигнализации |
+| **128** | `additional_command_2` | Дополнительная команда №2 | Настраивается инструментами конфигурации блока сигнализации |
+| **240** | `enable_connection` | Продлить период коммуникации | ? |
+| **15**  | `disable_connection` | Завершить период коммуникации | ? |
 
 ### Примеры использования команд
+<a id="service_examples"/>
 
 Вкладка с кнопкой запуска двигателя
 
