@@ -51,6 +51,7 @@ DATA_DEVICE_ENTITIES = DOMAIN + '_device_entities'
 CONF_POLLING_INTERVAL = 'polling_interval'
 CONF_READ_ONLY = 'read_only'
 CONF_USER_AGENT = 'user_agent'
+CONF_NAME_FORMAT = 'name_format'
 
 ATTR_DEVICE_ID = 'device_id'
 ATTR_COMMAND_ID = 'command_id'
@@ -63,6 +64,7 @@ ATTR_FEATURE = "feature"
 ATTR_ADDITIONAL_ATTRIBUTES = "additional_attributes"
 ATTR_DEFAULT = "default"
 
+DEFAULT_NAME_FORMAT = "{device_name} {type_name}"
 MIN_POLLING_INTERVAL = timedelta(seconds=10)
 DEFAULT_POLLING_INTERVAL = timedelta(minutes=1)
 DEFAULT_EXECUTION_DELAY = timedelta(seconds=15)
@@ -80,6 +82,7 @@ PANDORA_ACCOUNT_SCHEMA = vol.Schema({
     vol.Required(CONF_USERNAME): cv.string,
     vol.Required(CONF_PASSWORD): cv.string,
     vol.Optional(CONF_USER_AGENT): cv.string,
+    vol.Optional(CONF_NAME_FORMAT, default=DEFAULT_NAME_FORMAT): cv.string,
     vol.Optional(CONF_POLLING_INTERVAL, default=DEFAULT_POLLING_INTERVAL):
         vol.All(cv.time_period, vol.Clamp(min=MIN_POLLING_INTERVAL)),
 
@@ -419,9 +422,11 @@ async def async_platform_setup_entry(platform_id: str,
 
         # Apply filters
         if device_directive is None:
-            enabled_entity_types = [sensor_type
-                                      for sensor_type, sensor_config in entity_configs.items()
-                                      if sensor_config.get(ATTR_DEFAULT, False)]
+            enabled_entity_types = [
+                sensor_type
+                for sensor_type, sensor_config in entity_configs.items()
+                if sensor_config.get(ATTR_DEFAULT, False)
+            ]
             logger.debug('Using default objects for device "%s" during platform "%s" setup' % (device_id, platform_id))
         elif device_directive is True:
             enabled_entity_types = entity_configs.keys()
@@ -433,13 +438,18 @@ async def async_platform_setup_entry(platform_id: str,
             enabled_entity_types = entity_configs.keys() & device_directive
             logger.debug('Filtering device "%s" during platform "%s" setup' % (device_id, platform_id))
 
-        for sensor_type, sensor_config in entity_configs.items():
-            if ATTR_FEATURE in sensor_config and not sensor_config[ATTR_FEATURE] & device.features:
+        for entity_type, entity_config in entity_configs.items():
+            if ATTR_FEATURE in entity_config and not entity_config[ATTR_FEATURE] & device.features:
                 logger.debug('Entity "%s" disabled because end device "%s" does not support it'
-                             % (sensor_type, device_id))
+                             % (entity_type, device_id))
                 continue
 
-            new_entities.append(entity_class(device, sensor_type, sensor_type in enabled_entity_types))
+            new_entities.append(entity_class(
+                device=device,
+                entity_type=entity_type,
+                default_enable=entity_type in enabled_entity_types,
+                name_format=account_cfg.get(CONF_NAME_FORMAT, DEFAULT_NAME_FORMAT),
+            ))
 
     if new_entities:
         async_add_entities(new_entities, True)
@@ -451,12 +461,26 @@ async def async_platform_setup_entry(platform_id: str,
 
 
 class BasePandoraCASEntity(Entity):
-    def __init__(self, device: 'PandoraOnlineDevice', entity_type: str, default_enable: bool = True):
+    def __init__(self, device: 'PandoraOnlineDevice', entity_type: str, default_enable: bool = True,
+                 name_format: str = DEFAULT_NAME_FORMAT):
         self._device = device
         self._entity_type = entity_type
         self._default_enable = default_enable
+        self._name_format = name_format
 
         self._available = False
+
+    @property
+    def _entity_name_vars(self) -> Dict[str, str]:
+        """Return entity type name"""
+        return {'type': self._entity_type,
+                'device_name': self._device.name,
+                'device_id': self._device.device_id}
+
+    @property
+    def name(self) -> str:
+        """Return default device name."""
+        return self._name_format.format(**self._entity_name_vars)
 
     @property
     def available(self) -> bool:
@@ -492,6 +516,7 @@ class BasePandoraCASEntity(Entity):
 
     @property
     def device_info(self) -> Dict[str, Any]:
+        """Unified device info dictionary."""
         return {
             "identifiers": {
                 (DOMAIN, self._device.device_id),
@@ -519,8 +544,9 @@ class PandoraCASEntity(BasePandoraCASEntity):
     ENTITY_TYPES: Dict[str, Dict[str, Any]] = NotImplemented
     ENTITY_ID_FORMAT: str = NotImplemented
 
-    def __init__(self, device: 'PandoraOnlineDevice', entity_type: str, default_enable: bool = True):
-        super().__init__(device, entity_type, default_enable)
+    def __init__(self, device: 'PandoraOnlineDevice', entity_type: str, default_enable: bool = True,
+                 name_format: str = DEFAULT_NAME_FORMAT):
+        super().__init__(device, entity_type, default_enable, name_format)
 
         self._state = None
         self.entity_id = self.ENTITY_ID_FORMAT.format(slugify(str(device.device_id)) + '_' + slugify(entity_type))
@@ -572,18 +598,12 @@ class PandoraCASEntity(BasePandoraCASEntity):
                 _LOGGER.warning('Could not schedule updater for account "%s" after running command for device "%s"'
                                 % (username, device_object.device_id))
 
-    # Predefined properties for all entities
-
-    # @property
-    # def state(self) -> Any:
-    #     """Return current entity state."""
-    #     return self._state
-
     # Predefined properties from configuration set
     @property
-    def name(self) -> str:
-        """Return default device name."""
-        return self._device.name + ' ' + self._entity_config[ATTR_NAME]
+    def _entity_name_vars(self) -> Dict[str, str]:
+        """Return entity name variables"""
+        return {**super()._entity_name_vars,
+                'type_name': self._entity_config[ATTR_NAME]}
 
     @property
     def device_class(self) -> Optional[str]:

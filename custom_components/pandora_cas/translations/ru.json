@@ -1,0 +1,24 @@
+{
+    "config": {
+        "abort": {
+            "account_already_exists": "Аккаунт с таким именем пользователя уже добавлен"
+        },
+        "error": {
+            "invalid_credentials": "Неправильные имя пользователя и/или пароль",
+            "api_error": "Неизвестная ошибка API"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "username": "Имя пользователя",
+                    "password": "Пароль",
+                    "polling_interval": "Интервал опроса",
+                    "user_agent": "Заголовок User Agent (опционально)"
+                },
+                "title": "Авторизация Pandora",
+                "description": "Введите данные для входа в Вашу учётную запись Pandora Online."
+            }
+        },
+        "title": "Охранная система Pandora"
+    }
+}
