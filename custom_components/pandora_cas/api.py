@@ -403,12 +403,12 @@ class PandoraOnlineAccount:
 
         _timestamp = self._last_update if timestamp is None else timestamp
         async with session.get(self.BASE_URL + '/api/updates', params={'ts': _timestamp}) as response:
-            content: Dict[str, Any] = await response.json()
+            content: Dict[str, Any] = await self._handle_response(response)
 
         updated_device_ids = set()
 
         # Time updates
-        if content['time']:
+        if content.get('time'):
             for device_id, times_data in content['time'].items():
                 device_object = self.get_device(device_id)
                 if device_object:
@@ -420,7 +420,7 @@ class PandoraOnlineAccount:
                                     % (device_id,))
 
         # Stats updates
-        if content['stats']:
+        if content.get('stats'):
             for device_id, stats_data in content['stats'].items():
                 device_object = self.get_device(device_id)
                 if device_object:
