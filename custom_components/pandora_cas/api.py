@@ -656,7 +656,10 @@ class PandoraOnlineDevice:
     @property
     def status(self) -> BitStatus:
         if self._bit_status is None:
-            self._bit_status = BitStatus(self._stats['bit_state_1'])
+            status_value = self._stats.get('bit_state_1', 0)
+            if isinstance(status_value, str):
+                status_value = int(status_value)
+            self._bit_status = BitStatus(status_value)
         return self._bit_status
 
     @property
