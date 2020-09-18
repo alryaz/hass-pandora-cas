@@ -43,7 +43,7 @@ ENTITY_TYPES = {
     'coolant_heater': {
         ATTR_NAME: "Coolant Heater",
         ATTR_ICON: ("mdi:radiator-disabled", "mdi:radiator"),
-        ATTR_ATTRIBUTE: "status", ATTR_FLAG: BitStatus.COOLANT_HEATER,
+        ATTR_ATTRIBUTE: "status", ATTR_FLAG: BitStatus.BLOCK_HEATER_ACTIVE,
         ATTR_STATE_SENSITIVE: True,
         ATTR_COMMAND: (CommandID.TURN_OFF_COOLANT_HEATER, CommandID.TURN_ON_COOLANT_HEATER),
         ATTR_FEATURE: Features.COOLANT_HEATER,

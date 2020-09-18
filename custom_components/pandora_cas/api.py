@@ -114,37 +114,44 @@ class AlertType(IntEnum):
 
 class BitStatus(IntFlag):
     """Enumeration to decode `bit_status_1` state parameter."""
-    LOCKED = 1
-    ALARM = 2
-    ENGINE_RUNNING = 4
-    IGNITION = 8
-    # AUTOSTART_INIT = 16
-    HANDS_FREE_LOCKED = 32
-    HANDS_FREE_UNLOCKED = 64
-    GSM_ACTIVE = 128
-    GPS_ACTIVE = 256
-    TRACKING_ENABLED = 512
-    IMMOBILIZER_ENABLED = 1024
-    EXT_SENSOR_ALERT_ZONE = 2048
-    EXT_SENSOR_MAIN_ZONE = 4096
-    SENSOR_ALERT_ZONE = 8192
-    SENSOR_MAIN_ZONE = 16384
-    AUTOSTART = 32768
-    SMS = 65536
-    CALL = 131072
-    LIGHT = 262144
-    SOUND1 = 524288
-    SOUND2 = 1048576
-    DOOR_FRONT_LEFT_OPEN = 2097152
-    DOOR_FRONT_RIGHT_OPEN = 4194304
-    DOOR_BACK_LEFT_OPEN = 8388608
-    DOOR_BACK_RIGHT_OPEN = 16777216
-    TRUNK_OPEN = 33554432
-    HOOD_OPEN = 67108864
-    HANDBRAKE_ENGAGED = 134217728
-    BRAKES_ENGAGED = 268435456
-    COOLANT_HEATER = 536870912
-    ACTIVE_SECURITY = 1073741824
+    LOCKED = pow(2, 0)
+    ALARM = pow(2, 1)
+    ENGINE_RUNNING = pow(2, 2)
+    IGNITION = pow(2, 3)
+    AUTOSTART_ACTIVE = pow(2, 4)            # AutoStart function is currently active
+    HANDS_FREE_LOCKED = pow(2, 5)
+    HANDS_FREE_UNLOCKED = pow(2, 6)
+    GSM_ACTIVE = pow(2, 7)
+    GPS_ACTIVE = pow(2, 8)
+    TRACKING_ENABLED = pow(2, 9)
+    IMMOBILIZER_ENABLED = pow(2, 10)
+    EXT_SENSOR_ALERT_ZONE = pow(2, 11)
+    EXT_SENSOR_MAIN_ZONE = pow(2, 12)
+    SENSOR_ALERT_ZONE = pow(2, 13)
+    SENSOR_MAIN_ZONE = pow(2, 14)
+    AUTOSTART_ENABLED = pow(2, 15)          # AutoStart function is available
+    INCOMING_SMS_ENABLED = pow(2, 16)       # Incoming SMS messages are allowed
+    INCOMING_CALLS_ENABLED = pow(2, 17)     # Incoming calls are allowed
+    EXTERIOR_LIGHTS_ACTIVE = pow(2, 18)     # Any exterior lights are active
+    SIREN_WARNINGS_ENABLED = pow(2, 19)     # Siren warning signals disabled
+    SIREN_SOUND_ENABLED = pow(2, 20)        # All siren signals disabled
+    DOOR_FRONT_LEFT_OPEN = pow(2, 21)       # Door open: front left
+    DOOR_FRONT_RIGHT_OPEN = pow(2, 22)      # Door open: front right
+    DOOR_BACK_LEFT_OPEN = pow(2, 23)        # Door open: back left
+    DOOR_BACK_RIGHT_OPEN = pow(2, 24)       # Door open: back right
+    TRUNK_OPEN = pow(2, 25)                 # Trunk open
+    HOOD_OPEN = pow(2, 26)                  # Hood open
+    HANDBRAKE_ENGAGED = pow(2, 27)          # Handbrake is engaged
+    BRAKES_ENGAGED = pow(2, 28)             # Any brake system is engaged #@TODO: description might be invalid
+    BLOCK_HEATER_ACTIVE = pow(2, 29)        # Pre-start heater active
+    ACTIVE_SECURITY = pow(2, 30)            # Active security active
+    BLOCK_HEATER_ENABLED = pow(2, 31)       # Pre-start heater function is available
+    # ... = pow(2, 32) # ?
+    EVACUATION_MODE_ACTIVE = pow(2, 33)     # Evacuation mode active
+    SERVICE_MODE_ACTIVE = pow(2, 34)        # Service mode active
+    STAY_HOME_ACTIVE = pow(2, 35)           # Stay home mode active
+    # (...) = (pow(2, 36), ..., pow(2, 60) # ?
+    SECURITY_TAG_ENFORCED = pow(2, 61)      # Enforce security tags
 
 
 class Features(Flag):
@@ -188,11 +195,8 @@ class Features(Flag):
                           'sensors': cls.SENSORS,
                           'tracking': cls.TRACKING,
                           'trunk': cls.TRUNK_TRIGGER}.items():
-            if features_dict.get(key):
-                if result is None:
-                    result = flag
-                else:
-                    result |= flag
+            if key in features_dict:
+                result = flag if result is None else result | flag
 
         return result
 
@@ -358,7 +362,8 @@ class PandoraOnlineAccount:
 
         self._devices = new_devices_list
 
-    async def async_remote_alive(self, click_count: Optional[int] = None, session: Optional[aiohttp.ClientSession] = None):
+    async def async_remote_alive(self, click_count: Optional[int] = None,
+                                 session: Optional[aiohttp.ClientSession] = None):
         if session is None:
             async with self._init_async_remote_session() as session:
                 return await self.async_remote_alive(session=session)
