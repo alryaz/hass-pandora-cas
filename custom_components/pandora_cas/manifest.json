@@ -1,7 +1,7 @@
 {
   "domain": "pandora_cas",
   "name": "Pandora Car Alarm System",
-  "version": "2021.6.0",
+  "version": "0.0.4",
   "documentation": "https://github.com/alryaz/pandora-cas",
   "issue_tracker": "https://github.com/alryaz/pandora-cas/issues",
   "dependencies": [],
