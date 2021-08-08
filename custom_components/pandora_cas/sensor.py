@@ -12,7 +12,6 @@ from homeassistant.const import (
     ATTR_NAME,
     ATTR_ICON,
     ATTR_UNIT_OF_MEASUREMENT,
-    VOLT,
     SPEED_KILOMETERS_PER_HOUR,
 )
 
@@ -25,6 +24,11 @@ from . import (
     PandoraCASEntity,
     async_platform_setup_entry
 )
+
+try:
+    from homeassistant.const import VOLT as ELECTRIC_POTENTIAL_VOLT
+except ImportError:
+    from homeassistant.const import ELECTRIC_POTENTIAL_VOLT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -86,7 +90,7 @@ ENTITY_TYPES = {
     },
     'battery_voltage': {
         ATTR_NAME: "Battery voltage",
-        ATTR_ICON: 'mdi:car-battery', ATTR_UNIT_OF_MEASUREMENT: VOLT,
+        ATTR_ICON: 'mdi:car-battery', ATTR_UNIT_OF_MEASUREMENT: ELECTRIC_POTENTIAL_VOLT,
         ATTR_ATTRIBUTE: 'battery_voltage', ATTR_STATE_SENSITIVE: True,
         ATTR_DEFAULT: True,
     },
