@@ -8,19 +8,20 @@ import logging
 from typing import Optional, Dict, Any
 
 from homeassistant import config_entries
-from homeassistant.components.device_tracker import SOURCE_TYPE_GPS, DOMAIN as PLATFORM_DOMAIN
+from homeassistant.components.device_tracker import (
+    SOURCE_TYPE_GPS,
+    DOMAIN as PLATFORM_DOMAIN,
+)
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_USERNAME, ATTR_VOLTAGE
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import (
-    DOMAIN as PANDORA_DOMAIN,
-    DATA_CONFIG, ATTR_DEFAULT, BasePandoraCASEntity
-)
+from . import DOMAIN as PANDORA_DOMAIN, DATA_CONFIG, ATTR_DEFAULT, BasePandoraCASEntity
 from .api import PandoraOnlineAccount, PandoraOnlineDevice
 
 _LOGGER = logging.getLogger(__name__)
+
 
 ATTR_GSM_LEVEL = "gsm_level"
 ATTR_DIRECTION = "direction"
@@ -29,7 +30,9 @@ ATTR_CARDINAL = "cardinal"
 DEFAULT_ADD_DEVICE_TRACKER = True
 
 
-async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry, async_add_devices):
+async def async_setup_entry(
+    hass: HomeAssistantType, config_entry: ConfigEntry, async_add_devices
+):
     account_cfg = config_entry.data
     username = account_cfg[CONF_USERNAME]
 
@@ -53,17 +56,30 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry, 
                 device_directive = platform_directive.get(ATTR_DEFAULT)
 
         # Barrier disabled device trackers
-        if device_directive is False or (device_directive is None and not DEFAULT_ADD_DEVICE_TRACKER):
-            _LOGGER.debug('Skipping device "%s" during platform "%s" setup' % (device.device_id, PLATFORM_DOMAIN))
+        if device_directive is False or (
+            device_directive is None and not DEFAULT_ADD_DEVICE_TRACKER
+        ):
+            _LOGGER.debug(
+                'Skipping device "%s" during platform "%s" setup'
+                % (device.device_id, PLATFORM_DOMAIN)
+            )
             continue
 
         # Add device tracker
-        _LOGGER.debug('Adding "%s" object to device "%s"' % (PLATFORM_DOMAIN, device.device_id))
+        _LOGGER.debug(
+            'Adding "%s" object to device "%s"' % (PLATFORM_DOMAIN, device.device_id)
+        )
         new_devices.append(PandoraCASTracker(device))
 
     if new_devices:
         async_add_devices(new_devices, True)
-        _LOGGER.debug('Added device trackers for account "%s": %s' % (username, new_devices,))
+        _LOGGER.debug(
+            'Added device trackers for account "%s": %s'
+            % (
+                username,
+                new_devices,
+            )
+        )
     else:
         _LOGGER.debug('Did not add any device trackers for account "%s"' % (username,))
 
@@ -72,8 +88,9 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry, 
 
 class PandoraCASTracker(BasePandoraCASEntity, TrackerEntity):
     """Pandora Car Alarm System location tracker."""
+
     def __init__(self, device: PandoraOnlineDevice):
-        super().__init__(device, 'location_tracker')
+        super().__init__(device, "location_tracker")
 
         self._latitude = None
         self._longitude = None
@@ -82,7 +99,11 @@ class PandoraCASTracker(BasePandoraCASEntity, TrackerEntity):
         self._direction_degrees = None
         self._direction_cardinal = None
 
-        self.entity_id = '%s.%s_%d' % (PLATFORM_DOMAIN, '.pandora_', self._device.device_id)
+        self.entity_id = "%s.%s_%d" % (
+            PLATFORM_DOMAIN,
+            ".pandora_",
+            self._device.device_id,
+        )
 
     async def async_update(self):
         """Simplistic update of the device tracker."""
@@ -114,7 +135,7 @@ class PandoraCASTracker(BasePandoraCASEntity, TrackerEntity):
     @property
     def icon(self) -> str:
         """Use vehicle icon by default."""
-        return 'mdi:car'
+        return "mdi:car"
 
     @property
     def latitude(self) -> Optional[float]:

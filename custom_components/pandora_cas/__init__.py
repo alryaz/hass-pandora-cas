@@ -1,16 +1,17 @@
 """Initialization script for Pandora Car Alarm System component."""
 
 __all__ = [
-    'async_setup',
-    'async_setup_entry',
-    'async_unload_entry',
-    'async_platform_setup_entry',
-    'BasePandoraCASEntity',
-    'PandoraCASEntity',
-    'PandoraCASBooleanEntity',
-    'CONFIG_SCHEMA',
-    'SERVICE_REMOTE_COMMAND',
+    "async_setup",
+    "async_setup_entry",
+    "async_unload_entry",
+    "async_platform_setup_entry",
+    "BasePandoraCASEntity",
+    "PandoraCASEntity",
+    "PandoraCASBooleanEntity",
+    "CONFIG_SCHEMA",
+    "SERVICE_REMOTE_COMMAND",
 ]
+
 
 import asyncio
 import logging
@@ -22,12 +23,22 @@ import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (CONF_USERNAME, CONF_PASSWORD, ATTR_NAME, ATTR_DEVICE_CLASS, ATTR_ICON,
-                                 ATTR_UNIT_OF_MEASUREMENT, ATTR_COMMAND)
+from homeassistant.const import (
+    CONF_USERNAME,
+    CONF_PASSWORD,
+    ATTR_NAME,
+    ATTR_DEVICE_CLASS,
+    ATTR_ICON,
+    ATTR_UNIT_OF_MEASUREMENT,
+    ATTR_COMMAND,
+)
 from homeassistant.core import ServiceCall, callback
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.entity import Entity
-from homeassistant.helpers.event import async_track_time_interval, async_track_point_in_time
+from homeassistant.helpers.event import (
+    async_track_time_interval,
+    async_track_point_in_time,
+)
 from homeassistant.helpers.typing import HomeAssistantType, ConfigType
 from homeassistant.loader import bind_hass
 from homeassistant.util import slugify, utcnow
@@ -38,24 +49,24 @@ from .api import (
     PandoraOnlineException,
     AuthenticationException,
     CommandID,
-    DEFAULT_USER_AGENT
+    DEFAULT_USER_AGENT,
 )
 
-DOMAIN = 'pandora_cas'
-PANDORA_COMPONENTS = ['binary_sensor', 'sensor', 'switch', 'lock', 'device_tracker']
+DOMAIN = "pandora_cas"
+PANDORA_COMPONENTS = ["binary_sensor", "sensor", "switch", "lock", "device_tracker"]
 
-DATA_CONFIG = DOMAIN + '_config'
-DATA_UPDATERS = DOMAIN + '_updaters'
-DATA_DEVICE_ENTITIES = DOMAIN + '_device_entities'
+DATA_CONFIG = DOMAIN + "_config"
+DATA_UPDATERS = DOMAIN + "_updaters"
+DATA_DEVICE_ENTITIES = DOMAIN + "_device_entities"
 DATA_UPDATE_LISTENERS = DOMAIN + "_update_listeners"
 
-CONF_POLLING_INTERVAL = 'polling_interval'
-CONF_READ_ONLY = 'read_only'
-CONF_USER_AGENT = 'user_agent'
-CONF_NAME_FORMAT = 'name_format'
+CONF_POLLING_INTERVAL = "polling_interval"
+CONF_READ_ONLY = "read_only"
+CONF_USER_AGENT = "user_agent"
+CONF_NAME_FORMAT = "name_format"
 
-ATTR_DEVICE_ID = 'device_id'
-ATTR_COMMAND_ID = 'command_id'
+ATTR_DEVICE_ID = "device_id"
+ATTR_COMMAND_ID = "command_id"
 ATTR_ATTRIBUTE = "attribute"
 ATTR_FLAG = "flag"
 ATTR_STATE_SENSITIVE = "state_sensitive"
@@ -76,56 +87,68 @@ _PLATFORM_OPTION_SCHEMA = vol.Any(cv.boolean, vol.All(cv.ensure_list, [cv.string
 _DEVICE_INDEX_SCHEMA = vol.Any(vol.Equal(ATTR_DEFAULT), cv.string)
 _PLATFORM_CONFIG_SCHEMA = vol.Any(
     vol.All(_PLATFORM_OPTION_SCHEMA, lambda x: {ATTR_DEFAULT: x}),
-    {_DEVICE_INDEX_SCHEMA: _PLATFORM_OPTION_SCHEMA}
+    {_DEVICE_INDEX_SCHEMA: _PLATFORM_OPTION_SCHEMA},
 )
 
-PANDORA_ACCOUNT_SCHEMA = vol.Schema({
-    vol.Required(CONF_USERNAME): cv.string,
-    vol.Required(CONF_PASSWORD): cv.string,
-    vol.Optional(CONF_USER_AGENT): cv.string,
-    vol.Optional(CONF_NAME_FORMAT, default=DEFAULT_NAME_FORMAT): cv.string,
-    vol.Optional(CONF_POLLING_INTERVAL, default=DEFAULT_POLLING_INTERVAL):
-        vol.All(cv.time_period, vol.Clamp(min=MIN_POLLING_INTERVAL)),
+PANDORA_ACCOUNT_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_USERNAME): cv.string,
+        vol.Required(CONF_PASSWORD): cv.string,
+        vol.Optional(CONF_USER_AGENT): cv.string,
+        vol.Optional(CONF_NAME_FORMAT, default=DEFAULT_NAME_FORMAT): cv.string,
+        vol.Optional(CONF_POLLING_INTERVAL, default=DEFAULT_POLLING_INTERVAL): vol.All(
+            cv.time_period, vol.Clamp(min=MIN_POLLING_INTERVAL)
+        ),
+        # Exemption: device_tracker (hardwired single entity in this context)
+        vol.Optional("device_tracker"): vol.Any(
+            vol.All(cv.boolean, lambda x: {ATTR_DEFAULT: x}),
+            {_DEVICE_INDEX_SCHEMA: cv.boolean},
+        ),
+    }
+).extend(
+    {
+        vol.Optional(platform_id): _PLATFORM_CONFIG_SCHEMA
+        for platform_id in PANDORA_COMPONENTS
+        if platform_id != "device_tracker"
+    }
+)
 
-    # Exemption: device_tracker (hardwired single entity in this context)
-    vol.Optional('device_tracker'): vol.Any(
-        vol.All(cv.boolean, lambda x: {ATTR_DEFAULT: x}),
-        {_DEVICE_INDEX_SCHEMA: cv.boolean}
-    )
-}).extend({
-    vol.Optional(platform_id): _PLATFORM_CONFIG_SCHEMA
-    for platform_id in PANDORA_COMPONENTS
-    if platform_id != 'device_tracker'
-})
 
+CONFIG_SCHEMA = vol.Schema(
+    {
+        DOMAIN: vol.All(cv.ensure_list, [PANDORA_ACCOUNT_SCHEMA]),
+    },
+    extra=vol.ALLOW_EXTRA,
+)
 
-CONFIG_SCHEMA = vol.Schema({
-    DOMAIN: vol.All(
-        cv.ensure_list,
-        [PANDORA_ACCOUNT_SCHEMA]
-    ),
-}, extra=vol.ALLOW_EXTRA)
+SERVICE_REMOTE_COMMAND_PREDEFINED_SCHEMA = vol.Schema(
+    {
+        vol.Required(ATTR_DEVICE_ID): cv.string,
+    }
+)
 
-SERVICE_REMOTE_COMMAND_PREDEFINED_SCHEMA = vol.Schema({
-    vol.Required(ATTR_DEVICE_ID): cv.string,
-})
+SERVICE_REMOTE_COMMAND = "remote_command"
+SERVICE_REMOTE_COMMAND_SCHEMA = SERVICE_REMOTE_COMMAND_PREDEFINED_SCHEMA.extend(
+    {
+        vol.Required(ATTR_COMMAND_ID): vol.Coerce(int),
+    }
+)
 
-SERVICE_REMOTE_COMMAND = 'remote_command'
-SERVICE_REMOTE_COMMAND_SCHEMA = SERVICE_REMOTE_COMMAND_PREDEFINED_SCHEMA.extend({
-    vol.Required(ATTR_COMMAND_ID): vol.Coerce(int),
-})
-
-SERVICE_UPDATE_STATE = 'update_state'
-_identifier_group = 'identifier_group'
-UPDATE_SERVICE_SCHEMA = vol.Schema({
-    vol.Exclusive(ATTR_DEVICE_ID, _identifier_group): cv.string,
-    vol.Exclusive(CONF_USERNAME, _identifier_group): cv.string,
-})
+SERVICE_UPDATE_STATE = "update_state"
+_identifier_group = "identifier_group"
+UPDATE_SERVICE_SCHEMA = vol.Schema(
+    {
+        vol.Exclusive(ATTR_DEVICE_ID, _identifier_group): cv.string,
+        vol.Exclusive(CONF_USERNAME, _identifier_group): cv.string,
+    }
+)
 
 
 @callback
 @bind_hass
-def _find_existing_entry(hass: HomeAssistantType, username: str) -> Optional[config_entries.ConfigEntry]:
+def _find_existing_entry(
+    hass: HomeAssistantType, username: str
+) -> Optional[config_entries.ConfigEntry]:
     existing_entries = hass.config_entries.async_entries(DOMAIN)
     for config_entry in existing_entries:
         if config_entry.data[CONF_USERNAME] == username:
@@ -134,8 +157,12 @@ def _find_existing_entry(hass: HomeAssistantType, username: str) -> Optional[con
 
 @bind_hass
 async def _async_register_services(hass: HomeAssistantType) -> None:
-    async def _execute_remote_command(call: 'ServiceCall', command_id: Optional[Union[int, CommandID]] = None) -> bool:
-        _LOGGER.debug('Called service "%s" with data: %s' % (call.service, dict(call.data)))
+    async def _execute_remote_command(
+        call: "ServiceCall", command_id: Optional[Union[int, CommandID]] = None
+    ) -> bool:
+        _LOGGER.debug(
+            'Called service "%s" with data: %s' % (call.service, dict(call.data))
+        )
         device_id = call.data[ATTR_DEVICE_ID]
         for username, account in hass.data[DOMAIN].items():
             account: PandoraOnlineAccount
@@ -144,7 +171,9 @@ async def _async_register_services(hass: HomeAssistantType) -> None:
                 if command_id is None:
                     command_id = call.data[ATTR_COMMAND_ID]
 
-                result = device_object.async_remote_command(command_id, ensure_complete=False)
+                result = device_object.async_remote_command(
+                    command_id, ensure_complete=False
+                )
                 if asyncio.iscoroutine(result):
                     await result
 
@@ -155,14 +184,20 @@ async def _async_register_services(hass: HomeAssistantType) -> None:
     # register the remote services
     _register_service = hass.services.async_register
 
-    _register_service(DOMAIN, SERVICE_REMOTE_COMMAND,
-                      _execute_remote_command,
-                      schema=SERVICE_REMOTE_COMMAND_SCHEMA)
+    _register_service(
+        DOMAIN,
+        SERVICE_REMOTE_COMMAND,
+        _execute_remote_command,
+        schema=SERVICE_REMOTE_COMMAND_SCHEMA,
+    )
 
     for key, value in CommandID.__members__.items():
-        _register_service(DOMAIN, slugify(key.lower()),
-                          partial(_execute_remote_command, command_id=value.value),
-                          schema=SERVICE_REMOTE_COMMAND_SCHEMA)
+        _register_service(
+            DOMAIN,
+            slugify(key.lower()),
+            partial(_execute_remote_command, command_id=value.value),
+            schema=SERVICE_REMOTE_COMMAND_SCHEMA,
+        )
 
 
 async def async_setup(hass: HomeAssistantType, config: ConfigType) -> bool:
@@ -197,13 +232,21 @@ async def async_setup(hass: HomeAssistantType, config: ConfigType) -> bool:
             if existing_entry:
                 if existing_entry.source == config_entries.SOURCE_IMPORT:
                     data_config[username] = account_cfg
-                    _LOGGER.debug('Skipping existing import binding for account "%s"' % log_suffix)
+                    _LOGGER.debug(
+                        'Skipping existing import binding for account "%s"' % log_suffix
+                    )
                 else:
-                    _LOGGER.warning('YAML config for account "%s" is overridden by another config entry!' % log_suffix)
+                    _LOGGER.warning(
+                        'YAML config for account "%s" is overridden by another config entry!'
+                        % log_suffix
+                    )
                 continue
 
             if username in data_config:
-                _LOGGER.warning('Account "%s" set up multiple times. Check your configuration.' % log_suffix)
+                _LOGGER.warning(
+                    'Account "%s" set up multiple times. Check your configuration.'
+                    % log_suffix
+                )
                 continue
 
             _LOGGER.debug('Adding account "%s" entry' % log_suffix)
@@ -225,12 +268,17 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
     pandora_cfg = config_entry.data
     username = pandora_cfg[CONF_USERNAME]
 
-    _LOGGER.debug('Setting up entry "%s" for account "%s"' % (config_entry.entry_id, username))
+    _LOGGER.debug(
+        'Setting up entry "%s" for account "%s"' % (config_entry.entry_id, username)
+    )
 
     if config_entry.source == config_entries.SOURCE_IMPORT:
         pandora_cfg = hass.data[DATA_CONFIG].get(username)
         if not pandora_cfg:
-            _LOGGER.info('Removing entry %s after removal from YAML configuration.' % config_entry.entry_id)
+            _LOGGER.info(
+                "Removing entry %s after removal from YAML configuration."
+                % config_entry.entry_id
+            )
             hass.async_create_task(
                 hass.config_entries.async_remove(config_entry.entry_id)
             )
@@ -241,8 +289,9 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
 
     # create account object
     account = PandoraOnlineAccount(
-        username, pandora_cfg[CONF_PASSWORD],
-        user_agent=pandora_cfg.get(CONF_USER_AGENT, DEFAULT_USER_AGENT)
+        username,
+        pandora_cfg[CONF_PASSWORD],
+        user_agent=pandora_cfg.get(CONF_USER_AGENT, DEFAULT_USER_AGENT),
     )
 
     async def _authenticate():
@@ -284,16 +333,22 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
         for device_id in updated_device_ids:
 
             # Schedule entity updates for related entities
-            device_entities: Optional[List[PandoraCASEntity]] = hass.data[DATA_DEVICE_ENTITIES].get(device_id)
+            device_entities: Optional[List[PandoraCASEntity]] = hass.data[
+                DATA_DEVICE_ENTITIES
+            ].get(device_id)
             if device_entities is None:
-                _LOGGER.debug('Received update for device "%s" without registration'
-                              % (device_id,))
+                _LOGGER.debug(
+                    'Received update for device "%s" without registration'
+                    % (device_id,)
+                )
                 continue
 
             elif not device_entities:
                 # Do not iterate when there are no entities
-                _LOGGER.debug('Received update for device with ID "%s" with no entities'
-                              % (device_id,))
+                _LOGGER.debug(
+                    'Received update for device with ID "%s" with no entities'
+                    % (device_id,)
+                )
                 continue
 
             _updated_entity_ids = list()
@@ -302,8 +357,10 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
                     _updated_entity_ids.append(entity.entity_id)
                     entity.async_schedule_update_ha_state(force_refresh=True)
 
-            _LOGGER.debug('Scheduling update for device with ID "%s" for entities: %s'
-                          % (device_id, ', '.join(_updated_entity_ids)))
+            _LOGGER.debug(
+                'Scheduling update for device with ID "%s" for entities: %s'
+                % (device_id, ", ".join(_updated_entity_ids))
+            )
 
     async def _start_updater(delay: Union[float, int, timedelta] = 0):
         if not isinstance(delay, timedelta):
@@ -314,13 +371,24 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
         if delay.total_seconds():
             # Schedule updater to start with a `start_after` delay
             call_at = utcnow() + delay
-            _LOGGER.debug('Scheduling updater for account "%s" at %s' % (username, call_at,))
+            _LOGGER.debug(
+                'Scheduling updater for account "%s" at %s'
+                % (
+                    username,
+                    call_at,
+                )
+            )
 
             def _internal_start_updater(*_):
-                _LOGGER.debug('Executing scheduled updater initialization for account "%s"' % (username,))
+                _LOGGER.debug(
+                    'Executing scheduled updater initialization for account "%s"'
+                    % (username,)
+                )
                 hass.async_run_job(_start_updater)
 
-            _cancel_updater = async_track_point_in_time(hass, _internal_start_updater, call_at)
+            _cancel_updater = async_track_point_in_time(
+                hass, _internal_start_updater, call_at
+            )
 
         else:
             try:
@@ -328,13 +396,13 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
                 await _account_changes_updater()
 
             except PandoraOnlineException:
-                _LOGGER.exception('Error occurred while running updater:')
+                _LOGGER.exception("Error occurred while running updater:")
 
             # Schedule updater to run with configured polling interval
             _cancel_updater = async_track_time_interval(
                 hass=hass,
                 action=_account_changes_updater,
-                interval=pandora_cfg[CONF_POLLING_INTERVAL]
+                interval=pandora_cfg[CONF_POLLING_INTERVAL],
             )
 
         if username in hass.data[DATA_UPDATERS]:
@@ -349,26 +417,29 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
     # forward sub-entity setup
     for entity_domain in PANDORA_COMPONENTS:
         hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(
-                config_entry,
-                entity_domain
-            )
+            hass.config_entries.async_forward_entry_setup(config_entry, entity_domain)
         )
 
     # Create options update listener
     update_listener = config_entry.add_update_listener(async_reload_entry)
-    hass.data.setdefault(DATA_UPDATE_LISTENERS, {})[config_entry.entry_id] = update_listener
+    hass.data.setdefault(DATA_UPDATE_LISTENERS, {})[
+        config_entry.entry_id
+    ] = update_listener
 
     return True
 
 
-async def async_reload_entry(hass: HomeAssistantType, config_entry: ConfigEntry) -> None:
+async def async_reload_entry(
+    hass: HomeAssistantType, config_entry: ConfigEntry
+) -> None:
     """Reload Lkcomu InterRAO entry"""
     _LOGGER.info("Reloading configuration entry")
     await hass.config_entries.async_reload(config_entry.entry_id)
 
 
-async def async_unload_entry(hass: HomeAssistantType, config_entry: ConfigEntry) -> bool:
+async def async_unload_entry(
+    hass: HomeAssistantType, config_entry: ConfigEntry
+) -> bool:
     """Unload configuration entry."""
     username = config_entry.data[CONF_USERNAME]
 
@@ -380,31 +451,40 @@ async def async_unload_entry(hass: HomeAssistantType, config_entry: ConfigEntry)
         hass.data[DOMAIN].pop(username)
 
     # Wait for platforms to unload
-    await asyncio.wait([
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_unload(
-                config_entry,
-                platform_id
-            ),
-        )
-        for platform_id in PANDORA_COMPONENTS
-    ], return_when=asyncio.ALL_COMPLETED)
+    await asyncio.wait(
+        [
+            hass.async_create_task(
+                hass.config_entries.async_forward_entry_unload(
+                    config_entry, platform_id
+                ),
+            )
+            for platform_id in PANDORA_COMPONENTS
+        ],
+        return_when=asyncio.ALL_COMPLETED,
+    )
 
-    update_listener = hass.data.get(DATA_UPDATE_LISTENERS, {}).pop(config_entry.entry_id, None)
+    update_listener = hass.data.get(DATA_UPDATE_LISTENERS, {}).pop(
+        config_entry.entry_id, None
+    )
     if callable(update_listener):
         update_listener()
 
     return True
 
 
-async def async_platform_setup_entry(platform_id: str,
-                                     entity_class: Type['PandoraCASEntity'],
-                                     hass: HomeAssistantType,
-                                     config_entry: ConfigEntry,
-                                     async_add_entities,
-                                     logger: logging.Logger = _LOGGER):
+async def async_platform_setup_entry(
+    platform_id: str,
+    entity_class: Type["PandoraCASEntity"],
+    hass: HomeAssistantType,
+    config_entry: ConfigEntry,
+    async_add_entities,
+    logger: logging.Logger = _LOGGER,
+):
     """Generic platform setup function"""
-    logger.debug('Setting up platform "%s" with entity class "%s"' % (platform_id, entity_class.__name__))
+    logger.debug(
+        'Setting up platform "%s" with entity class "%s"'
+        % (platform_id, entity_class.__name__)
+    )
 
     account_cfg = config_entry.data
     username = account_cfg[CONF_USERNAME]
@@ -420,7 +500,9 @@ async def async_platform_setup_entry(platform_id: str,
     for device in account_object.devices:
         device_id = device.device_id
 
-        logger.debug('Setting up device "%s" for platform "%s"' % (device_id, platform_id))
+        logger.debug(
+            'Setting up device "%s" for platform "%s"' % (device_id, platform_id)
+        )
 
         entity_configs = entity_class.ENTITY_TYPES
 
@@ -445,42 +527,71 @@ async def async_platform_setup_entry(platform_id: str,
                 for sensor_type, sensor_config in entity_configs.items()
                 if sensor_config.get(ATTR_DEFAULT, False)
             ]
-            logger.debug('Using default objects for device "%s" during platform "%s" setup' % (device_id, platform_id))
+            logger.debug(
+                'Using default objects for device "%s" during platform "%s" setup'
+                % (device_id, platform_id)
+            )
         elif device_directive is True:
             enabled_entity_types = entity_configs.keys()
-            logger.debug('Adding all objects to device "%s" during platform "%s" setup' % (device_id, platform_id))
+            logger.debug(
+                'Adding all objects to device "%s" during platform "%s" setup'
+                % (device_id, platform_id)
+            )
         elif device_directive is False:
-            logger.debug('Skipping device "%s" during platform "%s" setup' % (device_id, platform_id))
+            logger.debug(
+                'Skipping device "%s" during platform "%s" setup'
+                % (device_id, platform_id)
+            )
             continue
         else:
             enabled_entity_types = entity_configs.keys() & device_directive
-            logger.debug('Filtering device "%s" during platform "%s" setup' % (device_id, platform_id))
+            logger.debug(
+                'Filtering device "%s" during platform "%s" setup'
+                % (device_id, platform_id)
+            )
 
         for entity_type, entity_config in entity_configs.items():
-            if ATTR_FEATURE in entity_config and not entity_config[ATTR_FEATURE] & device.features:
-                logger.debug('Entity "%s" disabled because end device "%s" does not support it'
-                             % (entity_type, device_id))
+            if (
+                ATTR_FEATURE in entity_config
+                and not entity_config[ATTR_FEATURE] & device.features
+            ):
+                logger.debug(
+                    'Entity "%s" disabled because end device "%s" does not support it'
+                    % (entity_type, device_id)
+                )
                 continue
 
-            new_entities.append(entity_class(
-                device=device,
-                entity_type=entity_type,
-                default_enable=entity_type in enabled_entity_types,
-                name_format=account_cfg.get(CONF_NAME_FORMAT, DEFAULT_NAME_FORMAT),
-            ))
+            new_entities.append(
+                entity_class(
+                    device=device,
+                    entity_type=entity_type,
+                    default_enable=entity_type in enabled_entity_types,
+                    name_format=account_cfg.get(CONF_NAME_FORMAT, DEFAULT_NAME_FORMAT),
+                )
+            )
 
     if new_entities:
         async_add_entities(new_entities, True)
-        logger.debug('Added new "%s" entities for account "%s": %s' % (platform_id, username, new_entities))
+        logger.debug(
+            'Added new "%s" entities for account "%s": %s'
+            % (platform_id, username, new_entities)
+        )
     else:
-        logger.debug('Did not add new "%s" entities for account "%s"' % (platform_id, username))
+        logger.debug(
+            'Did not add new "%s" entities for account "%s"' % (platform_id, username)
+        )
 
     return True
 
 
 class BasePandoraCASEntity(Entity):
-    def __init__(self, device: 'PandoraOnlineDevice', entity_type: str, default_enable: bool = True,
-                 name_format: str = DEFAULT_NAME_FORMAT):
+    def __init__(
+        self,
+        device: "PandoraOnlineDevice",
+        entity_type: str,
+        default_enable: bool = True,
+        name_format: str = DEFAULT_NAME_FORMAT,
+    ):
         self._device = device
         self._entity_type = entity_type
         self._default_enable = default_enable
@@ -491,9 +602,11 @@ class BasePandoraCASEntity(Entity):
     @property
     def _entity_name_vars(self) -> Dict[str, str]:
         """Return entity type name"""
-        return {'type': self._entity_type,
-                'device_name': self._device.name,
-                'device_id': self._device.device_id}
+        return {
+            "type": self._entity_type,
+            "device_name": self._device.name,
+            "device_id": self._device.device_id,
+        }
 
     @property
     def name(self) -> str:
@@ -508,7 +621,7 @@ class BasePandoraCASEntity(Entity):
     @property
     def unique_id(self) -> str:
         """Return unique ID based on entity type."""
-        return '%s_%s_%s' % (DOMAIN, self._device.device_id, self._entity_type)
+        return "%s_%s_%s" % (DOMAIN, self._device.device_id, self._entity_type)
 
     @property
     def should_poll(self) -> bool:
@@ -518,16 +631,18 @@ class BasePandoraCASEntity(Entity):
     async def async_added_to_hass(self):
         """Add entity to update scheduling."""
         device_id = self._device.device_id
-        entities: List['BasePandoraCASEntity'] = \
-            self.hass.data[DATA_DEVICE_ENTITIES].setdefault(device_id, list())
+        entities: List["BasePandoraCASEntity"] = self.hass.data[
+            DATA_DEVICE_ENTITIES
+        ].setdefault(device_id, list())
 
         entities.append(self)
 
     async def async_will_remove_from_hass(self) -> None:
         """Remove entity from update scheduling."""
         device_id = self._device.device_id
-        entities: Optional[List['BasePandoraCASEntity']] = \
-            self.hass.data[DATA_DEVICE_ENTITIES].get(device_id)
+        entities: Optional[List["BasePandoraCASEntity"]] = self.hass.data[
+            DATA_DEVICE_ENTITIES
+        ].get(device_id)
 
         if entities and self in entities:
             entities.remove(self)
@@ -542,7 +657,9 @@ class BasePandoraCASEntity(Entity):
             "name": self._device.name,
             "manufacturer": "Pandora",
             "model": self._device.model,
-            "sw_version": self._device.firmware_version + ' / ' + self._device.voice_version,
+            "sw_version": self._device.firmware_version
+            + " / "
+            + self._device.voice_version,
         }
 
     @property
@@ -562,12 +679,19 @@ class PandoraCASEntity(BasePandoraCASEntity):
     ENTITY_TYPES: Dict[str, Dict[str, Any]] = NotImplemented
     ENTITY_ID_FORMAT: str = NotImplemented
 
-    def __init__(self, device: 'PandoraOnlineDevice', entity_type: str, default_enable: bool = True,
-                 name_format: str = DEFAULT_NAME_FORMAT):
+    def __init__(
+        self,
+        device: "PandoraOnlineDevice",
+        entity_type: str,
+        default_enable: bool = True,
+        name_format: str = DEFAULT_NAME_FORMAT,
+    ):
         super().__init__(device, entity_type, default_enable, name_format)
 
         self._state = None
-        self.entity_id = self.ENTITY_ID_FORMAT.format(slugify(str(device.device_id)) + '_' + slugify(entity_type))
+        self.entity_id = self.ENTITY_ID_FORMAT.format(
+            slugify(str(device.device_id)) + "_" + slugify(entity_type)
+        )
 
     # Core functionality
     @property
@@ -579,7 +703,7 @@ class PandoraCASEntity(BasePandoraCASEntity):
         if self._entity_config.get(ATTR_STATE_SENSITIVE) and not self._device.is_online:
             self._available = False
             self._state = None
-            _LOGGER.debug('Entity unavailable: %s' % (self,))
+            _LOGGER.debug("Entity unavailable: %s" % (self,))
             return
 
         attribute = self._entity_config[ATTR_ATTRIBUTE]
@@ -591,11 +715,15 @@ class PandoraCASEntity(BasePandoraCASEntity):
             self._available = True
 
         except AttributeError:
-            _LOGGER.error('Attribute error occurred on device "%s" with attribute "%s"'
-                          % (self._device.device_id, attribute))
+            _LOGGER.error(
+                'Attribute error occurred on device "%s" with attribute "%s"'
+                % (self._device.device_id, attribute)
+            )
             self._available = False
 
-    async def _run_device_command(self, command: Union[str, int, CommandID], schedule_update: bool = True):
+    async def _run_device_command(
+        self, command: Union[str, int, CommandID], schedule_update: bool = True
+    ):
         device_object = self._device
         if isinstance(command, str):
             command = getattr(device_object, command)
@@ -611,17 +739,23 @@ class PandoraCASEntity(BasePandoraCASEntity):
         if schedule_update:
             username = device_object.account.username
             if username in self.hass.data[DATA_UPDATERS]:
-                await self.hass.data[DATA_UPDATERS][username][0](DEFAULT_EXECUTION_DELAY)
+                await self.hass.data[DATA_UPDATERS][username][0](
+                    DEFAULT_EXECUTION_DELAY
+                )
             else:
-                _LOGGER.warning('Could not schedule updater for account "%s" after running command for device "%s"'
-                                % (username, device_object.device_id))
+                _LOGGER.warning(
+                    'Could not schedule updater for account "%s" after running command for device "%s"'
+                    % (username, device_object.device_id)
+                )
 
     # Predefined properties from configuration set
     @property
     def _entity_name_vars(self) -> Dict[str, str]:
         """Return entity name variables"""
-        return {**super()._entity_name_vars,
-                'type_name': self._entity_config[ATTR_NAME]}
+        return {
+            **super()._entity_name_vars,
+            "type_name": self._entity_config[ATTR_NAME],
+        }
 
     @property
     def device_class(self) -> Optional[str]:
@@ -671,7 +805,7 @@ class PandoraCASBooleanEntity(PandoraCASEntity):
         if config.get(ATTR_STATE_SENSITIVE) and not self._device.is_online:
             self._available = False
             self._state = None
-            _LOGGER.debug('Entity unavailable: %s' % (self,))
+            _LOGGER.debug("Entity unavailable: %s" % (self,))
             return
 
         if not self.assumed_state:

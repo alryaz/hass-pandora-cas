@@ -6,7 +6,11 @@ from asyncio import run_coroutine_threadsafe
 from functools import partial
 from typing import Any
 
-from homeassistant.components.switch import SwitchEntity, DOMAIN as PLATFORM_DOMAIN, ENTITY_ID_FORMAT
+from homeassistant.components.switch import (
+    SwitchEntity,
+    DOMAIN as PLATFORM_DOMAIN,
+    ENTITY_ID_FORMAT,
+)
 from homeassistant.const import ATTR_NAME, ATTR_ICON, ATTR_COMMAND
 
 from . import (
@@ -22,30 +26,40 @@ from .api import BitStatus, CommandID, Features
 
 _LOGGER = logging.getLogger(__name__)
 
+
 ENTITY_TYPES = {
-    'active_security': {
+    "active_security": {
         ATTR_NAME: "Active Security",
         ATTR_ICON: ("mdi:shield-off", "mdi:shield-car"),
-        ATTR_ATTRIBUTE: "status", ATTR_FLAG: BitStatus.ACTIVE_SECURITY,
+        ATTR_ATTRIBUTE: "status",
+        ATTR_FLAG: BitStatus.ACTIVE_SECURITY,
         ATTR_STATE_SENSITIVE: True,
-        ATTR_COMMAND: (CommandID.DISABLE_ACTIVE_SECURITY, CommandID.ENABLE_ACTIVE_SECURITY),
+        ATTR_COMMAND: (
+            CommandID.DISABLE_ACTIVE_SECURITY,
+            CommandID.ENABLE_ACTIVE_SECURITY,
+        ),
         ATTR_FEATURE: Features.ACTIVE_SECURITY,
         ATTR_DEFAULT: True,
     },
-    'tracking': {
+    "tracking": {
         ATTR_NAME: "Tracking",
         ATTR_ICON: ("mdi:map-marker-off", "mdi:map-marker-distance"),
-        ATTR_ATTRIBUTE: "status", ATTR_FLAG: BitStatus.TRACKING_ENABLED,
+        ATTR_ATTRIBUTE: "status",
+        ATTR_FLAG: BitStatus.TRACKING_ENABLED,
         ATTR_STATE_SENSITIVE: True,
         ATTR_COMMAND: (CommandID.DISABLE_TRACKING, CommandID.ENABLE_TRACKING),
         ATTR_FEATURE: Features.TRACKING,
     },
-    'coolant_heater': {
+    "coolant_heater": {
         ATTR_NAME: "Coolant Heater",
         ATTR_ICON: ("mdi:radiator-disabled", "mdi:radiator"),
-        ATTR_ATTRIBUTE: "status", ATTR_FLAG: BitStatus.BLOCK_HEATER_ACTIVE,
+        ATTR_ATTRIBUTE: "status",
+        ATTR_FLAG: BitStatus.BLOCK_HEATER_ACTIVE,
         ATTR_STATE_SENSITIVE: True,
-        ATTR_COMMAND: (CommandID.TURN_OFF_COOLANT_HEATER, CommandID.TURN_ON_COOLANT_HEATER),
+        ATTR_COMMAND: (
+            CommandID.TURN_OFF_COOLANT_HEATER,
+            CommandID.TURN_ON_COOLANT_HEATER,
+        ),
         ATTR_FEATURE: Features.COOLANT_HEATER,
         ATTR_DEFAULT: True,
     },
@@ -56,25 +70,26 @@ ENTITY_TYPES = {
     #     ATTR_COMMAND: (CommandID.TURN_OFF_EXT_CHANNEL, CommandID.TURN_ON_COOLANT_HEATER),
     #     ATTR_FEATURE: Features.EXT_CHANNEL,
     # },
-    'engine': {
+    "engine": {
         ATTR_NAME: "Engine",
         ATTR_ICON: ("mdi:fan-off", "mdi:fan"),
-        ATTR_ATTRIBUTE: "status", ATTR_FLAG: BitStatus.ENGINE_RUNNING,
+        ATTR_ATTRIBUTE: "status",
+        ATTR_FLAG: BitStatus.ENGINE_RUNNING,
         ATTR_STATE_SENSITIVE: True,
         ATTR_COMMAND: (CommandID.STOP_ENGINE, CommandID.START_ENGINE),
         ATTR_DEFAULT: True,
     },
-    'service_mode': {
+    "service_mode": {
         ATTR_NAME: "Service Mode",
         ATTR_ICON: "mdi:wrench",
         ATTR_COMMAND: (CommandID.DISABLE_SERVICE_MODE, CommandID.ENABLE_SERVICE_MODE),
     },
-    'ext_channel': {
+    "ext_channel": {
         ATTR_NAME: "Extra Channel",
         ATTR_ICON: "mdi:export",
         ATTR_FEATURE: Features.EXT_CHANNEL,
         ATTR_COMMAND: (CommandID.TURN_OFF_EXT_CHANNEL, CommandID.TURN_ON_EXT_CHANNEL),
-    }
+    },
 }
 
 
@@ -102,17 +117,13 @@ class PandoraCASSwitch(PandoraCASBooleanEntity, SwitchEntity):
 
     def turn_on(self, **kwargs: Any) -> None:
         """Compatibility for synchronous turn on calls."""
-        run_coroutine_threadsafe(
-            self.async_turn_on(),
-            self.hass.loop
-        ).result()
+        run_coroutine_threadsafe(self.async_turn_on(), self.hass.loop).result()
 
     def turn_off(self, **kwargs: Any) -> None:
         """Compatibility for synchronous turn off calls."""
-        run_coroutine_threadsafe(
-            self.async_turn_off(),
-            self.hass.loop
-        ).result()
+        run_coroutine_threadsafe(self.async_turn_off(), self.hass.loop).result()
 
 
-async_setup_entry = partial(async_platform_setup_entry, PLATFORM_DOMAIN, PandoraCASSwitch, logger=_LOGGER)
+async_setup_entry = partial(
+    async_platform_setup_entry, PLATFORM_DOMAIN, PandoraCASSwitch, logger=_LOGGER
+)

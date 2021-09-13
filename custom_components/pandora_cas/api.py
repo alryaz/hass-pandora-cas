@@ -1,16 +1,22 @@
 """API interface for Pandora Car Alarm System."""
 __all__ = [
     # Basic entities
-    'PandoraOnlineAccount', 'PandoraOnlineDevice',
-
+    "PandoraOnlineAccount",
+    "PandoraOnlineDevice",
     # Enumerations and flags
-    'CommandID', 'Features', 'EventType', 'AlertType', 'BitStatus',
-
+    "CommandID",
+    "Features",
+    "EventType",
+    "AlertType",
+    "BitStatus",
     # Exceptions
-    'PandoraOnlineException', 'AuthenticationException', 'RequestException', 'CommandExecutionException',
-
+    "PandoraOnlineException",
+    "AuthenticationException",
+    "RequestException",
+    "CommandExecutionException",
     # Constants
-    'DEFAULT_USER_AGENT', 'DEFAULT_CONTROL_TIMEOUT',
+    "DEFAULT_USER_AGENT",
+    "DEFAULT_CONTROL_TIMEOUT",
 ]
 import asyncio
 import logging
@@ -25,9 +31,11 @@ import aiohttp
 _LOGGER = logging.getLogger(__name__)
 
 #: default user agent for use in requests
-DEFAULT_USER_AGENT = ('Mozilla/5.0 (X11; Linux x86_64) '
-                      'AppleWebKit/537.36 (KHTML, like Gecko) '
-                      'Chrome/60.0.3112.113 Safari/537.36')
+DEFAULT_USER_AGENT = (
+    "Mozilla/5.0 (X11; Linux x86_64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/60.0.3112.113 Safari/537.36"
+)
 
 #: timeout to consider command execution unsuccessful
 DEFAULT_CONTROL_TIMEOUT = 30
@@ -35,6 +43,7 @@ DEFAULT_CONTROL_TIMEOUT = 30
 
 class CommandID(IntEnum):
     """Enumeration of possible services to be executed."""
+
     # Locking mechanism
     LOCK = 1
     UNLOCK = 2
@@ -80,6 +89,7 @@ class CommandID(IntEnum):
 
 class EventType(IntEnum):
     """Enumeration to decode event type."""
+
     LOCKED = 1
     UNLOCKED = 2
     ALERT = 3
@@ -100,6 +110,7 @@ class EventType(IntEnum):
 
 class AlertType(IntEnum):
     """Enumeration to decode alert event type."""
+
     BATTERY = 1
     EXT_SENSOR_WARNING_ZONE = 2
     EXT_SENSOR_MAIN_ZONE = 3
@@ -114,11 +125,12 @@ class AlertType(IntEnum):
 
 class BitStatus(IntFlag):
     """Enumeration to decode `bit_status_1` state parameter."""
+
     LOCKED = pow(2, 0)
     ALARM = pow(2, 1)
     ENGINE_RUNNING = pow(2, 2)
     IGNITION = pow(2, 3)
-    AUTOSTART_ACTIVE = pow(2, 4)            # AutoStart function is currently active
+    AUTOSTART_ACTIVE = pow(2, 4)  # AutoStart function is currently active
     HANDS_FREE_LOCKED = pow(2, 5)
     HANDS_FREE_UNLOCKED = pow(2, 6)
     GSM_ACTIVE = pow(2, 7)
@@ -129,29 +141,31 @@ class BitStatus(IntFlag):
     EXT_SENSOR_MAIN_ZONE = pow(2, 12)
     SENSOR_ALERT_ZONE = pow(2, 13)
     SENSOR_MAIN_ZONE = pow(2, 14)
-    AUTOSTART_ENABLED = pow(2, 15)          # AutoStart function is available
-    INCOMING_SMS_ENABLED = pow(2, 16)       # Incoming SMS messages are allowed
-    INCOMING_CALLS_ENABLED = pow(2, 17)     # Incoming calls are allowed
-    EXTERIOR_LIGHTS_ACTIVE = pow(2, 18)     # Any exterior lights are active
-    SIREN_WARNINGS_ENABLED = pow(2, 19)     # Siren warning signals disabled
-    SIREN_SOUND_ENABLED = pow(2, 20)        # All siren signals disabled
-    DOOR_FRONT_LEFT_OPEN = pow(2, 21)       # Door open: front left
-    DOOR_FRONT_RIGHT_OPEN = pow(2, 22)      # Door open: front right
-    DOOR_BACK_LEFT_OPEN = pow(2, 23)        # Door open: back left
-    DOOR_BACK_RIGHT_OPEN = pow(2, 24)       # Door open: back right
-    TRUNK_OPEN = pow(2, 25)                 # Trunk open
-    HOOD_OPEN = pow(2, 26)                  # Hood open
-    HANDBRAKE_ENGAGED = pow(2, 27)          # Handbrake is engaged
-    BRAKES_ENGAGED = pow(2, 28)             # Any brake system is engaged #@TODO: description might be invalid
-    BLOCK_HEATER_ACTIVE = pow(2, 29)        # Pre-start heater active
-    ACTIVE_SECURITY = pow(2, 30)            # Active security active
-    BLOCK_HEATER_ENABLED = pow(2, 31)       # Pre-start heater function is available
+    AUTOSTART_ENABLED = pow(2, 15)  # AutoStart function is available
+    INCOMING_SMS_ENABLED = pow(2, 16)  # Incoming SMS messages are allowed
+    INCOMING_CALLS_ENABLED = pow(2, 17)  # Incoming calls are allowed
+    EXTERIOR_LIGHTS_ACTIVE = pow(2, 18)  # Any exterior lights are active
+    SIREN_WARNINGS_ENABLED = pow(2, 19)  # Siren warning signals disabled
+    SIREN_SOUND_ENABLED = pow(2, 20)  # All siren signals disabled
+    DOOR_FRONT_LEFT_OPEN = pow(2, 21)  # Door open: front left
+    DOOR_FRONT_RIGHT_OPEN = pow(2, 22)  # Door open: front right
+    DOOR_BACK_LEFT_OPEN = pow(2, 23)  # Door open: back left
+    DOOR_BACK_RIGHT_OPEN = pow(2, 24)  # Door open: back right
+    TRUNK_OPEN = pow(2, 25)  # Trunk open
+    HOOD_OPEN = pow(2, 26)  # Hood open
+    HANDBRAKE_ENGAGED = pow(2, 27)  # Handbrake is engaged
+    BRAKES_ENGAGED = pow(
+        2, 28
+    )  # Any brake system is engaged #@TODO: description might be invalid
+    BLOCK_HEATER_ACTIVE = pow(2, 29)  # Pre-start heater active
+    ACTIVE_SECURITY = pow(2, 30)  # Active security active
+    BLOCK_HEATER_ENABLED = pow(2, 31)  # Pre-start heater function is available
     # ... = pow(2, 32) # ?
-    EVACUATION_MODE_ACTIVE = pow(2, 33)     # Evacuation mode active
-    SERVICE_MODE_ACTIVE = pow(2, 34)        # Service mode active
-    STAY_HOME_ACTIVE = pow(2, 35)           # Stay home mode active
+    EVACUATION_MODE_ACTIVE = pow(2, 33)  # Evacuation mode active
+    SERVICE_MODE_ACTIVE = pow(2, 34)  # Service mode active
+    STAY_HOME_ACTIVE = pow(2, 35)  # Stay home mode active
     # (...) = (pow(2, 36), ..., pow(2, 60) # ?
-    SECURITY_TAG_ENFORCED = pow(2, 61)      # Enforce security tags
+    SECURITY_TAG_ENFORCED = pow(2, 61)  # Enforce security tags
 
 
 class Features(Flag):
@@ -175,26 +189,30 @@ class Features(Flag):
     TRUNK_TRIGGER = auto()
 
     @classmethod
-    def from_dict(cls, features_dict: Dict[str, Union[bool, int]]) -> Optional['Features']:
+    def from_dict(
+        cls, features_dict: Dict[str, Union[bool, int]]
+    ) -> Optional["Features"]:
         result = None
-        for key, flag in {'active_security': cls.ACTIVE_SECURITY,
-                          'auto_check': cls.AUTO_CHECK,
-                          'autostart': cls.AUTO_START,
-                          'beep': cls.BEEPER,
-                          'bluetooth': cls.BLUETOOTH,
-                          'channel': cls.EXT_CHANNEL,
-                          'connection': cls.NETWORK,
-                          'custom_phones': cls.CUSTOM_PHONES,
-                          'events': cls.EVENTS,
-                          'extend_props': cls.EXTENDED_PROPERTIES,
-                          'heater': cls.COOLANT_HEATER,
-                          'keep_alive': cls.KEEP_ALIVE,
-                          'light': cls.LIGHT_TOGGLE,
-                          'notification': cls.NOTIFICATIONS,
-                          'schedule': cls.SCHEDULE,
-                          'sensors': cls.SENSORS,
-                          'tracking': cls.TRACKING,
-                          'trunk': cls.TRUNK_TRIGGER}.items():
+        for key, flag in {
+            "active_security": cls.ACTIVE_SECURITY,
+            "auto_check": cls.AUTO_CHECK,
+            "autostart": cls.AUTO_START,
+            "beep": cls.BEEPER,
+            "bluetooth": cls.BLUETOOTH,
+            "channel": cls.EXT_CHANNEL,
+            "connection": cls.NETWORK,
+            "custom_phones": cls.CUSTOM_PHONES,
+            "events": cls.EVENTS,
+            "extend_props": cls.EXTENDED_PROPERTIES,
+            "heater": cls.COOLANT_HEATER,
+            "keep_alive": cls.KEEP_ALIVE,
+            "light": cls.LIGHT_TOGGLE,
+            "notification": cls.NOTIFICATIONS,
+            "schedule": cls.SCHEDULE,
+            "sensors": cls.SENSORS,
+            "tracking": cls.TRACKING,
+            "trunk": cls.TRUNK_TRIGGER,
+        }.items():
             if key in features_dict:
                 result = flag if result is None else result | flag
 
@@ -206,7 +224,9 @@ class PandoraOnlineAccount:
 
     BASE_URL = "https://pro.p-on.ru"
 
-    def __init__(self, username: str, password: str, user_agent: Optional[str] = None) -> None:
+    def __init__(
+        self, username: str, password: str, user_agent: Optional[str] = None
+    ) -> None:
         """
         Instantiate Pandora Online account object.
         :param username: Account username
@@ -231,13 +251,10 @@ class PandoraOnlineAccount:
 
     def __repr__(self):
         """Retrieve representation of account object"""
-        return '<' + str(self) + '>'
+        return "<" + str(self) + ">"
 
     def __str__(self):
-        return '%s[username="%s"]' % (
-            self.__class__.__name__,
-            self._username
-        )
+        return '%s[username="%s"]' % (self.__class__.__name__, self._username)
 
     # Basic properties
     @property
@@ -250,11 +267,11 @@ class PandoraOnlineAccount:
         return self._last_update
 
     @property
-    def devices(self) -> Tuple['PandoraOnlineDevice']:
+    def devices(self) -> Tuple["PandoraOnlineDevice"]:
         """Devices (immutable) accessor."""
         return tuple(self._devices)
 
-    def get_device(self, device_id: Union[int, str]) -> Optional['PandoraOnlineDevice']:
+    def get_device(self, device_id: Union[int, str]) -> Optional["PandoraOnlineDevice"]:
         _device_id = int(device_id)
         for device in self._devices:
             if _device_id == device.device_id:
@@ -264,46 +281,53 @@ class PandoraOnlineAccount:
     def _init_async_remote_session(self, **kwargs) -> aiohttp.ClientSession:
         """Shorthand method to retrieve prepared session"""
         headers = {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Referer': self.BASE_URL,
-            'Origin': self.BASE_URL,
-            'User-Agent': self._user_agent,
+            "X-Requested-With": "XMLHttpRequest",
+            "Referer": self.BASE_URL,
+            "Origin": self.BASE_URL,
+            "User-Agent": self._user_agent,
         }
-        if 'headers' in kwargs:
-            headers.update(kwargs['headers'])
-            del kwargs['headers']
+        if "headers" in kwargs:
+            headers.update(kwargs["headers"])
+            del kwargs["headers"]
 
         return aiohttp.ClientSession(
-            cookie_jar=self._cookie_jar,
-            headers=headers,
-            **kwargs
+            cookie_jar=self._cookie_jar, headers=headers, **kwargs
         )
 
-    async def _handle_response(self, response: aiohttp.ClientResponse, expected_status: int = 200,
-                               check_status_field: Union[bool, str] = False):
+    async def _handle_response(
+        self,
+        response: aiohttp.ClientResponse,
+        expected_status: int = 200,
+        check_status_field: Union[bool, str] = False,
+    ):
         try:
             if response.status != expected_status:
-                raise RequestException('unexpected status: %d' % (response.status,)) from None
+                raise RequestException(
+                    "unexpected status: %d" % (response.status,)
+                ) from None
 
             content = await response.json()
 
-            if check_status_field and content.get('status') == \
-                    ('success' if check_status_field is True else check_status_field):
-                raise RequestException('invalid response', content) from None
+            if check_status_field and content.get("status") == (
+                "success" if check_status_field is True else check_status_field
+            ):
+                raise RequestException("invalid response", content) from None
 
             return content
 
         except JSONDecodeError:
-            raise RequestException('unknown server response format', await response.text()) from None
+            raise RequestException(
+                "unknown server response format", await response.text()
+            ) from None
 
         except aiohttp.ClientConnectionError:
-            raise RequestException('connection error') from None
+            raise RequestException("connection error") from None
 
         except aiohttp.ClientResponseError:
-            raise RequestException('invalid server response') from None
+            raise RequestException("invalid server response") from None
 
         except aiohttp.ClientError as e:
-            raise RequestException('HTTP client error: %s' % (e,)) from None
+            raise RequestException("HTTP client error: %s" % (e,)) from None
 
     # Requests
     async def async_authenticate(self, session: Optional[aiohttp.ClientSession] = None):
@@ -314,28 +338,34 @@ class PandoraOnlineAccount:
         _LOGGER.debug('Authenticating with username "%s"' % (self._username,))
 
         session.cookie_jar.clear()
-        url = self.BASE_URL + '/api/users/login'
+        url = self.BASE_URL + "/api/users/login"
         request_headers = {
-            'User-Agent': self._user_agent,
-            'Referer': self.BASE_URL + '/login',
-            'Origin': self.BASE_URL
+            "User-Agent": self._user_agent,
+            "Referer": self.BASE_URL + "/login",
+            "Origin": self.BASE_URL,
         }
         request_data = {
-            'login': self._username,
-            'password': self._password,
-            'lang': 'ru',
+            "login": self._username,
+            "password": self._password,
+            "lang": "ru",
         }
 
-        async with session.post(url, headers=request_headers, data=request_data) as response:
+        async with session.post(
+            url, headers=request_headers, data=request_data
+        ) as response:
             try:
                 await self._handle_response(response)
             except RequestException as e:
                 raise AuthenticationException(*e.args) from None
 
-            _LOGGER.info('Authentication successful for username "%s"!' % (self._username,))
+            _LOGGER.info(
+                'Authentication successful for username "%s"!' % (self._username,)
+            )
             return
 
-    async def async_update_vehicles(self, session: Optional[aiohttp.ClientSession] = None):
+    async def async_update_vehicles(
+        self, session: Optional[aiohttp.ClientSession] = None
+    ):
         """Retrieve and cache list of vehicles for the account."""
 
         if session is None:
@@ -343,14 +373,14 @@ class PandoraOnlineAccount:
                 return await self.async_update_vehicles(session)
 
         _LOGGER.debug('Updating vehicle list for username "%s"' % (self._username,))
-        async with session.get(self.BASE_URL + '/api/devices') as response:
+        async with session.get(self.BASE_URL + "/api/devices") as response:
             devices_data = await self._handle_response(response)
-            _LOGGER.debug('retrieved devices: %s' % devices_data)
+            _LOGGER.debug("retrieved devices: %s" % devices_data)
 
         new_devices_list = []
 
         for device_attributes in devices_data:
-            device_id = int(device_attributes['id'])
+            device_id = int(device_attributes["id"])
             device_object = self.get_device(device_id)
 
             if device_object is None:
@@ -362,40 +392,58 @@ class PandoraOnlineAccount:
 
         self._devices = new_devices_list
 
-    async def async_remote_alive(self, click_count: Optional[int] = None,
-                                 session: Optional[aiohttp.ClientSession] = None):
+    async def async_remote_alive(
+        self,
+        click_count: Optional[int] = None,
+        session: Optional[aiohttp.ClientSession] = None,
+    ):
         if session is None:
             async with self._init_async_remote_session() as session:
                 return await self.async_remote_alive(session=session)
 
-        _LOGGER.debug('Performing alive request')
-        async with session.post(self.BASE_URL + '/api/iamalive', data={
-            'num_click': randint(0, 30) if click_count is None else click_count,
-        }) as response:
+        _LOGGER.debug("Performing alive request")
+        async with session.post(
+            self.BASE_URL + "/api/iamalive",
+            data={
+                "num_click": randint(0, 30) if click_count is None else click_count,
+            },
+        ) as response:
             await self._handle_response(response)
 
-    async def async_remote_command(self, device_id: int, command_id: Union[int, 'CommandID'],
-                                   session: Optional[aiohttp.ClientSession] = None):
+    async def async_remote_command(
+        self,
+        device_id: int,
+        command_id: Union[int, "CommandID"],
+        session: Optional[aiohttp.ClientSession] = None,
+    ):
         if session is None:
             async with self._init_async_remote_session() as session:
-                return await self.async_remote_command(device_id, command_id, session=session)
+                return await self.async_remote_command(
+                    device_id, command_id, session=session
+                )
 
         _LOGGER.debug('Sending command "%d" to device "%d"' % (command_id, device_id))
 
-        async with session.post(self.BASE_URL + '/api/devices/command', data={
-            'id': device_id,
-            'command': int(command_id),
-        }) as response:
+        async with session.post(
+            self.BASE_URL + "/api/devices/command",
+            data={
+                "id": device_id,
+                "command": int(command_id),
+            },
+        ) as response:
             command_result = await self._handle_response(response)
-            status = command_result.get('action_result', {}).get(str(device_id))
+            status = command_result.get("action_result", {}).get(str(device_id))
 
-            if status != 'sent':
-                raise CommandExecutionException('could not execute command', status)
+            if status != "sent":
+                raise CommandExecutionException("could not execute command", status)
 
             _LOGGER.debug('Command "%d" sent to device "%d"' % (command_id, device_id))
 
-    async def async_fetch_changes(self, timestamp: Optional[int] = None,
-                                  session: Optional[aiohttp.ClientSession] = None):
+    async def async_fetch_changes(
+        self,
+        timestamp: Optional[int] = None,
+        session: Optional[aiohttp.ClientSession] = None,
+    ):
         """
         Fetch latest changes from update server.
         :param timestamp:
@@ -407,36 +455,46 @@ class PandoraOnlineAccount:
                 return await self.async_fetch_changes(session=session)
 
         _timestamp = self._last_update if timestamp is None else timestamp
-        async with session.get(self.BASE_URL + '/api/updates', params={'ts': _timestamp}) as response:
+        async with session.get(
+            self.BASE_URL + "/api/updates", params={"ts": _timestamp}
+        ) as response:
             content: Dict[str, Any] = await self._handle_response(response)
 
         updated_device_ids = set()
 
         # Time updates
-        if content.get('time'):
-            for device_id, times_data in content['time'].items():
+        if content.get("time"):
+            for device_id, times_data in content["time"].items():
                 device_object = self.get_device(device_id)
                 if device_object:
-                    _LOGGER.debug('Updating times data for device %s' % (device_object,))
+                    _LOGGER.debug(
+                        "Updating times data for device %s" % (device_object,)
+                    )
                     device_object.times = times_data
                     updated_device_ids.add(device_object.device_id)
                 else:
-                    _LOGGER.warning('Device with ID "%s" times data retrieved, but no object created yet. Skipping...'
-                                    % (device_id,))
+                    _LOGGER.warning(
+                        'Device with ID "%s" times data retrieved, but no object created yet. Skipping...'
+                        % (device_id,)
+                    )
 
         # Stats updates
-        if content.get('stats'):
-            for device_id, stats_data in content['stats'].items():
+        if content.get("stats"):
+            for device_id, stats_data in content["stats"].items():
                 device_object = self.get_device(device_id)
                 if device_object:
-                    _LOGGER.debug('Updating stats data for device %s' % (device_object,))
+                    _LOGGER.debug(
+                        "Updating stats data for device %s" % (device_object,)
+                    )
                     device_object.stats = stats_data
                     updated_device_ids.add(device_object.device_id)
                 else:
-                    _LOGGER.warning('Device with ID "%s" stats data retrieved, but no object created yet. Skipping...'
-                                    % (device_id,))
+                    _LOGGER.warning(
+                        'Device with ID "%s" stats data retrieved, but no object created yet. Skipping...'
+                        % (device_id,)
+                    )
 
-        self._last_update = int(content['ts'])
+        self._last_update = int(content["ts"])
 
         return content, updated_device_ids
 
@@ -448,10 +506,14 @@ class PandoraOnlineDevice:
     :param attributes: attributes of the vehicle as provided by the server
     """
 
-    def __init__(self, account: PandoraOnlineAccount, attributes: Mapping[str, Any],
-                 vehicle_stats: Optional[Mapping[str, Any]] = None,
-                 control_timeout: float = DEFAULT_CONTROL_TIMEOUT,
-                 last_times: Optional[Mapping[str, int]] = None) -> None:
+    def __init__(
+        self,
+        account: PandoraOnlineAccount,
+        attributes: Mapping[str, Any],
+        vehicle_stats: Optional[Mapping[str, Any]] = None,
+        control_timeout: float = DEFAULT_CONTROL_TIMEOUT,
+        last_times: Optional[Mapping[str, int]] = None,
+    ) -> None:
         """
         Instantiate vehicle object.
         :param account:
@@ -465,7 +527,9 @@ class PandoraOnlineDevice:
         self._bit_status = None
 
         # Initialize last times dictionary
-        _init_last_times = dict.fromkeys(['command', 'setting', 'online', 'onlined'], -1)
+        _init_last_times = dict.fromkeys(
+            ["command", "setting", "online", "onlined"], -1
+        )
         if last_times is not None:
             _init_last_times.update(last_times)
         self._last_times = _init_last_times
@@ -474,7 +538,7 @@ class PandoraOnlineDevice:
         self.control_timeout = control_timeout
 
     def __repr__(self):
-        return '<' + str(self) + '>'
+        return "<" + str(self) + ">"
 
     def __str__(self) -> str:
         """Use the name as identifier for the vehicle."""
@@ -482,17 +546,19 @@ class PandoraOnlineDevice:
             self.__class__.__name__,
             self.device_id,
             self.name,
-            self._account
+            self._account,
         )
 
     # Remote command execution section
-    async def async_remote_command(self,
-                                   command_id: Union[int, CommandID],
-                                   ensure_complete: bool = True,
-                                   session: Optional[aiohttp.ClientSession] = None):
+    async def async_remote_command(
+        self,
+        command_id: Union[int, CommandID],
+        ensure_complete: bool = True,
+        session: Optional[aiohttp.ClientSession] = None,
+    ):
         """Proxy method to execute commands on corresponding vehicle object"""
         if self.control_busy:
-            raise RuntimeError('device is busy executing command')
+            raise RuntimeError("device is busy executing command")
 
         if ensure_complete:
             self._control_future = asyncio.Future()
@@ -501,14 +567,17 @@ class PandoraOnlineDevice:
 
         if ensure_complete:
             try:
-                _LOGGER.debug('Ensuring command completion (timeout: %d seconds)' % (self.control_timeout,))
+                _LOGGER.debug(
+                    "Ensuring command completion (timeout: %d seconds)"
+                    % (self.control_timeout,)
+                )
                 await asyncio.wait_for(self._control_future, self.control_timeout)
                 self._control_future.result()
 
             except asyncio.TimeoutError:
-                raise CommandExecutionException('timeout executing command')
+                raise CommandExecutionException("timeout executing command")
 
-        _LOGGER.debug('Command executed successfully')
+        _LOGGER.debug("Command executed successfully")
 
     # Lock/unlock toggles
     async def async_remote_lock(self, ensure_complete: bool = True):
@@ -526,38 +595,58 @@ class PandoraOnlineDevice:
 
     # Tracking toggle
     async def async_remote_enable_tracking(self, ensure_complete: bool = True):
-        return await self.async_remote_command(CommandID.ENABLE_TRACKING, ensure_complete)
+        return await self.async_remote_command(
+            CommandID.ENABLE_TRACKING, ensure_complete
+        )
 
     async def async_remote_disable_tracking(self, ensure_complete: bool = True):
-        return await self.async_remote_command(CommandID.DISABLE_TRACKING, ensure_complete)
+        return await self.async_remote_command(
+            CommandID.DISABLE_TRACKING, ensure_complete
+        )
 
     # Active security toggle
     async def async_enable_active_security(self, ensure_complete: bool = True):
-        return await self.async_remote_command(CommandID.ENABLE_ACTIVE_SECURITY, ensure_complete)
+        return await self.async_remote_command(
+            CommandID.ENABLE_ACTIVE_SECURITY, ensure_complete
+        )
 
     async def async_disable_active_security(self, ensure_complete: bool = True):
-        return await self.async_remote_command(CommandID.DISABLE_ACTIVE_SECURITY, ensure_complete)
+        return await self.async_remote_command(
+            CommandID.DISABLE_ACTIVE_SECURITY, ensure_complete
+        )
 
     # Coolant heater toggle
     async def async_remote_turn_on_coolant_heater(self, ensure_complete: bool = True):
-        return await self.async_remote_command(CommandID.TURN_ON_COOLANT_HEATER, ensure_complete)
+        return await self.async_remote_command(
+            CommandID.TURN_ON_COOLANT_HEATER, ensure_complete
+        )
 
     async def async_remote_turn_off_coolant_heater(self, ensure_complete: bool = True):
-        return await self.async_remote_command(CommandID.TURN_OFF_COOLANT_HEATER, ensure_complete)
+        return await self.async_remote_command(
+            CommandID.TURN_OFF_COOLANT_HEATER, ensure_complete
+        )
 
     # External (timer_ channel toggle
     async def async_remote_turn_on_ext_channel(self, ensure_complete: bool = True):
-        return await self.async_remote_command(CommandID.TURN_ON_EXT_CHANNEL, ensure_complete)
+        return await self.async_remote_command(
+            CommandID.TURN_ON_EXT_CHANNEL, ensure_complete
+        )
 
     async def async_remote_turn_off_ext_channel(self, ensure_complete: bool = True):
-        return await self.async_remote_command(CommandID.TURN_OFF_EXT_CHANNEL, ensure_complete)
+        return await self.async_remote_command(
+            CommandID.TURN_OFF_EXT_CHANNEL, ensure_complete
+        )
 
     # Service mode toggle
     async def async_remote_enable_service_mode(self, ensure_complete: bool = True):
-        return await self.async_remote_command(CommandID.ENABLE_SERVICE_MODE, ensure_complete)
+        return await self.async_remote_command(
+            CommandID.ENABLE_SERVICE_MODE, ensure_complete
+        )
 
     async def async_remote_disable_service_mode(self, ensure_complete: bool = True):
-        return await self.async_remote_command(CommandID.DISABLE_SERVICE_MODE, ensure_complete)
+        return await self.async_remote_command(
+            CommandID.DISABLE_SERVICE_MODE, ensure_complete
+        )
 
     # Various commands
     async def async_remote_trigger_horn(self, ensure_complete: bool = True):
@@ -581,7 +670,7 @@ class PandoraOnlineDevice:
 
     @property
     def device_id(self) -> int:
-        return int(self._attributes['id'])
+        return int(self._attributes["id"])
 
     @property
     def times(self) -> Optional[Mapping[str, Any]]:
@@ -589,8 +678,11 @@ class PandoraOnlineDevice:
 
     @times.setter
     def times(self, value: Mapping[str, int]):
-        if self.control_busy and 'command' in value \
-                and value['command'] > self._last_times['command']:
+        if (
+            self.control_busy
+            and "command" in value
+            and value["command"] > self._last_times["command"]
+        ):
             # Resolve control future
             self._control_future.set_result(True)
 
@@ -599,9 +691,11 @@ class PandoraOnlineDevice:
     @property
     def is_online(self) -> bool:
         """Returns whether vehicle can be deemed online"""
-        return (self._last_times is not None
-                and self._stats is not None
-                and bool(self._stats['online']))
+        return (
+            self._last_times is not None
+            and self._stats is not None
+            and bool(self._stats["online"])
+        )
 
     # Attributes-related properties
     @property
@@ -610,34 +704,34 @@ class PandoraOnlineDevice:
 
     @attributes.setter
     def attributes(self, value: Mapping[str, Any]):
-        if int(value['id']) != self.device_id:
-            raise ValueError('device IDs must match')
+        if int(value["id"]) != self.device_id:
+            raise ValueError("device IDs must match")
         self._attributes = value
         self._features = None
 
     @property
     def features(self) -> Optional[Features]:
         if self._features is None:
-            self._features = Features.from_dict(self._attributes['features'])
+            self._features = Features.from_dict(self._attributes["features"])
         return self._features
 
     @property
     def name(self) -> str:
         """Get the name of the device."""
-        return self._attributes['name']
+        return self._attributes["name"]
 
     @property
     def model(self) -> str:
         """Get model of the device."""
-        return self._attributes['model']
+        return self._attributes["model"]
 
     @property
     def firmware_version(self) -> str:
-        return self._attributes['firmware']
+        return self._attributes["firmware"]
 
     @property
     def voice_version(self) -> str:
-        return self._attributes['voice_version']
+        return self._attributes["voice_version"]
 
     @property
     def gps_location(self) -> (float, float):
@@ -661,7 +755,7 @@ class PandoraOnlineDevice:
     @property
     def status(self) -> BitStatus:
         if self._bit_status is None:
-            status_value = self._stats.get('bit_state_1', 0)
+            status_value = self._stats.get("bit_state_1", 0)
             if isinstance(status_value, str):
                 status_value = int(status_value)
             self._bit_status = BitStatus(status_value)
@@ -669,23 +763,37 @@ class PandoraOnlineDevice:
 
     @property
     def latitude(self) -> float:
-        return float(self._stats['x'])
+        return float(self._stats["x"])
 
     @property
     def longitude(self) -> float:
-        return float(self._stats['y'])
+        return float(self._stats["y"])
 
     @property
     def rotation(self) -> float:
-        return float(self._stats['rot'])
+        return float(self._stats["rot"])
 
     @property
     def direction(self) -> str:
         """Textual interpretation of rotation."""
-        sides = ['N', 'NNE', 'NE', 'ENE',
-                 'E', 'ESE', 'SE', 'SSE',
-                 'S', 'SSW', 'SW', 'WSW',
-                 'W', 'WNW', 'NW', 'NNW']
+        sides = [
+            "N",
+            "NNE",
+            "NE",
+            "ENE",
+            "E",
+            "ESE",
+            "SE",
+            "SSE",
+            "S",
+            "SSW",
+            "SW",
+            "WSW",
+            "W",
+            "WNW",
+            "NW",
+            "NNW",
+        ]
         return sides[round(self.rotation / (360 / len(sides))) % len(sides)]
 
     @property
@@ -694,11 +802,11 @@ class PandoraOnlineDevice:
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        return float(self._stats['mileage'])
+        return float(self._stats["mileage"])
 
     @property
     def mileage_can_bus(self) -> float:
-        return float(self._stats['mileage_CAN'])
+        return float(self._stats["mileage_CAN"])
 
     @property
     def fuel(self) -> int:
@@ -706,72 +814,72 @@ class PandoraOnlineDevice:
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        return int(self._stats['fuel'])
+        return int(self._stats["fuel"])
 
     @property
     def interior_temperature(self) -> int:
         """Interior temperature accessor"""
-        return int(self._stats['cabin_temp'])
+        return int(self._stats["cabin_temp"])
 
     @property
     def engine_temperature(self) -> int:
         """Engine temperature accessor"""
-        return int(self._stats['engine_temp'])
+        return int(self._stats["engine_temp"])
 
     @property
     def outside_temperature(self) -> int:
         """Outside temperature accessor"""
-        return int(self._stats['out_temp'])
+        return int(self._stats["out_temp"])
 
     @property
     def speed(self) -> float:
         """Current speed accessor"""
-        return round(float(self._stats['speed']), 1)
+        return round(float(self._stats["speed"]), 1)
 
     @property
     def engine_rpm(self) -> int:
         """Engine revolutions per minute accessor"""
-        return int(self._stats['engine_rpm'])
+        return int(self._stats["engine_rpm"])
 
     @property
     def gsm_level(self) -> int:
         """GSM reception level accessor"""
-        return int(self._stats['gsm_level'])
+        return int(self._stats["gsm_level"])
 
     @property
     def is_moving(self) -> bool:
-        return bool(self._stats['move'])
+        return bool(self._stats["move"])
 
     @property
     def battery_voltage(self) -> float:
         """Battery voltage accessor"""
-        return round(float(self._stats['voltage']), 1)
+        return round(float(self._stats["voltage"]), 1)
 
     @property
     def active_sim_id(self) -> int:
-        return int(self._stats['active_sim'])
+        return int(self._stats["active_sim"])
 
     # SIM-related properties
     @property
     def _sim_data(self):
-        return self._stats['sims'][self.active_sim_id]
+        return self._stats["sims"][self.active_sim_id]
 
     @property
     def sim_balance(self) -> float:
-        return float(self._sim_data['balance']['value'])
+        return float(self._sim_data["balance"]["value"])
 
     @property
     def sim_currency(self) -> float:
-        return float(self._sim_data['balance']['cur'])
+        return float(self._sim_data["balance"]["cur"])
 
     @property
     def sim_number(self) -> float:
-        return float(self._sim_data['phoneNumber'])
+        return float(self._sim_data["phoneNumber"])
 
     # Last time data-related properties
     @property
     def online_since(self) -> int:
-        return self._last_times['online']
+        return self._last_times["online"]
 
     # @TODO: research into this parameter
     # @property
@@ -780,25 +888,28 @@ class PandoraOnlineDevice:
 
     @property
     def last_command_time(self) -> int:
-        return self._last_times['command']
+        return self._last_times["command"]
 
     @property
     def last_setting_change_time(self) -> int:
-        return self._last_times['setting']
+        return self._last_times["setting"]
 
 
 class PandoraOnlineException(Exception):
     """Base class for Pandora Car Alarm System exceptions"""
+
     pass
 
 
 class RequestException(PandoraOnlineException):
     """Request-related exception"""
+
     pass
 
 
 class AuthenticationException(RequestException):
     """Authentication-related exception"""
+
     pass
 
 
