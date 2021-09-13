@@ -20,5 +20,18 @@
             }
         },
         "title": "Pandora Car Alarm System"
+    },
+    "options": {
+        "abort": {
+            "yaml_not_supported": "Changing parameters is done inside YAML configuration file"
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "password": "Password"
+                },
+                "description": ""
+            }
+        }
     }
 }

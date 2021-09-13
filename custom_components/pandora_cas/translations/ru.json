@@ -20,5 +20,18 @@
             }
         },
         "title": "Охранная система Pandora"
+    },
+    "options": {
+        "abort": {
+            "yaml_not_supported": "Изменение параметров производится через файловую конфигурацию (YAML)"
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "password": "Пароль"
+                },
+                "description": ""
+            }
+        }
     }
 }

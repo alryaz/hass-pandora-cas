@@ -47,6 +47,7 @@ PANDORA_COMPONENTS = ['binary_sensor', 'sensor', 'switch', 'lock', 'device_track
 DATA_CONFIG = DOMAIN + '_config'
 DATA_UPDATERS = DOMAIN + '_updaters'
 DATA_DEVICE_ENTITIES = DOMAIN + '_device_entities'
+DATA_UPDATE_LISTENERS = DOMAIN + "_update_listeners"
 
 CONF_POLLING_INTERVAL = 'polling_interval'
 CONF_READ_ONLY = 'read_only'
@@ -245,17 +246,20 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
     )
 
     async def _authenticate():
+        error = None
         try:
             _LOGGER.debug('Authenticating account "%s"' % (username,))
             await account.async_authenticate()
 
         except AuthenticationException as e:
-            _LOGGER.error("Authentication error: %s" % (e,))
-            raise ConfigEntryNotReady from None
+            error = "Authentication error: %s" % (e,)
+            _LOGGER.error(error)
+            raise ConfigEntryNotReady(error) from None
 
         except PandoraOnlineException as e:
-            _LOGGER.debug("API error: %s" % (e,))
-            raise ConfigEntryNotReady from None
+            error = "API error: %s" % (e,)
+            _LOGGER.error(error)
+            raise ConfigEntryNotReady(error) from None
 
     await _authenticate()
 
@@ -351,7 +355,17 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
             )
         )
 
+    # Create options update listener
+    update_listener = config_entry.add_update_listener(async_reload_entry)
+    hass.data.setdefault(DATA_UPDATE_LISTENERS, {})[config_entry.entry_id] = update_listener
+
     return True
+
+
+async def async_reload_entry(hass: HomeAssistantType, config_entry: ConfigEntry) -> None:
+    """Reload Lkcomu InterRAO entry"""
+    _LOGGER.info("Reloading configuration entry")
+    await hass.config_entries.async_reload(config_entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistantType, config_entry: ConfigEntry) -> bool:
@@ -375,6 +389,10 @@ async def async_unload_entry(hass: HomeAssistantType, config_entry: ConfigEntry)
         )
         for platform_id in PANDORA_COMPONENTS
     ], return_when=asyncio.ALL_COMPLETED)
+
+    update_listener = hass.data.get(DATA_UPDATE_LISTENERS, {}).pop(config_entry.entry_id, None)
+    if callable(update_listener):
+        update_listener()
 
     return True
 
