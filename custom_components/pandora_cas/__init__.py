@@ -330,9 +330,8 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
                 if hasattr(entity, "entity_type_config"):
                     entity_type_config = entity.entity_type_config
 
-                    if not (
-                        entity_type_config.get(ATTR_ATTRIBUTE_SOURCE) is not True
-                        and ATTR_ATTRIBUTE in entity_type_config
+                    if entity_type_config.get(ATTR_ATTRIBUTE_SOURCE) is None and not (
+                        ATTR_ATTRIBUTE in entity_type_config
                         and entity_type_config[ATTR_ATTRIBUTE] in updated_stats
                     ):
                         continue
