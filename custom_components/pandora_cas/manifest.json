@@ -4,9 +4,9 @@
   "documentation": "https://github.com/alryaz/pandora-cas",
   "issue_tracker": "https://github.com/alryaz/pandora-cas/issues",
   "dependencies": [],
-  "codeowners": ["@alryaz","@turbo-lab"],
+  "codeowners": ["@alryaz", "@turbo-lab"],
   "requirements": [],
   "config_flow": true,
-  "version": "0.0.7",
+  "version": "1.0.0",
   "iot_class": "cloud_polling"
 }
