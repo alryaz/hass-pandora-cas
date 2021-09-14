@@ -15,7 +15,8 @@
 > [![Donate](https://img.shields.io/badge/donate-Yandex-orange.svg)](https://money.yandex.ru/to/41001690673042)
 
 > ⚠️ **ВНИМАНИЕ** ⚠️  
-> Единственная доступная мне машина для тестирования (с Pandora на борту) вышла из строя (насовсем). Поэтому дальнейшее развитие проекта приостановлено.
+> ~~Единственная доступная мне машина для тестирования (с Pandora на борту) вышла из строя (насовсем). Поэтому дальнейшее развитие проекта приостановлено.~~
+> Благодаря пользователям, работа над проектом возобновлена.
 > Если кто-то заинтересован в тестировании расширения функционала, пожалуйста, напишите в мне Telegram: **@alryaz**.
 
 [![Расположение элементов по-умолчанию](https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/screenshot_default.png)](https://github.com/alryaz/hass-pandora-cas/blob/master/images/screenshot_default.png)
