@@ -7,6 +7,6 @@
   "codeowners": ["@alryaz", "@turbo-lab"],
   "requirements": [],
   "config_flow": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "iot_class": "cloud_polling"
 }
