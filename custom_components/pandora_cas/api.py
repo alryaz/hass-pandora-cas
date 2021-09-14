@@ -189,8 +189,9 @@ class BitStatus(IntFlag):
     EVACUATION_MODE_ACTIVE = pow(2, 33)  # Evacuation mode active
     SERVICE_MODE_ACTIVE = pow(2, 34)  # Service mode active
     STAY_HOME_ACTIVE = pow(2, 35)  # Stay home mode active
-    # (...) = (pow(2, 36), ..., pow(2, 60) # ?
-    SECURITY_TAG_ENFORCED = pow(2, 61)  # Enforce security tags
+    # (...) = (pow(2, 36), ..., pow(2, 59) # ?
+    SECURITY_TAGS_IGNORED = pow(2, 60)  # Ignore security tags
+    SECURITY_TAGS_ENFORCED = pow(2, 61)  # Enforce security tags
 
 
 class Features(Flag):
@@ -737,7 +738,7 @@ class PandoraOnlineAccount:
             latitude=data["x"],
             longitude=data["y"],
             speed=data["speed"],
-            bit_state=BitStatus(data["bit_state_1"]),
+            bit_state=BitStatus(int(data["bit_state_1"])),
             engine_rpm=data["engine_rpm"],
             engine_temperature=data["engine_temp"],
             interior_temperature=data["cabin_temp"],
@@ -822,7 +823,7 @@ class PandoraOnlineAccount:
         if "speed" in data:
             args["speed"] = data["speed"]
         if "bit_state_1" in data:
-            args["bit_state"] = BitStatus(data["bit_state_1"])
+            args["bit_state"] = BitStatus(int(data["bit_state_1"]))
         if "engine_rpm" in data:
             args["engine_rpm"] = data["engine_rpm"]
         if "engine_temp" in data:
@@ -935,7 +936,7 @@ class PandoraOnlineAccount:
     ) -> TrackingEvent:
         return TrackingEvent(
             identifier=data["id"],
-            bit_state=BitStatus(data["bit_state_1"]),
+            bit_state=BitStatus(int(data["bit_state_1"])),
             cabin_temperature=data["cabin_temp"],
             engine_rpm=data["engine_rpm"],
             engine_temperature=data["engine_temp"],
