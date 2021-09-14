@@ -34,7 +34,6 @@ from typing import (
     List,
     Mapping,
     Optional,
-    Set,
     Tuple,
     TypeVar,
     Union,
@@ -239,12 +238,14 @@ class BalanceState:
     value: float = attr.ib(converter=float)
     currency: str = attr.ib()
 
-    @classmethod
-    def from_json(cls, data: Mapping[str, Any]):
-        return cls(
-            value=data["value"],
-            currency=data["cur"],
-        )
+    def __float__(self) -> float:
+        return self.value
+
+    def __int__(self) -> int:
+        return int(self.value)
+
+    def __round__(self, n=None):
+        return round(self.value, n)
 
 
 _T = TypeVar("_T")
@@ -252,6 +253,28 @@ _T = TypeVar("_T")
 
 def _empty_is_none(x: _T) -> Optional[_T]:
     return x or None
+
+
+def _degrees_to_direction(degrees: float):
+    sides = (
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+    )
+    return sides[round(degrees / (360 / len(sides))) % len(sides)]
 
 
 @attr.s(kw_only=True, frozen=True, slots=True)
@@ -268,7 +291,7 @@ class CurrentState:
     fuel: float = attr.ib(converter=float)
     voltage: float = attr.ib(converter=float)
     gsm_level: int = attr.ib()
-    balance: BalanceState = attr.ib()
+    balance: Optional[BalanceState] = attr.ib(default=None)
     mileage: float = attr.ib(converter=float)
     can_mileage: float = attr.ib(converter=float)
     tag_number: int = attr.ib()
@@ -307,44 +330,7 @@ class CurrentState:
     @property
     def direction(self) -> str:
         """Textual interpretation of rotation."""
-        sides = [
-            "N",
-            "NNE",
-            "NE",
-            "ENE",
-            "E",
-            "ESE",
-            "SE",
-            "SSE",
-            "S",
-            "SSW",
-            "SW",
-            "WSW",
-            "W",
-            "WNW",
-            "NW",
-            "NNW",
-        ]
-        return sides[round(self.rotation / (360 / len(sides))) % len(sides)]
-
-    @classmethod
-    def args_from_json(cls, data: Mapping[str, Any]) -> Dict[str, Any]:
-        args = dict()
-
-        return args
-
-    @classmethod
-    def from_json(cls, data: Mapping[str, Any]):
-        return cls(**cls.args_from_json(data))
-
-    def append_json(self, data: Mapping[str, Any]):
-        args = self.args_from_json(data)
-        return self.__class__(
-            **{
-                key: args[key] if key in args else getattr(self, key)
-                for key in attr.fields_dict(self.__class__)
-            }
-        )
+        return _degrees_to_direction(self.rotation)
 
 
 class PandoraOnlineAccount:
@@ -521,7 +507,7 @@ class PandoraOnlineAccount:
             params={"access_token": self._access_token},
         ) as response:
             devices_data = await self._handle_response(response)
-            _LOGGER.debug("retrieved devices: %s" % devices_data)
+            _LOGGER.debug("retrieved devices: %s", devices_data)
 
         new_devices_list = []
 
@@ -531,6 +517,7 @@ class PandoraOnlineAccount:
 
             if device_object is None:
                 device_object = PandoraOnlineDevice(self, device_attributes)
+                _LOGGER.debug(f"Found new device: {device_object}")
             else:
                 device_object.attributes = device_attributes
 
@@ -606,8 +593,9 @@ class PandoraOnlineAccount:
                     _LOGGER.debug(
                         "Updating stats data for device %s" % (device_object,)
                     )
-                    device_object.stats = stats_data
+                    device_object.state = stats_data
                     updated_device_ids.add(device_object.device_id)
+
                 else:
                     _LOGGER.warning(
                         'Device with ID "%s" stats data retrieved, '
@@ -623,183 +611,226 @@ class PandoraOnlineAccount:
         update_callback: Callable[
             ["PandoraOnlineDevice", Collection[str]], Awaitable[None]
         ],
+        auto_restart: bool = True,
     ) -> None:
         access_token = self._access_token
         if access_token is None:
             raise PandoraOnlineException("Account is not authenticated")
 
-        ws = await self._session.ws_connect(
-            self.BASE_URL + f"/api/v4/updates/ws?access_token={access_token}"
-        )
+        async def _process_websocket_response(type_: str, data: Mapping[str, Any]):
+            if type_ == "initial-state":
+                device_id = data["dev_id"]
+                device_object = self.get_device(device_id)
 
-        while True:
-            msg = await ws.receive()
+                if device_object:
+                    _LOGGER.debug(
+                        f"Initializing stats data for device with ID '{device_id}'"
+                    )
+                    device_object.state = CurrentState(
+                        identifier=data["id"],
+                        latitude=data["x"],
+                        longitude=data["y"],
+                        speed=data["speed"],
+                        bit_state=BitStatus(data["bit_state_1"]),
+                        engine_rpm=data["engine_rpm"],
+                        engine_temperature=data["engine_temp"],
+                        interior_temperature=data["cabin_temp"],
+                        exterior_temperature=data["out_temp"],
+                        balance=(
+                            BalanceState(
+                                value=data["balance"]["value"],
+                                currency=data["balance"]["cur"],
+                            )
+                            if data["balance"]
+                            else None
+                        ),
+                        balance_other=data["balance1"],
+                        mileage=data["mileage"],
+                        can_mileage=data["mileage_CAN"],
+                        tag_number=data["metka"],
+                        key_number=data["brelok"],
+                        is_moving=data["move"],
+                        is_evacuating=data["evaq"],
+                        fuel=data["fuel"],
+                        gsm_level=data["gsm_level"],
+                        relay=data["relay"],
+                        voltage=data["voltage"],
+                        state_timestamp=data["state"],
+                        state_timestamp_utc=data["state_utc"],
+                        online_timestamp=data["online"],
+                        online_timestamp_utc=data["online_utc"],
+                        settings_timestamp_utc=data["setting_utc"],
+                        command_timestamp_utc=data["command_utc"],
+                        active_sim=data["active_sim"],
+                        tracking_remaining=data["track_remains"],
+                        lock_latitude=data["lock_x"] / 1000000,
+                        lock_longitude=data["lock_y"] / 1000000,
+                        rotation=data["rot"],
+                    )
 
-            if msg.type == aiohttp.WSMsgType.closed:
-                break
-
-            elif msg.type == aiohttp.WSMsgType.error:
-                break
-
-            elif msg.type == aiohttp.WSMsgType.text:
-                contents = json.loads(msg.data)
-                type_, data = contents["type"], contents["data"]
-
-                if type_ == "initial-state":
-                    device_id = data["dev_id"]
-                    device_object = self.get_device(device_id)
-
-                    if device_object:
-                        _LOGGER.debug(
-                            f"Updating stats data for device with ID '{device_id}'"
-                        )
-                        device_object.state = CurrentState(
-                            identifier=data["id"],
-                            latitude=data["x"],
-                            longitude=data["y"],
-                            speed=data["speed"],
-                            bit_state=BitStatus(data["bit_state_1"]),
-                            engine_rpm=data["engine_rpm"],
-                            engine_temperature=data["engine_temp"],
-                            interior_temperature=data["cabin_temp"],
-                            exterior_temperature=data["out_temp"],
-                            balance=BalanceState.from_json(data["balance"]),
-                            balance_other=data["balance1"],
-                            mileage=data["mileage"],
-                            can_mileage=data["mileage_CAN"],
-                            tag_number=data["metka"],
-                            key_number=data["brelok"],
-                            is_moving=data["move"],
-                            is_evacuating=data["evaq"],
-                            fuel=data["fuel"],
-                            gsm_level=data["gsm_level"],
-                            relay=data["relay"],
-                            voltage=data["voltage"],
-                            state_timestamp=data["state"],
-                            state_timestamp_utc=data["state_utc"],
-                            online_timestamp=data["online"],
-                            online_timestamp_utc=data["online_utc"],
-                            settings_timestamp_utc=data["setting_utc"],
-                            command_timestamp_utc=data["command_utc"],
-                            active_sim=data["active_sim"],
-                            tracking_remaining=data["track_remains"],
-                            lock_latitude=data["lock_x"] / 1000000,
-                            lock_longitude=data["lock_y"] / 1000000,
-                            rotation=data["rot"],
-                        )
-
+                    try:
                         await update_callback(
                             device_object,
                             attr.fields_dict(CurrentState).keys(),
                         )
 
-                    else:
-                        _LOGGER.warning(
-                            f"Device with ID '{device_id}' stats data retrieved, "
-                            f"but no object created yet. Skipping...",
+                    except asyncio.CancelledError:
+                        raise
+
+                    except BaseException as e:
+                        _LOGGER.error(f"Error during callback handling: {e}")
+
+                else:
+                    _LOGGER.warning(
+                        f"Device with ID '{device_id}' stats data retrieved, "
+                        f"but no object created yet. Skipping...",
+                    )
+
+            elif type_ == "state":
+                device_id = data["dev_id"]
+                device_object = self.get_device(device_id)
+
+                if device_object:
+                    device_state = device_object.state
+                    if device_state:
+                        _LOGGER.debug(
+                            f"Appending stats data for device with ID '{device_id}'"
                         )
 
-                elif type_ == "state":
-                    device_id = data["dev_id"]
-                    device_object = self.get_device(device_id)
+                        args = {}
 
-                    if device_object:
-                        device_state = device_object.state
-                        if device_state:
-                            _LOGGER.debug(
-                                f"Appending stats data for device with ID '{device_id}'"
-                            )
-
-                            args = {}
-
-                            if "x" in data:
-                                args["latitude"] = data["x"]
-                            if "y" in data:
-                                args["longitude"] = data["y"]
-                            if "speed" in data:
-                                args["speed"] = data["speed"]
-                            if "bit_state_1" in data:
-                                args["bit_state"] = BitStatus(data["bit_state_1"])
-                            if "engine_rpm" in data:
-                                args["engine_rpm"] = data["engine_rpm"]
-                            if "engine_temp" in data:
-                                args["engine_temperature"] = data["engine_temp"]
-                            if "cabin_temp" in data:
-                                args["interior_temperature"] = data["cabin_temp"]
-                            if "out_temp" in data:
-                                args["exterior_temperature"] = data["out_temp"]
-                            if "balance" in data:
-                                args["balance"] = BalanceState.from_json(
-                                    data["balance"]
+                        if "x" in data:
+                            args["latitude"] = data["x"]
+                        if "y" in data:
+                            args["longitude"] = data["y"]
+                        if "speed" in data:
+                            args["speed"] = data["speed"]
+                        if "bit_state_1" in data:
+                            args["bit_state"] = BitStatus(data["bit_state_1"])
+                        if "engine_rpm" in data:
+                            args["engine_rpm"] = data["engine_rpm"]
+                        if "engine_temp" in data:
+                            args["engine_temperature"] = data["engine_temp"]
+                        if "cabin_temp" in data:
+                            args["interior_temperature"] = data["cabin_temp"]
+                        if "out_temp" in data:
+                            args["exterior_temperature"] = data["out_temp"]
+                        if "balance" in data:
+                            args["balance"] = (
+                                BalanceState(
+                                    value=data["balance"]["value"],
+                                    currency=data["balance"]["cur"],
                                 )
-                            if "balance1" in data:
-                                args["balance_other"] = data["balance1"]
-                            if "mileage" in data:
-                                args["mileage"] = data["mileage"]
-                            if "mileage_CAN" in data:
-                                args["can_mileage"] = data["mileage_CAN"]
-                            if "metka" in data:
-                                args["tag_number"] = data["metka"]
-                            if "brelok" in data:
-                                args["key_number"] = data["brelok"]
-                            if "move" in data:
-                                args["is_moving"] = data["move"]
-                            if "evaq" in data:
-                                args["is_evacuating"] = data["evaq"]
-                            if "fuel" in data:
-                                args["fuel"] = data["fuel"]
-                            if "gsm_level" in data:
-                                args["gsm_level"] = data["gsm_level"]
-                            if "relay" in data:
-                                args["relay"] = data["relay"]
-                            if "voltage" in data:
-                                args["voltage"] = data["voltage"]
-                            if "state" in data:
-                                args["state_timestamp"] = data["state"]
-                            if "state_utc" in data:
-                                args["state_timestamp_utc"] = data["state_utc"]
-                            if "online" in data:
-                                args["online_timestamp"] = data["online"]
-                            if "online_utc" in data:
-                                args["online_timestamp_utc"] = data["online_utc"]
-                            if "setting_utc" in data:
-                                args["settings_timestamp_utc"] = data["setting_utc"]
-                            if "command_utc" in data:
-                                args["command_timestamp_utc"] = data["command_utc"]
-                            if "active_sim" in data:
-                                args["active_sim"] = data["active_sim"]
-                            if "track_remains" in data:
-                                args["tracking_remaining"] = data["track_remains"]
-                            if "lock_x" in data:
-                                args["lock_latitude"] = data["lock_x"] / 1000000
-                            if "lock_y" in data:
-                                args["lock_longitude"] = data["lock_y"] / 1000000
-                            if "rot" in data:
-                                args["rotation"] = data["rot"]
+                                if data["balance"]
+                                else None
+                            )
+                        if "balance1" in data:
+                            args["balance_other"] = data["balance1"]
+                        if "mileage" in data:
+                            args["mileage"] = data["mileage"]
+                        if "mileage_CAN" in data:
+                            args["can_mileage"] = data["mileage_CAN"]
+                        if "metka" in data:
+                            args["tag_number"] = data["metka"]
+                        if "brelok" in data:
+                            args["key_number"] = data["brelok"]
+                        if "move" in data:
+                            args["is_moving"] = data["move"]
+                        if "evaq" in data:
+                            args["is_evacuating"] = data["evaq"]
+                        if "fuel" in data:
+                            args["fuel"] = data["fuel"]
+                        if "gsm_level" in data:
+                            args["gsm_level"] = data["gsm_level"]
+                        if "relay" in data:
+                            args["relay"] = data["relay"]
+                        if "voltage" in data:
+                            args["voltage"] = data["voltage"]
+                        if "state" in data:
+                            args["state_timestamp"] = data["state"]
+                        if "state_utc" in data:
+                            args["state_timestamp_utc"] = data["state_utc"]
+                        if "online" in data:
+                            args["online_timestamp"] = data["online"]
+                        if "online_utc" in data:
+                            args["online_timestamp_utc"] = data["online_utc"]
+                        if "setting_utc" in data:
+                            args["settings_timestamp_utc"] = data["setting_utc"]
+                        if "command_utc" in data:
+                            args["command_timestamp_utc"] = data["command_utc"]
+                        if "active_sim" in data:
+                            args["active_sim"] = data["active_sim"]
+                        if "track_remains" in data:
+                            args["tracking_remaining"] = data["track_remains"]
+                        if "lock_x" in data:
+                            args["lock_latitude"] = data["lock_x"] / 1000000
+                        if "lock_y" in data:
+                            args["lock_longitude"] = data["lock_y"] / 1000000
+                        if "rot" in data:
+                            args["rotation"] = data["rot"]
 
-                            device_object.state = attr.evolve(device_state, **args)
+                        device_object.state = attr.evolve(device_state, **args)
 
+                        try:
                             await update_callback(
                                 device_object,
-                                attr.fields_dict(CurrentState).keys(),
+                                args.keys(),
                             )
 
-                        else:
-                            _LOGGER.warning(
-                                f"Device with ID '{device_id}' partial state data retrieved, "
-                                f"but no initial data has yet been received. Skipping...",
-                            )
+                        except asyncio.CancelledError:
+                            raise
+
+                        except BaseException as e:
+                            _LOGGER.error(f"Error during callback handling: {e}")
 
                     else:
                         _LOGGER.warning(
-                            f"Device with ID '{device_id}' partial stats data retrieved, "
-                            f"but no object created yet. Skipping...",
+                            f"Device with ID '{device_id}' partial state data retrieved, "
+                            f"but no initial data has yet been received. Skipping...",
                         )
 
                 else:
                     _LOGGER.warning(
-                        f"Unknown response type '{type_}' with data '{data}'"
+                        f"Device with ID '{device_id}' partial stats data retrieved, "
+                        f"but no object created yet. Skipping...",
                     )
+
+            else:
+                _LOGGER.warning(f"Unknown response type '{type_}' with data '{data}'")
+
+        while True:
+            try:
+                ws = await self._session.ws_connect(
+                    self.BASE_URL + f"/api/v4/updates/ws?access_token={access_token}"
+                )
+
+                while True:
+                    msg = await ws.receive()
+
+                    if msg.type == aiohttp.WSMsgType.closed:
+                        break
+
+                    elif msg.type == aiohttp.WSMsgType.error:
+                        break
+
+                    elif msg.type == aiohttp.WSMsgType.text:
+                        contents = json.loads(msg.data)
+                        await _process_websocket_response(
+                            contents["type"], contents["data"]
+                        )
+
+            except asyncio.CancelledError:
+                raise
+
+            except (aiohttp.ClientError, aiohttp.ClientTimeout, OSError) as e:
+                _LOGGER.error(f"Error during listening: {e}")
+                if not auto_restart:
+                    raise
+
+                _LOGGER.info(
+                    "Restarting listener in 3 seconds automatically per instruction"
+                )
+                await asyncio.sleep(3)
 
 
 class PandoraOnlineDevice:
@@ -834,11 +865,13 @@ class PandoraOnlineDevice:
 
     def __str__(self) -> str:
         """Use the name as identifier for the vehicle."""
-        return '%s[id=%d, name="%s", account=%r]' % (
-            self.__class__.__name__,
-            self.device_id,
-            self.name,
-            self._account,
+        return (
+            f"{self.__class__.__name__}["
+            f"id={self.device_id}, "
+            f'name="{self.name}", '
+            f"account={self._account}, "
+            f"features={self.features}"
+            f"]"
         )
 
     # State management

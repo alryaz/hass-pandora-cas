@@ -133,9 +133,8 @@ async def _async_register_services(hass: HomeAssistantType) -> None:
     async def _execute_remote_command(
         call: "ServiceCall", command_id: Optional[Union[int, CommandID]] = None
     ) -> bool:
-        _LOGGER.debug(
-            'Called service "%s" with data: %s' % (call.service, dict(call.data))
-        )
+        _LOGGER.debug(f"Called service '{call.service}' with data: {dict(call.data)}")
+
         device_id = call.data[ATTR_DEVICE_ID]
         for username, account in hass.data[DOMAIN].items():
             account: PandoraOnlineAccount
@@ -151,7 +150,9 @@ async def _async_register_services(hass: HomeAssistantType) -> None:
                     await result
 
                 return True
+
         _LOGGER.error('Device with ID "%s" not found' % (device_id,))
+
         return False
 
     # register the remote services
@@ -281,7 +282,7 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
         raise ConfigEntryNotReady(str(error)) from None
 
     # save account to global
-    hass.data[DOMAIN][username] = account
+    hass.data[DOMAIN][config_entry.entry_id] = account
 
     # create account updater
     async def _account_changes_listener(
@@ -325,12 +326,14 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
                 entity.async_schedule_update_ha_state(force_refresh=True)
 
         _LOGGER.debug(
-            'Scheduling update for device with ID "%s" for entities: %s'
-            % (device_id, ", ".join(_updated_entity_ids))
+            f"Scheduling update for device with ID '{device_id}' "
+            f"for entities: {', '.join(_updated_entity_ids)}"
         )
 
     # Start listening for updates
-    hass.data.setdefault(DATA_UPDATERS, {})[username] = hass.loop.create_task(
+    hass.data.setdefault(DATA_UPDATERS, {})[
+        config_entry.entry_id
+    ] = hass.loop.create_task(
         account.async_listen_for_updates(
             _account_changes_listener,
         )
@@ -363,14 +366,16 @@ async def async_unload_entry(
     hass: HomeAssistantType, config_entry: ConfigEntry
 ) -> bool:
     """Unload configuration entry."""
+    entry_id = config_entry.entry_id
+    if entry_id in hass.data[DOMAIN]:
+        account = hass.data[DOMAIN].pop(entry_id)
+        await account.async_close()
+
     username = config_entry.data[CONF_USERNAME]
 
     if username in hass.data[DATA_UPDATERS]:
         _, cancel_updater = hass.data[DATA_UPDATERS].pop(config_entry.entry_id)
         cancel_updater()
-
-    if username in hass.data[DOMAIN]:
-        hass.data[DOMAIN].pop(username)
 
     # Wait for platforms to unload
     await asyncio.wait(
@@ -414,7 +419,7 @@ async def async_platform_setup_entry(
     if config_entry.source == config_entries.SOURCE_IMPORT:
         account_cfg = hass.data[DATA_CONFIG][username]
 
-    account_object: PandoraOnlineAccount = hass.data[DOMAIN][username]
+    account_object: PandoraOnlineAccount = hass.data[DOMAIN][config_entry.entry_id]
 
     logger.debug('Account object for account "%s": %r' % (username, account_object))
 
@@ -620,7 +625,7 @@ class PandoraCASEntity(BasePandoraCASEntity):
     def entity_type_config(self) -> Dict[str, Any]:
         return self.ENTITY_TYPES[self._entity_type]
 
-    def _get_attribute_value(self):
+    def _get_attribute_value(self) -> Optional[Any]:
         """Update entity from upstream device data."""
         entity_type_config = self.entity_type_config
         attribute_source_getter = entity_type_config.get(ATTR_ATTRIBUTE_SOURCE)
@@ -631,6 +636,9 @@ class PandoraCASEntity(BasePandoraCASEntity):
                 source = self._device
         else:
             source = self._device.state
+
+        if source is None:
+            return None
 
         return getattr(source, entity_type_config[ATTR_ATTRIBUTE])
 
@@ -647,16 +655,22 @@ class PandoraCASEntity(BasePandoraCASEntity):
 
         try:
             value = self._get_attribute_value()
-            formatter = self.entity_type_config.get(ATTR_FORMATTER)
-            self._state = formatter(value) if formatter else value
-            self._available = True
 
         except AttributeError as e:
             _LOGGER.error(
                 f"Attribute error occurred on device '{self._device.device_id}' "
-                f"with attribute '{attribute}': {e}"
+                f"with attribute '{self.entity_type_config[ATTR_ATTRIBUTE]}': {e}"
             )
             self._available = False
+
+        else:
+            if value is None:
+                self._available = False
+
+            else:
+                formatter = self.entity_type_config.get(ATTR_FORMATTER)
+                self._state = formatter(value) if formatter else value
+                self._available = True
 
     async def _run_device_command(
         self, command: Union[str, int, CommandID], schedule_update: bool = True
@@ -745,12 +759,30 @@ class PandoraCASBooleanEntity(PandoraCASEntity):
             _LOGGER.debug("Entity unavailable: %s" % (self,))
             return
 
-        if not self.assumed_state:
-            value = self._get_attribute_value()
+        if self.assumed_state:
+            self._available = True
 
-            if ATTR_FLAG in config:
-                value &= config[ATTR_FLAG]
+        else:
+            try:
+                value = self._get_attribute_value()
 
-            self._state = bool(value) ^ self.entity_type_config.get(ATTR_INVERSE, False)
+            except AttributeError as e:
+                _LOGGER.error(
+                    f"Attribute error occurred on device '{self._device.device_id}' "
+                    f"with attribute '{self.entity_type_config[ATTR_ATTRIBUTE]}': {e}"
+                )
+                self._available = False
 
-        self._available = True
+            else:
+                if value is None:
+                    self._available = False
+
+                else:
+                    if ATTR_FLAG in config:
+                        value &= config[ATTR_FLAG]
+
+                    self._state = bool(value) ^ self.entity_type_config.get(
+                        ATTR_INVERSE, False
+                    )
+
+                    self._available = True

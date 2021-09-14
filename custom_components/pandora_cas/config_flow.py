@@ -56,18 +56,16 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
         :param config: Configuration for account
         :return: (internal) Entry creation command
         """
-        _LOGGER.debug("Creating entry: %s" % config)
-
         username = config[CONF_USERNAME]
 
         if await self._check_entry_exists(username):
             _LOGGER.warning(
-                'Configuration for account "%s" already exists, not adding'
-                % (username,)
+                f"Configuration for username '{username}' "
+                f"already exists, not adding"
             )
             return self.async_abort(reason="account_already_exists")
 
-        _LOGGER.debug('Account "%s" entry: %s' % (username, config))
+        _LOGGER.debug(f"Creating entry for username {username}")
 
         return self.async_create_entry(title=username, data=config)
 

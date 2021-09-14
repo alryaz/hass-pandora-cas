@@ -1,8 +1,4 @@
-"""Device tracker for BMW Connected Drive vehicles.
-
-For more details about this platform, please refer to the documentation at
-https://home-assistant.io/components/device_tracker.bmw_connected_drive/
-"""
+"""Device tracker for Pandora Car Alarm System component"""
 __all__ = ("async_setup_entry", "PLATFORM_DOMAIN")
 
 import logging
@@ -18,9 +14,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_VOLTAGE, CONF_USERNAME
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import (
-    BasePandoraCASEntity,
-)
+from . import BasePandoraCASEntity
 from .api import PandoraOnlineAccount, PandoraOnlineDevice
 from .const import *
 
@@ -38,7 +32,7 @@ async def async_setup_entry(
     if config_entry.source == config_entries.SOURCE_IMPORT:
         account_cfg = hass.data[DATA_CONFIG][username]
 
-    account_object: PandoraOnlineAccount = hass.data[DOMAIN][username]
+    account_object: PandoraOnlineAccount = hass.data[DOMAIN][config_entry.entry_id]
 
     new_devices = []
     for device in account_object.devices:
@@ -72,13 +66,7 @@ async def async_setup_entry(
 
     if new_devices:
         async_add_devices(new_devices, True)
-        _LOGGER.debug(
-            'Added device trackers for account "%s": %s'
-            % (
-                username,
-                new_devices,
-            )
-        )
+        _LOGGER.debug('Added device trackers for account "%s"' % (username,))
     else:
         _LOGGER.debug('Did not add any device trackers for account "%s"' % (username,))
 
@@ -91,12 +79,7 @@ class PandoraCASTracker(BasePandoraCASEntity, TrackerEntity):
     def __init__(self, device: PandoraOnlineDevice):
         super().__init__(device, "location_tracker")
 
-        self._latitude = None
-        self._longitude = None
-        self._voltage = None
-        self._gsm_level = None
-        self._direction_degrees = None
-        self._direction_cardinal = None
+        self._device_state = device.state
 
         self.entity_id = "%s.%s_%d" % (
             PLATFORM_DOMAIN,
@@ -112,13 +95,7 @@ class PandoraCASTracker(BasePandoraCASEntity, TrackerEntity):
             self._available = False
             return
 
-        self._latitude = device.state.latitude
-        self._longitude = device.state.longitude
-        self._voltage = device.state.voltage
-        self._gsm_level = device.state.gsm_level
-        self._direction_degrees = device.state.rotation
-        self._direction_cardinal = device.state.direction
-
+        self._device_state = device.state
         self._available = True
 
     @property
@@ -137,14 +114,20 @@ class PandoraCASTracker(BasePandoraCASEntity, TrackerEntity):
         return "mdi:car"
 
     @property
-    def latitude(self) -> Optional[float]:
+    def latitude(self) -> float:
         """Return latitude value of the device."""
-        return self._latitude
+        device_state = self._device_state
+        if device_state is None:
+            return 0.0
+        return device_state.latitude
 
     @property
-    def longitude(self) -> Optional[float]:
+    def longitude(self) -> float:
         """Return longitude value of the device."""
-        return self._longitude
+        device_state = self._device_state
+        if device_state is None:
+            return 0.0
+        return device_state.longitude
 
     @property
     def source_type(self):
@@ -155,10 +138,28 @@ class PandoraCASTracker(BasePandoraCASEntity, TrackerEntity):
     def device_state_attributes(self) -> Dict[str, Any]:
         """Add some additional device attributes."""
         attributes = {}
+        device_state = self._device_state
+
         attributes.update(super().device_state_attributes)
-        attributes[ATTR_VOLTAGE] = self._voltage
-        attributes[ATTR_GSM_LEVEL] = self._gsm_level
-        attributes[ATTR_DIRECTION] = self._direction_degrees
-        attributes[ATTR_CARDINAL] = self._direction_cardinal
+        if device_state is None:
+            attributes.update(
+                dict.fromkeys(
+                    (
+                        ATTR_VOLTAGE,
+                        ATTR_GSM_LEVEL,
+                        ATTR_DIRECTION,
+                        ATTR_CARDINAL,
+                        ATTR_KEY_NUMBER,
+                        ATTR_TAG_NUMBER,
+                    )
+                )
+            )
+        else:
+            attributes[ATTR_VOLTAGE] = device_state.voltage
+            attributes[ATTR_GSM_LEVEL] = device_state.gsm_level
+            attributes[ATTR_DIRECTION] = device_state.rotation
+            attributes[ATTR_CARDINAL] = device_state.direction
+            attributes[ATTR_KEY_NUMBER] = device_state.key_number
+            attributes[ATTR_TAG_NUMBER] = device_state.tag_number
 
         return attributes
