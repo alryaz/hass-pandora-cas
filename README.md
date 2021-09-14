@@ -30,9 +30,10 @@
 и автоматизировать свой автомобиль, если он оборудован охранной системой Pandora. После настройки ваши
 устройства Pandora™ и PanDECT<sup>®</sup> автоматически добавятся в _Home Assistant_.
 
-Компонент реализует доступ к API официального сайта Pandora, `https://pro.p-on.ru`, и реализует часть функционала,
-доступного в полной веб-версии. Для настройки Вам следует использовать те же авторизационные данные, что вы используете на сайте Pandora, или в
-мобильном приложении [Pandora Online](https://play.google.com/store/apps/details?id=ru.alarmtrade.pandora&hl=ru).
+Компонент реализует доступ к API официального приложения Pandora, _Pandora Connect_, и реализует
+часть его функционала. Для настройки Вам следует использовать те же авторизационные данные, что вы
+используете на сайте Pandora ([pro.p-on.ru](https://pro.p-on.ru)), или в мобильном приложении
+[Pandora Online / Connect / Pro](https://play.google.com/store/apps/details?id=ru.alarmtrade.pandora&hl=ru).
 
 На данный момент компонент поддерживает:
 - [Device Tracker](#platform_device_tracker): Местоположение автомобиля.
@@ -41,6 +42,12 @@
 - [Switches](#platform_switch): Работа двигателя, активная охрана, и т.д.
 - [Lock](#platform_lock): Постановка на охрану
 - [Services](#services_provided): Команды, например: открыть/закрыть, завести/заглушить и др.
+
+Компонент успешно протестирован и отработан на системах:
+- Pandect X-1900 BT
+- Pandora DXL-5570
+- Pandect X-1700 BT
+- _[Сообщите о Вашем успехе!](mailto:alryaz@xavux.com?subject=Pandora%20Car%20Alarm%20System%20%D0%B4%D0%BB%D1%8F%20Home%20Assistant%20-%20%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%BA%D0%B0%20%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%B0&body=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5!%0D%0A%0D%0A%D0%9F%D0%BE%D0%B4%D1%82%D0%B2%D0%B5%D1%80%D0%B6%D0%B4%D0%B0%D1%8E%2C%20%D1%87%D1%82%D0%BE%20%D0%B8%D0%BD%D1%82%D0%B5%D0%B3%D1%80%D0%B0%D1%86%D0%B8%D1%8F%20%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0%D0%B5%D1%82%20%D1%81%20%D0%BC%D0%BE%D0%B8%D0%BC%20%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%BE%D0%BC%20...!%0D%0A%0D%0A(%D0%95%D1%81%D0%BB%D0%B8%20%D1%8D%D1%82%D0%BE%20%D0%BD%D0%B5%20%D1%82%D0%B0%D0%BA%2C%20%D0%BE%D0%BF%D0%B8%D1%88%D0%B8%D1%82%D0%B5%2C%20%D0%BF%D0%BE%D0%B6%D0%B0%D0%BB%D1%83%D0%B9%D1%81%D1%82%D0%B0%2C%20%D0%92%D0%B0%D1%88%D0%B8%20%D0%BD%D0%B0%D0%B1%D0%BB%D1%8E%D0%B4%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BE%20%D0%BD%D0%B5%D0%BF%D0%BE%D0%BB%D0%B0%D0%B4%D0%BA%D0%B0%D1%85))_
 
 ## Установка
 
@@ -215,7 +222,8 @@ lovelace UI и автоматизации.
 
 | Объект | Назначение | Примечание |
 | ------ | ---------- | ---------- | 
-| sensor.`PANDORA_ID`_mileage | Пробег | км |
+| sensor.`PANDORA_ID`_mileage | Пробег (по GPS устройства сигнализации) | км |
+| sensor.`PANDORA_ID`_can_mileage | Пробег (штатный одометр, по шине CAN) | км |
 | sensor.`PANDORA_ID`_fuel | Наполненность топливом <sup>1</sup> | % |
 | sensor.`PANDORA_ID`_interior_temperature | Температура салона | °C |
 | sensor.`PANDORA_ID`_engine_temperature | Температура двигателя | °C |
@@ -225,11 +233,11 @@ lovelace UI и автоматизации.
 | sensor.`PANDORA_ID`_tachometer | Тахометр (обороты двигателя) | rpm |
 | sensor.`PANDORA_ID`_gsm_level | Уровень сигнала GSM| 0 ... 3 |
 | sensor.`PANDORA_ID`_battery_voltage | Напряжение аккумулятора | В |
-| &#9888; sensor.`PANDORA_ID`_left_front_tire_pressure | _Давление левой передней шины_ | кПа |
-| &#9888; sensor.`PANDORA_ID`_right_front_tire_pressure | _Давление правой передней шины_ | кПа |
-| &#9888; sensor.`PANDORA_ID`_left_back_tire_pressure | _Давление левой задней шины_ | кПа |
-| &#9888; sensor.`PANDORA_ID`_right_back_tire_pressure | _Давление правой задней шины_ | кПа |
-| &#9888; sensor.`PANDORA_ID`_battery_temperature | _Температура аккумулятора_ | °C |
+| &#9888;&nbsp;sensor.`PANDORA_ID`_left_front_tire_pressure | _Давление левой передней шины_ | кПа _(?)_ |
+| &#9888;&nbsp;sensor.`PANDORA_ID`_right_front_tire_pressure | _Давление правой передней шины_ | кПа _(?)_ |
+| &#9888;&nbsp;sensor.`PANDORA_ID`_left_back_tire_pressure | _Давление левой задней шины_ | кПа _(?)_ |
+| &#9888;&nbsp;sensor.`PANDORA_ID`_right_back_tire_pressure | _Давление правой задней шины_ | кПа _(?)_ |
+| &#9888;&nbsp;sensor.`PANDORA_ID`_battery_temperature | _Температура аккумулятора_ | °C |
 
 ### Платформа `binary_sensor`
 <a id="platform_binary_sensor"/>
@@ -246,11 +254,11 @@ lovelace UI и автоматизации.
 | binary_sensor.`PANDORA_ID`_hood | Капот | открыт / закрыт |
 | binary_sensor.`PANDORA_ID`_parking  | Режим паркнинга | включен / выключен |
 | binary_sensor.`PANDORA_ID`_brakes  | Педаль тормоза | нажата / отпущена |
-| &#9888; binary_sensor.`PANDORA_ID`_left_front_glass | _Левое переднее окно (водительское)<sup>2</sup>_ | открыто / закрыто |
-| &#9888; binary_sensor.`PANDORA_ID`_right_front_glass | _Правое переднее окно (пассажирское)<sup>2</sup>_ | открыто / закрыто |
-| &#9888; binary_sensor.`PANDORA_ID`_left_back_glass | _Левое заднее окно_ | открыто / закрыто |
-| &#9888; binary_sensor.`PANDORA_ID`_right_back_glass | _Правое заднее окно_ | открыто / закрыто |
-| &#9888; binary_sensor.`PANDORA_ID`_ev_charging_connected | _Зарядка аккумулятора электрокара_ | подключено / отключено |
+| &#9888;&nbsp;binary_sensor.`PANDORA_ID`_left_front_glass | _Левое переднее окно (водительское)<sup>2</sup>_ | открыто / закрыто |
+| &#9888;&nbsp;binary_sensor.`PANDORA_ID`_right_front_glass | _Правое переднее окно (пассажирское)<sup>2</sup>_ | открыто / закрыто |
+| &#9888;&nbsp;binary_sensor.`PANDORA_ID`_left_back_glass | _Левое заднее окно_ | открыто / закрыто |
+| &#9888;&nbsp;binary_sensor.`PANDORA_ID`_right_back_glass | _Правое заднее окно_ | открыто / закрыто |
+| &#9888;&nbsp;binary_sensor.`PANDORA_ID`_ev_charging_connected | _Зарядка аккумулятора электрокара_ | подключено / отключено |
 
 <sup>1</sup> Данный объект содержит полный перечень свойств, получаемых в момент обновления состояния автомобиля,
 и тем самым может быть запросто использован для `template`-выражений.  
