@@ -1,5 +1,5 @@
 """Binary sensor platform for Pandora Car Alarm System."""
-__all__ = ["ENTITY_TYPES", "async_setup_entry"]
+__all__ = ("ENTITY_TYPES", "async_setup_entry")
 
 import logging
 from asyncio import run_coroutine_threadsafe
@@ -13,16 +13,9 @@ from homeassistant.components.switch import (
 )
 from homeassistant.const import ATTR_NAME, ATTR_ICON, ATTR_COMMAND
 
-from . import (
-    ATTR_FLAG,
-    ATTR_ATTRIBUTE,
-    ATTR_STATE_SENSITIVE,
-    ATTR_FEATURE,
-    ATTR_DEFAULT,
-    PandoraCASBooleanEntity,
-    async_platform_setup_entry,
-)
+from . import PandoraCASBooleanEntity, async_platform_setup_entry
 from .api import BitStatus, CommandID, Features
+from .const import *
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,7 +24,7 @@ ENTITY_TYPES = {
     "active_security": {
         ATTR_NAME: "Active Security",
         ATTR_ICON: ("mdi:shield-off", "mdi:shield-car"),
-        ATTR_ATTRIBUTE: "status",
+        ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.ACTIVE_SECURITY,
         ATTR_STATE_SENSITIVE: True,
         ATTR_COMMAND: (
@@ -44,7 +37,7 @@ ENTITY_TYPES = {
     "tracking": {
         ATTR_NAME: "Tracking",
         ATTR_ICON: ("mdi:map-marker-off", "mdi:map-marker-distance"),
-        ATTR_ATTRIBUTE: "status",
+        ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.TRACKING_ENABLED,
         ATTR_STATE_SENSITIVE: True,
         ATTR_COMMAND: (CommandID.DISABLE_TRACKING, CommandID.ENABLE_TRACKING),
@@ -53,7 +46,7 @@ ENTITY_TYPES = {
     "coolant_heater": {
         ATTR_NAME: "Coolant Heater",
         ATTR_ICON: ("mdi:radiator-disabled", "mdi:radiator"),
-        ATTR_ATTRIBUTE: "status",
+        ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.BLOCK_HEATER_ACTIVE,
         ATTR_STATE_SENSITIVE: True,
         ATTR_COMMAND: (
@@ -65,7 +58,7 @@ ENTITY_TYPES = {
     },
     # 'ext_channel': {
     #     ATTR_NAME: "Extra Channel",
-    #     ATTR_ATTRIBUTE: "status", ATTR_FLAG: BitStatus.COOLANT_HEATER,
+    #     ATTR_ATTRIBUTE: "bit_state", ATTR_FLAG: BitStatus.COOLANT_HEATER,
     #     ATTR_STATE_SENSITIVE: True,
     #     ATTR_COMMAND: (CommandID.TURN_OFF_EXT_CHANNEL, CommandID.TURN_ON_COOLANT_HEATER),
     #     ATTR_FEATURE: Features.EXT_CHANNEL,
@@ -73,7 +66,7 @@ ENTITY_TYPES = {
     "engine": {
         ATTR_NAME: "Engine",
         ATTR_ICON: ("mdi:fan-off", "mdi:fan"),
-        ATTR_ATTRIBUTE: "status",
+        ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.ENGINE_RUNNING,
         ATTR_STATE_SENSITIVE: True,
         ATTR_COMMAND: (CommandID.STOP_ENGINE, CommandID.START_ENGINE),
@@ -105,7 +98,7 @@ class PandoraCASSwitch(PandoraCASBooleanEntity, SwitchEntity):
     @property
     def assumed_state(self) -> bool:
         """Missing attribute implies unable to access exact state."""
-        return ATTR_ATTRIBUTE not in self._entity_config
+        return ATTR_ATTRIBUTE not in self.entity_type_config
 
     async def async_turn_on(self, **kwargs) -> None:
         """Proxy method to run enable boolean command."""

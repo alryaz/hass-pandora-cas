@@ -19,26 +19,41 @@ __all__ = [
     "DEFAULT_CONTROL_TIMEOUT",
 ]
 import asyncio
+import json
 import logging
-from enum import IntEnum, IntFlag, Flag, auto
+from enum import Flag, IntEnum, IntFlag, auto
 from json import JSONDecodeError
-from random import randint
 from types import MappingProxyType
-from typing import Dict, Any, Optional, Mapping, Union, List, Tuple
+from typing import (
+    Any,
+    Awaitable,
+    Callable,
+    Collection,
+    Dict,
+    Final,
+    List,
+    Mapping,
+    Optional,
+    Set,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 import aiohttp
+import attr
 
 _LOGGER = logging.getLogger(__name__)
 
 #: default user agent for use in requests
-DEFAULT_USER_AGENT = (
+DEFAULT_USER_AGENT: Final = (
     "Mozilla/5.0 (X11; Linux x86_64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/60.0.3112.113 Safari/537.36"
 )
 
 #: timeout to consider command execution unsuccessful
-DEFAULT_CONTROL_TIMEOUT = 30
+DEFAULT_CONTROL_TIMEOUT: Final = 30
 
 
 class CommandID(IntEnum):
@@ -124,7 +139,7 @@ class AlertType(IntEnum):
 
 
 class BitStatus(IntFlag):
-    """Enumeration to decode `bit_status_1` state parameter."""
+    """Enumeration to decode `bit_state_1` state parameter."""
 
     LOCKED = pow(2, 0)
     ALARM = pow(2, 1)
@@ -219,25 +234,144 @@ class Features(Flag):
         return result
 
 
+@attr.s(kw_only=True, frozen=True, slots=True)
+class BalanceState:
+    value: float = attr.ib(converter=float)
+    currency: str = attr.ib()
+
+    @classmethod
+    def from_json(cls, data: Mapping[str, Any]):
+        return cls(
+            value=data["value"],
+            currency=data["cur"],
+        )
+
+
+_T = TypeVar("_T")
+
+
+def _empty_is_none(x: _T) -> Optional[_T]:
+    return x or None
+
+
+@attr.s(kw_only=True, frozen=True, slots=True)
+class CurrentState:
+    identifier: int = attr.ib()
+    latitude: float = attr.ib()
+    longitude: float = attr.ib()
+    speed: float = attr.ib()
+    bit_state: BitStatus = attr.ib()
+    engine_rpm: int = attr.ib()
+    engine_temperature: float = attr.ib(converter=float)
+    interior_temperature: float = attr.ib(converter=float)
+    exterior_temperature: float = attr.ib(converter=float)
+    fuel: float = attr.ib(converter=float)
+    voltage: float = attr.ib(converter=float)
+    gsm_level: int = attr.ib()
+    balance: BalanceState = attr.ib()
+    mileage: float = attr.ib(converter=float)
+    can_mileage: float = attr.ib(converter=float)
+    tag_number: int = attr.ib()
+    key_number: int = attr.ib()
+    relay: int = attr.ib()
+    is_moving: bool = attr.ib(converter=bool)
+    is_evacuating: bool = attr.ib(converter=bool)
+    lock_latitude: float = attr.ib(converter=float)
+    lock_longitude: float = attr.ib(converter=float)
+    rotation: float = attr.ib(converter=float)
+    phone: Optional[str] = attr.ib(default=None, converter=_empty_is_none)
+    imei: Optional[int] = attr.ib(default=None, converter=_empty_is_none)
+    phone_other: Optional[str] = attr.ib(default=None, converter=_empty_is_none)
+    active_sim: int = attr.ib()
+    tracking_remaining: Optional[float] = attr.ib(
+        default=None, converter=_empty_is_none
+    )
+
+    # undecoded parameters
+    smeter: int = attr.ib(default=None)
+    tconsum: int = attr.ib(default=None)
+    loadaxis: Any = attr.ib(default=None)
+    land: int = attr.ib(default=None)
+    bunker: int = attr.ib(default=None)
+    ex_status: int = attr.ib(default=None)
+    balance_other: Any = attr.ib(default=None)
+    fuel_tanks: Collection[Any] = attr.ib(default=None)
+
+    state_timestamp: int = attr.ib()
+    state_timestamp_utc: int = attr.ib()
+    online_timestamp: int = attr.ib()
+    online_timestamp_utc: int = attr.ib()
+    settings_timestamp_utc: int = attr.ib()
+    command_timestamp_utc: int = attr.ib()
+
+    @property
+    def direction(self) -> str:
+        """Textual interpretation of rotation."""
+        sides = [
+            "N",
+            "NNE",
+            "NE",
+            "ENE",
+            "E",
+            "ESE",
+            "SE",
+            "SSE",
+            "S",
+            "SSW",
+            "SW",
+            "WSW",
+            "W",
+            "WNW",
+            "NW",
+            "NNW",
+        ]
+        return sides[round(self.rotation / (360 / len(sides))) % len(sides)]
+
+    @classmethod
+    def args_from_json(cls, data: Mapping[str, Any]) -> Dict[str, Any]:
+        args = dict()
+
+        return args
+
+    @classmethod
+    def from_json(cls, data: Mapping[str, Any]):
+        return cls(**cls.args_from_json(data))
+
+    def append_json(self, data: Mapping[str, Any]):
+        args = self.args_from_json(data)
+        return self.__class__(
+            **{
+                key: args[key] if key in args else getattr(self, key)
+                for key in attr.fields_dict(self.__class__)
+            }
+        )
+
+
 class PandoraOnlineAccount:
     """Pandora Online account interface."""
 
     BASE_URL = "https://pro.p-on.ru"
 
     def __init__(
-        self, username: str, password: str, user_agent: Optional[str] = None
+        self,
+        username: str,
+        password: str,
+        access_token: Optional[str] = None,
+        user_agent: Optional[str] = None,
     ) -> None:
         """
         Instantiate Pandora Online account object.
         :param username: Account username
         :param password: Account password
+        :param access_token: Access token (optional)
         :param user_agent: (optional) Specify differing user agent
         """
         self._username = username
         self._password = password
+        self._access_token = access_token
         self._user_agent = user_agent
-        self._cookie_jar = aiohttp.CookieJar()
         self._user_agent = user_agent if user_agent else DEFAULT_USER_AGENT
+        self._session = aiohttp.ClientSession()
 
         #: last update timestamp
         self._last_update = -1
@@ -248,6 +382,15 @@ class PandoraOnlineAccount:
 
         #: list of vehicles associated with this account.
         self._devices: List[PandoraOnlineDevice] = list()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        return await self._session.__aexit__(exc_type, exc_val, exc_tb)
+
+    async def async_close(self):
+        await self._session.close()
 
     def __repr__(self):
         """Retrieve representation of account object"""
@@ -278,22 +421,6 @@ class PandoraOnlineAccount:
                 return device
 
     # Remote action handlers
-    def _init_async_remote_session(self, **kwargs) -> aiohttp.ClientSession:
-        """Shorthand method to retrieve prepared session"""
-        headers = {
-            "X-Requested-With": "XMLHttpRequest",
-            "Referer": self.BASE_URL,
-            "Origin": self.BASE_URL,
-            "User-Agent": self._user_agent,
-        }
-        if "headers" in kwargs:
-            headers.update(kwargs["headers"])
-            del kwargs["headers"]
-
-        return aiohttp.ClientSession(
-            cookie_jar=self._cookie_jar, headers=headers, **kwargs
-        )
-
     async def _handle_response(
         self,
         response: aiohttp.ClientResponse,
@@ -330,29 +457,47 @@ class PandoraOnlineAccount:
             raise RequestException("HTTP client error: %s" % (e,)) from None
 
     # Requests
-    async def async_authenticate(self, session: Optional[aiohttp.ClientSession] = None):
-        if session is None:
-            async with self._init_async_remote_session() as session:
-                return await self.async_authenticate(session)
+    async def async_fetch_access_token(self) -> str:
+        async with self._session.post(
+            self.BASE_URL + "/oauth/token",
+            headers={
+                "Authorization": "Basic cGNvbm5lY3Q6SW5mXzRlUm05X2ZfaEhnVl9zNg==",
+            },
+        ) as response:
+            if response.status != 200:
+                raise PandoraOnlineException(
+                    f"Unexpected response code while fetching access token: {response.status}"
+                )
+            try:
+                return (await response.json())["access_token"]
+            except json.JSONDecodeError:
+                raise PandoraOnlineException("Could not decode access token")
+            except KeyError:
+                raise PandoraOnlineException("Access token not found")
+            except aiohttp.ClientError as e:
+                raise PandoraOnlineException(f"Error fetching access token: {e}")
+            except asyncio.TimeoutError:
+                raise PandoraOnlineException("Timeout fetching access token")
 
+    async def async_authenticate(self, access_token: Optional[str] = None):
         _LOGGER.debug('Authenticating with username "%s"' % (self._username,))
 
-        session.cookie_jar.clear()
+        self._session.cookie_jar.clear()
+
+        if access_token is None:
+            access_token = await self.async_fetch_access_token()
+
         url = self.BASE_URL + "/api/users/login"
-        request_headers = {
-            "User-Agent": self._user_agent,
-            "Referer": self.BASE_URL + "/login",
-            "Origin": self.BASE_URL,
-        }
         request_data = {
             "login": self._username,
             "password": self._password,
             "lang": "ru",
+            "v": "3",
+            "utc_offset": 180,
+            "access_token": access_token,
         }
 
-        async with session.post(
-            url, headers=request_headers, data=request_data
-        ) as response:
+        async with self._session.post(url, data=request_data) as response:
             try:
                 await self._handle_response(response)
             except RequestException as e:
@@ -361,19 +506,20 @@ class PandoraOnlineAccount:
             _LOGGER.info(
                 'Authentication successful for username "%s"!' % (self._username,)
             )
-            return
+            self._access_token = access_token
 
-    async def async_update_vehicles(
-        self, session: Optional[aiohttp.ClientSession] = None
-    ):
+    async def async_update_vehicles(self):
         """Retrieve and cache list of vehicles for the account."""
-
-        if session is None:
-            async with self._init_async_remote_session() as session:
-                return await self.async_update_vehicles(session)
+        access_token = self._access_token
+        if access_token is None:
+            raise PandoraOnlineException("Account is not authenticated")
 
         _LOGGER.debug('Updating vehicle list for username "%s"' % (self._username,))
-        async with session.get(self.BASE_URL + "/api/devices") as response:
+
+        async with self._session.get(
+            self.BASE_URL + "/api/devices",
+            params={"access_token": self._access_token},
+        ) as response:
             devices_data = await self._handle_response(response)
             _LOGGER.debug("retrieved devices: %s" % devices_data)
 
@@ -392,44 +538,19 @@ class PandoraOnlineAccount:
 
         self._devices = new_devices_list
 
-    async def async_remote_alive(
-        self,
-        click_count: Optional[int] = None,
-        session: Optional[aiohttp.ClientSession] = None,
-    ):
-        if session is None:
-            async with self._init_async_remote_session() as session:
-                return await self.async_remote_alive(session=session)
-
-        _LOGGER.debug("Performing alive request")
-        async with session.post(
-            self.BASE_URL + "/api/iamalive",
-            data={
-                "num_click": randint(0, 30) if click_count is None else click_count,
-            },
-        ) as response:
-            await self._handle_response(response)
-
     async def async_remote_command(
-        self,
-        device_id: int,
-        command_id: Union[int, "CommandID"],
-        session: Optional[aiohttp.ClientSession] = None,
+        self, device_id: int, command_id: Union[int, "CommandID"]
     ):
-        if session is None:
-            async with self._init_async_remote_session() as session:
-                return await self.async_remote_command(
-                    device_id, command_id, session=session
-                )
+        access_token = self._access_token
+        if access_token is None:
+            raise PandoraOnlineException("Account is not authenticated")
 
         _LOGGER.debug('Sending command "%d" to device "%d"' % (command_id, device_id))
 
-        async with session.post(
+        async with self._session.post(
             self.BASE_URL + "/api/devices/command",
-            data={
-                "id": device_id,
-                "command": int(command_id),
-            },
+            data={"id": device_id, "command": int(command_id)},
+            params={"access_token": self._access_token},
         ) as response:
             command_result = await self._handle_response(response)
             status = command_result.get("action_result", {}).get(str(device_id))
@@ -439,24 +560,23 @@ class PandoraOnlineAccount:
 
             _LOGGER.debug('Command "%d" sent to device "%d"' % (command_id, device_id))
 
-    async def async_fetch_changes(
-        self,
-        timestamp: Optional[int] = None,
-        session: Optional[aiohttp.ClientSession] = None,
-    ):
+    async def async_fetch_changes(self, timestamp: Optional[int] = None):
         """
         Fetch latest changes from update server.
         :param timestamp:
-        :param session:
         :return: (New data, Set of updated device IDs)
         """
-        if session is None:
-            async with self._init_async_remote_session() as session:
-                return await self.async_fetch_changes(session=session)
+        access_token = self._access_token
+        if access_token is None:
+            raise PandoraOnlineException("Account is not authenticated")
 
         _timestamp = self._last_update if timestamp is None else timestamp
-        async with session.get(
-            self.BASE_URL + "/api/updates", params={"ts": _timestamp}
+
+        _LOGGER.debug(f"Fetching changes since {_timestamp} on account {self}")
+
+        async with self._session.get(
+            self.BASE_URL + "/api/updates",
+            params={"ts": _timestamp, "access_token": access_token},
         ) as response:
             content: Dict[str, Any] = await self._handle_response(response)
 
@@ -474,8 +594,8 @@ class PandoraOnlineAccount:
                     updated_device_ids.add(device_object.device_id)
                 else:
                     _LOGGER.warning(
-                        'Device with ID "%s" times data retrieved, but no object created yet. Skipping...'
-                        % (device_id,)
+                        'Device with ID "%s" times data retrieved, '
+                        "but no object created yet. Skipping..."
                     )
 
         # Stats updates
@@ -490,13 +610,196 @@ class PandoraOnlineAccount:
                     updated_device_ids.add(device_object.device_id)
                 else:
                     _LOGGER.warning(
-                        'Device with ID "%s" stats data retrieved, but no object created yet. Skipping...'
-                        % (device_id,)
+                        'Device with ID "%s" stats data retrieved, '
+                        "but no object created yet. Skipping..." % (device_id,)
                     )
 
         self._last_update = int(content["ts"])
 
         return content, updated_device_ids
+
+    async def async_listen_for_updates(
+        self,
+        update_callback: Callable[
+            ["PandoraOnlineDevice", Collection[str]], Awaitable[None]
+        ],
+    ) -> None:
+        access_token = self._access_token
+        if access_token is None:
+            raise PandoraOnlineException("Account is not authenticated")
+
+        ws = await self._session.ws_connect(
+            self.BASE_URL + f"/api/v4/updates/ws?access_token={access_token}"
+        )
+
+        while True:
+            msg = await ws.receive()
+
+            if msg.type == aiohttp.WSMsgType.closed:
+                break
+
+            elif msg.type == aiohttp.WSMsgType.error:
+                break
+
+            elif msg.type == aiohttp.WSMsgType.text:
+                contents = json.loads(msg.data)
+                type_, data = contents["type"], contents["data"]
+
+                if type_ == "initial-state":
+                    device_id = data["dev_id"]
+                    device_object = self.get_device(device_id)
+
+                    if device_object:
+                        _LOGGER.debug(
+                            f"Updating stats data for device with ID '{device_id}'"
+                        )
+                        device_object.state = CurrentState(
+                            identifier=data["id"],
+                            latitude=data["x"],
+                            longitude=data["y"],
+                            speed=data["speed"],
+                            bit_state=BitStatus(data["bit_state_1"]),
+                            engine_rpm=data["engine_rpm"],
+                            engine_temperature=data["engine_temp"],
+                            interior_temperature=data["cabin_temp"],
+                            exterior_temperature=data["out_temp"],
+                            balance=BalanceState.from_json(data["balance"]),
+                            balance_other=data["balance1"],
+                            mileage=data["mileage"],
+                            can_mileage=data["mileage_CAN"],
+                            tag_number=data["metka"],
+                            key_number=data["brelok"],
+                            is_moving=data["move"],
+                            is_evacuating=data["evaq"],
+                            fuel=data["fuel"],
+                            gsm_level=data["gsm_level"],
+                            relay=data["relay"],
+                            voltage=data["voltage"],
+                            state_timestamp=data["state"],
+                            state_timestamp_utc=data["state_utc"],
+                            online_timestamp=data["online"],
+                            online_timestamp_utc=data["online_utc"],
+                            settings_timestamp_utc=data["setting_utc"],
+                            command_timestamp_utc=data["command_utc"],
+                            active_sim=data["active_sim"],
+                            tracking_remaining=data["track_remains"],
+                            lock_latitude=data["lock_x"] / 1000000,
+                            lock_longitude=data["lock_y"] / 1000000,
+                            rotation=data["rot"],
+                        )
+
+                        await update_callback(
+                            device_object,
+                            attr.fields_dict(CurrentState).keys(),
+                        )
+
+                    else:
+                        _LOGGER.warning(
+                            f"Device with ID '{device_id}' stats data retrieved, "
+                            f"but no object created yet. Skipping...",
+                        )
+
+                elif type_ == "state":
+                    device_id = data["dev_id"]
+                    device_object = self.get_device(device_id)
+
+                    if device_object:
+                        device_state = device_object.state
+                        if device_state:
+                            _LOGGER.debug(
+                                f"Appending stats data for device with ID '{device_id}'"
+                            )
+
+                            args = {}
+
+                            if "x" in data:
+                                args["latitude"] = data["x"]
+                            if "y" in data:
+                                args["longitude"] = data["y"]
+                            if "speed" in data:
+                                args["speed"] = data["speed"]
+                            if "bit_state_1" in data:
+                                args["bit_state"] = BitStatus(data["bit_state_1"])
+                            if "engine_rpm" in data:
+                                args["engine_rpm"] = data["engine_rpm"]
+                            if "engine_temp" in data:
+                                args["engine_temperature"] = data["engine_temp"]
+                            if "cabin_temp" in data:
+                                args["interior_temperature"] = data["cabin_temp"]
+                            if "out_temp" in data:
+                                args["exterior_temperature"] = data["out_temp"]
+                            if "balance" in data:
+                                args["balance"] = BalanceState.from_json(
+                                    data["balance"]
+                                )
+                            if "balance1" in data:
+                                args["balance_other"] = data["balance1"]
+                            if "mileage" in data:
+                                args["mileage"] = data["mileage"]
+                            if "mileage_CAN" in data:
+                                args["can_mileage"] = data["mileage_CAN"]
+                            if "metka" in data:
+                                args["tag_number"] = data["metka"]
+                            if "brelok" in data:
+                                args["key_number"] = data["brelok"]
+                            if "move" in data:
+                                args["is_moving"] = data["move"]
+                            if "evaq" in data:
+                                args["is_evacuating"] = data["evaq"]
+                            if "fuel" in data:
+                                args["fuel"] = data["fuel"]
+                            if "gsm_level" in data:
+                                args["gsm_level"] = data["gsm_level"]
+                            if "relay" in data:
+                                args["relay"] = data["relay"]
+                            if "voltage" in data:
+                                args["voltage"] = data["voltage"]
+                            if "state" in data:
+                                args["state_timestamp"] = data["state"]
+                            if "state_utc" in data:
+                                args["state_timestamp_utc"] = data["state_utc"]
+                            if "online" in data:
+                                args["online_timestamp"] = data["online"]
+                            if "online_utc" in data:
+                                args["online_timestamp_utc"] = data["online_utc"]
+                            if "setting_utc" in data:
+                                args["settings_timestamp_utc"] = data["setting_utc"]
+                            if "command_utc" in data:
+                                args["command_timestamp_utc"] = data["command_utc"]
+                            if "active_sim" in data:
+                                args["active_sim"] = data["active_sim"]
+                            if "track_remains" in data:
+                                args["tracking_remaining"] = data["track_remains"]
+                            if "lock_x" in data:
+                                args["lock_latitude"] = data["lock_x"] / 1000000
+                            if "lock_y" in data:
+                                args["lock_longitude"] = data["lock_y"] / 1000000
+                            if "rot" in data:
+                                args["rotation"] = data["rot"]
+
+                            device_object.state = attr.evolve(device_state, **args)
+
+                            await update_callback(
+                                device_object,
+                                attr.fields_dict(CurrentState).keys(),
+                            )
+
+                        else:
+                            _LOGGER.warning(
+                                f"Device with ID '{device_id}' partial state data retrieved, "
+                                f"but no initial data has yet been received. Skipping...",
+                            )
+
+                    else:
+                        _LOGGER.warning(
+                            f"Device with ID '{device_id}' partial stats data retrieved, "
+                            f"but no object created yet. Skipping...",
+                        )
+
+                else:
+                    _LOGGER.warning(
+                        f"Unknown response type '{type_}' with data '{data}'"
+                    )
 
 
 class PandoraOnlineDevice:
@@ -510,29 +813,18 @@ class PandoraOnlineDevice:
         self,
         account: PandoraOnlineAccount,
         attributes: Mapping[str, Any],
-        vehicle_stats: Optional[Mapping[str, Any]] = None,
+        current_state: Optional[CurrentState] = None,
         control_timeout: float = DEFAULT_CONTROL_TIMEOUT,
-        last_times: Optional[Mapping[str, int]] = None,
     ) -> None:
         """
         Instantiate vehicle object.
         :param account:
-        :param attributes:
         """
         self._account = account
-        self._attributes = dict(attributes)
         self._control_future: Optional[asyncio.Future] = None
-        self._stats = None if vehicle_stats is None else dict(vehicle_stats)
         self._features = None
-        self._bit_status = None
-
-        # Initialize last times dictionary
-        _init_last_times = dict.fromkeys(
-            ["command", "setting", "online", "onlined"], -1
-        )
-        if last_times is not None:
-            _init_last_times.update(last_times)
-        self._last_times = _init_last_times
+        self._attributes = attributes
+        self._current_state = current_state
 
         # Control timeout setting
         self.control_timeout = control_timeout
@@ -549,21 +841,44 @@ class PandoraOnlineDevice:
             self._account,
         )
 
+    # State management
+    @property
+    def state(self) -> Optional[CurrentState]:
+        return self._current_state
+
+    @state.setter
+    def state(self, value: CurrentState) -> None:
+        old_state = self._current_state
+
+        if old_state is None:
+            if self.control_busy:
+                self._control_future.set_result(True)
+                self._control_future = None
+        else:
+            if (
+                self.control_busy
+                and old_state.command_timestamp_utc < value.command_timestamp_utc
+            ):
+                self._control_future.set_result(True)
+                self._control_future = None
+
+        self._current_state = value
+
     # Remote command execution section
     async def async_remote_command(
-        self,
-        command_id: Union[int, CommandID],
-        ensure_complete: bool = True,
-        session: Optional[aiohttp.ClientSession] = None,
+        self, command_id: Union[int, CommandID], ensure_complete: bool = True
     ):
         """Proxy method to execute commands on corresponding vehicle object"""
+        if self._current_state is None:
+            raise PandoraOnlineException("state update is required")
+
         if self.control_busy:
-            raise RuntimeError("device is busy executing command")
+            raise PandoraOnlineException("device is busy executing command")
 
         if ensure_complete:
             self._control_future = asyncio.Future()
 
-        await self._account.async_remote_command(self.device_id, command_id, session)
+        await self._account.async_remote_command(self.device_id, command_id)
 
         if ensure_complete:
             try:
@@ -673,29 +988,10 @@ class PandoraOnlineDevice:
         return int(self._attributes["id"])
 
     @property
-    def times(self) -> Optional[Mapping[str, Any]]:
-        return None if self._last_times is None else MappingProxyType(self._last_times)
-
-    @times.setter
-    def times(self, value: Mapping[str, int]):
-        if (
-            self.control_busy
-            and "command" in value
-            and value["command"] > self._last_times["command"]
-        ):
-            # Resolve control future
-            self._control_future.set_result(True)
-
-        self._last_times.update(value)
-
-    @property
     def is_online(self) -> bool:
         """Returns whether vehicle can be deemed online"""
-        return (
-            self._last_times is not None
-            and self._stats is not None
-            and bool(self._stats["online"])
-        )
+        current_state = self._current_state
+        return current_state is not None and bool(current_state.online_timestamp)
 
     # Attributes-related properties
     @property
@@ -732,167 +1028,6 @@ class PandoraOnlineDevice:
     @property
     def voice_version(self) -> str:
         return self._attributes["voice_version"]
-
-    @property
-    def gps_location(self) -> (float, float):
-        """Get the last known position of the vehicle.
-
-        Returns a tuple of (latitude, longitude).
-        This only provides data, if the vehicle tracking is enabled!
-        """
-        return self.latitude, self.longitude
-
-    # Stats-related properties
-    @property
-    def stats(self) -> Optional[Mapping[str, Any]]:
-        return None if self._stats is None else MappingProxyType(self._stats)
-
-    @stats.setter
-    def stats(self, value: Mapping[str, Any]):
-        self._stats = dict(value)
-        self._bit_status = None
-
-    @property
-    def status(self) -> BitStatus:
-        if self._bit_status is None:
-            status_value = self._stats.get("bit_state_1", 0)
-            if isinstance(status_value, str):
-                status_value = int(status_value)
-            self._bit_status = BitStatus(status_value)
-        return self._bit_status
-
-    @property
-    def latitude(self) -> float:
-        return float(self._stats["x"])
-
-    @property
-    def longitude(self) -> float:
-        return float(self._stats["y"])
-
-    @property
-    def rotation(self) -> float:
-        return float(self._stats["rot"])
-
-    @property
-    def direction(self) -> str:
-        """Textual interpretation of rotation."""
-        sides = [
-            "N",
-            "NNE",
-            "NE",
-            "ENE",
-            "E",
-            "ESE",
-            "SE",
-            "SSE",
-            "S",
-            "SSW",
-            "SW",
-            "WSW",
-            "W",
-            "WNW",
-            "NW",
-            "NNW",
-        ]
-        return sides[round(self.rotation / (360 / len(sides))) % len(sides)]
-
-    @property
-    def mileage(self) -> float:
-        """Get the mileage of the vehicle.
-
-        Returns a tuple of (value, unit_of_measurement)
-        """
-        return float(self._stats["mileage"])
-
-    @property
-    def mileage_can_bus(self) -> float:
-        return float(self._stats["mileage_CAN"])
-
-    @property
-    def fuel(self) -> int:
-        """Get the remaining fuel of the vehicle.
-
-        Returns a tuple of (value, unit_of_measurement)
-        """
-        return int(self._stats["fuel"])
-
-    @property
-    def interior_temperature(self) -> int:
-        """Interior temperature accessor"""
-        return int(self._stats["cabin_temp"])
-
-    @property
-    def engine_temperature(self) -> int:
-        """Engine temperature accessor"""
-        return int(self._stats["engine_temp"])
-
-    @property
-    def outside_temperature(self) -> int:
-        """Outside temperature accessor"""
-        return int(self._stats["out_temp"])
-
-    @property
-    def speed(self) -> float:
-        """Current speed accessor"""
-        return round(float(self._stats["speed"]), 1)
-
-    @property
-    def engine_rpm(self) -> int:
-        """Engine revolutions per minute accessor"""
-        return int(self._stats["engine_rpm"])
-
-    @property
-    def gsm_level(self) -> int:
-        """GSM reception level accessor"""
-        return int(self._stats["gsm_level"])
-
-    @property
-    def is_moving(self) -> bool:
-        return bool(self._stats["move"])
-
-    @property
-    def battery_voltage(self) -> float:
-        """Battery voltage accessor"""
-        return round(float(self._stats["voltage"]), 1)
-
-    @property
-    def active_sim_id(self) -> int:
-        return int(self._stats["active_sim"])
-
-    # SIM-related properties
-    @property
-    def _sim_data(self):
-        return self._stats["sims"][self.active_sim_id]
-
-    @property
-    def sim_balance(self) -> float:
-        return float(self._sim_data["balance"]["value"])
-
-    @property
-    def sim_currency(self) -> float:
-        return float(self._sim_data["balance"]["cur"])
-
-    @property
-    def sim_number(self) -> float:
-        return float(self._sim_data["phoneNumber"])
-
-    # Last time data-related properties
-    @property
-    def online_since(self) -> int:
-        return self._last_times["online"]
-
-    # @TODO: research into this parameter
-    # @property
-    # def onlined(self) -> int:
-    #     return self._last_times['onlined']
-
-    @property
-    def last_command_time(self) -> int:
-        return self._last_times["command"]
-
-    @property
-    def last_setting_change_time(self) -> int:
-        return self._last_times["setting"]
 
 
 class PandoraOnlineException(Exception):

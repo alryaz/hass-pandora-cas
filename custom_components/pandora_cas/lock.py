@@ -1,4 +1,6 @@
 """Switch entity for Pandora Car Alarm System."""
+__all__ = ("ENTITY_TYPES", "async_setup_entry")
+
 import logging
 from asyncio import run_coroutine_threadsafe
 from functools import partial
@@ -12,24 +14,18 @@ from homeassistant.components.lock import (
 )
 from homeassistant.const import ATTR_NAME, ATTR_ICON, ATTR_DEVICE_CLASS, ATTR_COMMAND
 
-from . import (
-    ATTR_FLAG,
-    ATTR_ATTRIBUTE,
-    ATTR_STATE_SENSITIVE,
-    ATTR_DEFAULT,
-    PandoraCASBooleanEntity,
-    async_platform_setup_entry,
-)
+from . import PandoraCASBooleanEntity, async_platform_setup_entry
 from .api import BitStatus, CommandID
+from .const import *
 
 _LOGGER = logging.getLogger(__name__)
 
-LOCK_TYPES = {
+ENTITY_TYPES = {
     "central_lock": {
         ATTR_NAME: "Central Lock",
         ATTR_ICON: ("mdi:lock-open", "mdi:lock"),
         ATTR_DEVICE_CLASS: DEVICE_CLASS_LOCK,
-        ATTR_ATTRIBUTE: "status",
+        ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.LOCKED,
         ATTR_STATE_SENSITIVE: True,
         ATTR_COMMAND: (CommandID.UNLOCK, CommandID.LOCK),
@@ -39,10 +35,10 @@ LOCK_TYPES = {
 
 
 class PandoraCASLock(PandoraCASBooleanEntity, LockEntity):
-    ENTITY_TYPES = LOCK_TYPES
+    ENTITY_TYPES = ENTITY_TYPES
     ENTITY_ID_FORMAT = ENTITY_ID_FORMAT
 
-    def lock(self, **kwargs):
+    def lock(self, **kwargs: Any) -> None:
         run_coroutine_threadsafe(self.async_lock(), self.hass.loop).result()
 
     def unlock(self, **kwargs: Any) -> None:

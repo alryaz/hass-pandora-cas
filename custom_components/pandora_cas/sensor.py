@@ -1,9 +1,9 @@
 """Sensor platform for Pandora Car Alarm System."""
-__all__ = ["ENTITY_TYPES", "async_setup_entry"]
+__all__ = ("ENTITY_TYPES", "async_setup_entry")
 
 import logging
 from functools import partial
-from typing import Union
+from typing import Optional, Union
 
 from homeassistant.components.sensor import DOMAIN as PLATFORM_DOMAIN, ENTITY_ID_FORMAT
 from homeassistant.const import (
@@ -15,15 +15,8 @@ from homeassistant.const import (
     SPEED_KILOMETERS_PER_HOUR,
 )
 
-from . import (
-    ATTR_ATTRIBUTE,
-    ATTR_STATE_SENSITIVE,
-    ATTR_FORMATTER,
-    ATTR_ADDITIONAL_ATTRIBUTES,
-    ATTR_DEFAULT,
-    PandoraCASEntity,
-    async_platform_setup_entry,
-)
+from . import PandoraCASEntity, async_platform_setup_entry
+from .const import *
 
 try:
     from homeassistant.const import VOLT as ELECTRIC_POTENTIAL_VOLT
@@ -70,14 +63,14 @@ ENTITY_TYPES = {
         ATTR_NAME: "Exterior Temperature",
         ATTR_ICON: "mdi:thermometer",
         ATTR_UNIT_OF_MEASUREMENT: TEMP_CELSIUS,
-        ATTR_ATTRIBUTE: "outside_temperature",
+        ATTR_ATTRIBUTE: "exterior_temperature",
         ATTR_STATE_SENSITIVE: True,
     },
     "balance": {
         ATTR_NAME: "Balance",
         ATTR_ICON: "mdi:cash",
-        ATTR_UNIT_OF_MEASUREMENT: "₽",
-        ATTR_ATTRIBUTE: "sim_balance",
+        ATTR_UNIT_OF_MEASUREMENT: None,
+        ATTR_ATTRIBUTE: "balance",
         ATTR_STATE_SENSITIVE: False,
         ATTR_DEFAULT: True,
     },
@@ -112,7 +105,7 @@ ENTITY_TYPES = {
         ATTR_NAME: "Battery voltage",
         ATTR_ICON: "mdi:car-battery",
         ATTR_UNIT_OF_MEASUREMENT: ELECTRIC_POTENTIAL_VOLT,
-        ATTR_ATTRIBUTE: "battery_voltage",
+        ATTR_ATTRIBUTE: "voltage",
         ATTR_STATE_SENSITIVE: True,
         ATTR_DEFAULT: True,
     },
@@ -127,7 +120,21 @@ class PandoraCASSensor(PandoraCASEntity):
 
     @property
     def state(self) -> Union[None, str, int, float]:
+        if self._entity_type == "balance":
+            state = self._state
+            if state is None:
+                return None
+            return state.value
         return self._state
+
+    @property
+    def unit_of_measurement(self) -> Optional[str]:
+        if self._entity_type == "balance":
+            state = self._state
+            if state is None:
+                return None
+            return state.currency
+        return super().unit_of_measurement
 
 
 async_setup_entry = partial(

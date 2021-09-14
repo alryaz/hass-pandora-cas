@@ -14,15 +14,9 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.const import ATTR_NAME, ATTR_ICON, ATTR_DEVICE_CLASS
 
-from . import (
-    ATTR_ATTRIBUTE,
-    ATTR_STATE_SENSITIVE,
-    ATTR_FLAG,
-    ATTR_DEFAULT,
-    PandoraCASBooleanEntity,
-    async_platform_setup_entry,
-)
+from . import PandoraCASBooleanEntity, async_platform_setup_entry
 from .api import BitStatus
+from .const import *
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,6 +27,7 @@ ENTITY_TYPES = {
         ATTR_NAME: "Connection state",
         ATTR_DEVICE_CLASS: DEVICE_CLASS_CONNECTIVITY,
         ATTR_ATTRIBUTE: "is_online",
+        ATTR_ATTRIBUTE_SOURCE: True,
         ATTR_DEFAULT: True,
     },
     "moving": {
@@ -46,7 +41,7 @@ ENTITY_TYPES = {
         ATTR_NAME: "Left Front Door",
         ATTR_ICON: _car_door_icons,
         ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
-        ATTR_ATTRIBUTE: "status",
+        ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.DOOR_FRONT_LEFT_OPEN,
         ATTR_STATE_SENSITIVE: True,
         ATTR_DEFAULT: True,
@@ -55,7 +50,7 @@ ENTITY_TYPES = {
         ATTR_NAME: "Right Front Door",
         ATTR_ICON: _car_door_icons,
         ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
-        ATTR_ATTRIBUTE: "status",
+        ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.DOOR_FRONT_RIGHT_OPEN,
         ATTR_STATE_SENSITIVE: True,
         ATTR_DEFAULT: True,
@@ -64,7 +59,7 @@ ENTITY_TYPES = {
         ATTR_NAME: "Left Back Door",
         ATTR_ICON: _car_door_icons,
         ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
-        ATTR_ATTRIBUTE: "status",
+        ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.DOOR_BACK_LEFT_OPEN,
         ATTR_STATE_SENSITIVE: True,
         ATTR_DEFAULT: True,
@@ -73,7 +68,7 @@ ENTITY_TYPES = {
         ATTR_NAME: "Right Back Door",
         ATTR_ICON: _car_door_icons,
         ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
-        ATTR_ATTRIBUTE: "status",
+        ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.DOOR_BACK_RIGHT_OPEN,
         ATTR_STATE_SENSITIVE: True,
         ATTR_DEFAULT: True,
@@ -82,7 +77,7 @@ ENTITY_TYPES = {
         ATTR_NAME: "Trunk",
         ATTR_ICON: "mdi:car-back",
         ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
-        ATTR_ATTRIBUTE: "status",
+        ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.TRUNK_OPEN,
         ATTR_STATE_SENSITIVE: True,
         ATTR_DEFAULT: True,
@@ -91,7 +86,7 @@ ENTITY_TYPES = {
         ATTR_NAME: "Hood",
         ATTR_ICON: "mdi:car",
         ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
-        ATTR_ATTRIBUTE: "status",
+        ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.HOOD_OPEN,
         ATTR_STATE_SENSITIVE: True,
         ATTR_DEFAULT: True,
@@ -99,14 +94,14 @@ ENTITY_TYPES = {
     "parking": {
         ATTR_NAME: "Parking Mode",
         ATTR_ICON: "mdi:car-brake-parking",
-        ATTR_ATTRIBUTE: "status",
+        ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.HANDBRAKE_ENGAGED,
         ATTR_STATE_SENSITIVE: True,
     },
     "brakes": {
         ATTR_NAME: "Brakes",
         ATTR_ICON: "mdi:car-brake-hold",
-        ATTR_ATTRIBUTE: "status",
+        ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.BRAKES_ENGAGED,
         ATTR_STATE_SENSITIVE: True,
     },

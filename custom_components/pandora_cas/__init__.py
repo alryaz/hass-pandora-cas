@@ -17,66 +17,39 @@ import asyncio
 import logging
 from datetime import timedelta
 from functools import partial
-from typing import Dict, Union, Optional, Any, Tuple, List, Type
+from typing import Any, ClassVar, Collection, Dict, List, Optional, Tuple, Type, Union
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    CONF_USERNAME,
-    CONF_PASSWORD,
-    ATTR_NAME,
+    ATTR_ASSUMED_STATE,
+    ATTR_COMMAND,
     ATTR_DEVICE_CLASS,
     ATTR_ICON,
+    ATTR_NAME,
     ATTR_UNIT_OF_MEASUREMENT,
-    ATTR_COMMAND,
+    CONF_PASSWORD,
+    CONF_USERNAME,
 )
 from homeassistant.core import ServiceCall, callback
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.entity import Entity
-from homeassistant.helpers.event import (
-    async_track_time_interval,
-    async_track_point_in_time,
-)
-from homeassistant.helpers.typing import HomeAssistantType, ConfigType
+from homeassistant.helpers.typing import ConfigType, HomeAssistantType
 from homeassistant.loader import bind_hass
-from homeassistant.util import slugify, utcnow
+from homeassistant.util import slugify
 
 from .api import (
-    PandoraOnlineAccount,
-    PandoraOnlineDevice,
-    PandoraOnlineException,
     AuthenticationException,
     CommandID,
     DEFAULT_USER_AGENT,
+    PandoraOnlineAccount,
+    PandoraOnlineDevice,
+    PandoraOnlineException,
 )
+from .const import *
 
-DOMAIN = "pandora_cas"
-PANDORA_COMPONENTS = ["binary_sensor", "sensor", "switch", "lock", "device_tracker"]
-
-DATA_CONFIG = DOMAIN + "_config"
-DATA_UPDATERS = DOMAIN + "_updaters"
-DATA_DEVICE_ENTITIES = DOMAIN + "_device_entities"
-DATA_UPDATE_LISTENERS = DOMAIN + "_update_listeners"
-
-CONF_POLLING_INTERVAL = "polling_interval"
-CONF_READ_ONLY = "read_only"
-CONF_USER_AGENT = "user_agent"
-CONF_NAME_FORMAT = "name_format"
-
-ATTR_DEVICE_ID = "device_id"
-ATTR_COMMAND_ID = "command_id"
-ATTR_ATTRIBUTE = "attribute"
-ATTR_FLAG = "flag"
-ATTR_STATE_SENSITIVE = "state_sensitive"
-ATTR_FORMATTER = "formatter"
-ATTR_INVERSE = "inverse"
-ATTR_FEATURE = "feature"
-ATTR_ADDITIONAL_ATTRIBUTES = "additional_attributes"
-ATTR_DEFAULT = "default"
-
-DEFAULT_NAME_FORMAT = "{device_name} {type_name}"
 MIN_POLLING_INTERVAL = timedelta(seconds=10)
 DEFAULT_POLLING_INTERVAL = timedelta(minutes=1)
 DEFAULT_EXECUTION_DELAY = timedelta(seconds=15)
@@ -294,125 +267,74 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
         user_agent=pandora_cfg.get(CONF_USER_AGENT, DEFAULT_USER_AGENT),
     )
 
-    async def _authenticate():
-        error = None
-        try:
-            _LOGGER.debug('Authenticating account "%s"' % (username,))
-            await account.async_authenticate()
+    try:
+        _LOGGER.debug('Authenticating account "%s"' % (username,))
+        await account.async_authenticate()
 
-        except AuthenticationException as e:
-            error = "Authentication error: %s" % (e,)
-            _LOGGER.error(error)
-            raise ConfigEntryNotReady(error) from None
+        _LOGGER.debug('Fetching devices for account "%s"' % (username,))
+        await account.async_update_vehicles()
 
-        except PandoraOnlineException as e:
-            error = "API error: %s" % (e,)
-            _LOGGER.error(error)
-            raise ConfigEntryNotReady(error) from None
+    except PandoraOnlineException as error:
+        await account.async_close()
 
-    await _authenticate()
-
-    _LOGGER.debug('Fetching devices for account "%s"' % (username,))
-    await account.async_update_vehicles()
+        _LOGGER.error(error)
+        raise ConfigEntryNotReady(str(error)) from None
 
     # save account to global
     hass.data[DOMAIN][username] = account
 
     # create account updater
-    async def _account_changes_updater(*_):
-        try:
-            _LOGGER.debug('Fetching changes for account "%s"' % (username,))
-            _, updated_device_ids = await account.async_fetch_changes()
+    async def _account_changes_listener(
+        device: PandoraOnlineDevice, updated_stats: Collection[str]
+    ):
+        # Schedule entity updates for related entities
+        device_id = device.device_id
 
-        except PandoraOnlineException:
-            # Attempt to reauthenticate should an issue arise
-            await _authenticate()
-            _, updated_device_ids = await account.async_fetch_changes()
+        device_entities: Optional[List[PandoraCASEntity]] = hass.data[
+            DATA_DEVICE_ENTITIES
+        ].get(device_id)
 
-        # Iterate over updated device IDs
-        for device_id in updated_device_ids:
-
-            # Schedule entity updates for related entities
-            device_entities: Optional[List[PandoraCASEntity]] = hass.data[
-                DATA_DEVICE_ENTITIES
-            ].get(device_id)
-            if device_entities is None:
-                _LOGGER.debug(
-                    'Received update for device "%s" without registration'
-                    % (device_id,)
-                )
-                continue
-
-            elif not device_entities:
-                # Do not iterate when there are no entities
-                _LOGGER.debug(
-                    'Received update for device with ID "%s" with no entities'
-                    % (device_id,)
-                )
-                continue
-
-            _updated_entity_ids = list()
-            for entity in device_entities:
-                if entity.enabled:
-                    _updated_entity_ids.append(entity.entity_id)
-                    entity.async_schedule_update_ha_state(force_refresh=True)
-
+        if device_entities is None:
             _LOGGER.debug(
-                'Scheduling update for device with ID "%s" for entities: %s'
-                % (device_id, ", ".join(_updated_entity_ids))
+                'Received update for device "%s" without entities' % (device_id,)
             )
+            return
 
-    async def _start_updater(delay: Union[float, int, timedelta] = 0):
-        if not isinstance(delay, timedelta):
-            # Convert integers and floats to timedelta objects
-            delay = timedelta(seconds=delay)
-
-        # Check whether delay is required
-        if delay.total_seconds():
-            # Schedule updater to start with a `start_after` delay
-            call_at = utcnow() + delay
+        if not device_entities:
+            # Do not iterate when there are no entities
             _LOGGER.debug(
-                'Scheduling updater for account "%s" at %s'
-                % (
-                    username,
-                    call_at,
-                )
+                'Received update for device with ID "%s" with no entities'
+                % (device_id,)
             )
+            return
 
-            def _internal_start_updater(*_):
-                _LOGGER.debug(
-                    'Executing scheduled updater initialization for account "%s"'
-                    % (username,)
-                )
-                hass.async_run_job(_start_updater)
+        _updated_entity_ids = list()
+        for entity in device_entities:
+            if entity.enabled:
+                if hasattr(entity, "entity_type_config"):
+                    entity_type_config = entity.entity_type_config
 
-            _cancel_updater = async_track_point_in_time(
-                hass, _internal_start_updater, call_at
-            )
+                    if not (
+                        entity_type_config.get(ATTR_ASSUMED_STATE)
+                        or entity_type_config.get(ATTR_ATTRIBUTE_SOURCE)
+                        or entity_type_config[ATTR_ATTRIBUTE] in updated_stats
+                    ):
+                        continue
 
-        else:
-            try:
-                # Run updater once before establishing schedule
-                await _account_changes_updater()
+                _updated_entity_ids.append(entity.entity_id)
+                entity.async_schedule_update_ha_state(force_refresh=True)
 
-            except PandoraOnlineException:
-                _LOGGER.exception("Error occurred while running updater:")
+        _LOGGER.debug(
+            'Scheduling update for device with ID "%s" for entities: %s'
+            % (device_id, ", ".join(_updated_entity_ids))
+        )
 
-            # Schedule updater to run with configured polling interval
-            _cancel_updater = async_track_time_interval(
-                hass=hass,
-                action=_account_changes_updater,
-                interval=pandora_cfg[CONF_POLLING_INTERVAL],
-            )
-
-        if username in hass.data[DATA_UPDATERS]:
-            # Cancel previous updater schedule
-            hass.data[DATA_UPDATERS][username][1]()
-
-        hass.data[DATA_UPDATERS][username] = (_start_updater, _cancel_updater)
-
-    # Update stats once, and schedule the updater
-    await _start_updater()
+    # Start listening for updates
+    hass.data.setdefault(DATA_UPDATERS, {})[username] = hass.loop.create_task(
+        account.async_listen_for_updates(
+            _account_changes_listener,
+        )
+    )
 
     # forward sub-entity setup
     for entity_domain in PANDORA_COMPONENTS:
@@ -444,7 +366,7 @@ async def async_unload_entry(
     username = config_entry.data[CONF_USERNAME]
 
     if username in hass.data[DATA_UPDATERS]:
-        _, cancel_updater = hass.data[DATA_UPDATERS].pop(username)
+        _, cancel_updater = hass.data[DATA_UPDATERS].pop(config_entry.entry_id)
         cancel_updater()
 
     if username in hass.data[DOMAIN]:
@@ -676,8 +598,8 @@ class BasePandoraCASEntity(Entity):
 
 
 class PandoraCASEntity(BasePandoraCASEntity):
-    ENTITY_TYPES: Dict[str, Dict[str, Any]] = NotImplemented
-    ENTITY_ID_FORMAT: str = NotImplemented
+    ENTITY_TYPES: ClassVar[Dict[str, Dict[str, Any]]] = NotImplemented
+    ENTITY_ID_FORMAT: ClassVar[str] = NotImplemented
 
     def __init__(
         self,
@@ -695,29 +617,44 @@ class PandoraCASEntity(BasePandoraCASEntity):
 
     # Core functionality
     @property
-    def _entity_config(self) -> Dict[str, Any]:
+    def entity_type_config(self) -> Dict[str, Any]:
         return self.ENTITY_TYPES[self._entity_type]
+
+    def _get_attribute_value(self):
+        """Update entity from upstream device data."""
+        entity_type_config = self.entity_type_config
+        attribute_source_getter = entity_type_config.get(ATTR_ATTRIBUTE_SOURCE)
+        if attribute_source_getter:
+            if callable(attribute_source_getter):
+                source = attribute_source_getter(self._device)
+            else:
+                source = self._device
+        else:
+            source = self._device.state
+
+        return getattr(source, entity_type_config[ATTR_ATTRIBUTE])
 
     async def async_update(self):
         """Update entity from upstream device data."""
-        if self._entity_config.get(ATTR_STATE_SENSITIVE) and not self._device.is_online:
+        if (
+            self.entity_type_config.get(ATTR_STATE_SENSITIVE)
+            and not self._device.is_online
+        ):
             self._available = False
             self._state = None
             _LOGGER.debug("Entity unavailable: %s" % (self,))
             return
 
-        attribute = self._entity_config[ATTR_ATTRIBUTE]
-
         try:
-            value = getattr(self._device, attribute)
-            formatter = self._entity_config.get(ATTR_FORMATTER)
+            value = self._get_attribute_value()
+            formatter = self.entity_type_config.get(ATTR_FORMATTER)
             self._state = formatter(value) if formatter else value
             self._available = True
 
-        except AttributeError:
+        except AttributeError as e:
             _LOGGER.error(
-                'Attribute error occurred on device "%s" with attribute "%s"'
-                % (self._device.device_id, attribute)
+                f"Attribute error occurred on device '{self._device.device_id}' "
+                f"with attribute '{attribute}': {e}"
             )
             self._available = False
 
@@ -754,25 +691,25 @@ class PandoraCASEntity(BasePandoraCASEntity):
         """Return entity name variables"""
         return {
             **super()._entity_name_vars,
-            "type_name": self._entity_config[ATTR_NAME],
+            "type_name": self.entity_type_config[ATTR_NAME],
         }
 
     @property
     def device_class(self) -> Optional[str]:
         """Return device class (if available)."""
-        return self._entity_config.get(ATTR_DEVICE_CLASS)
+        return self.entity_type_config.get(ATTR_DEVICE_CLASS)
 
     @property
     def icon(self) -> Optional[str]:
         """Return device icon (if available)."""
-        icon = self._entity_config.get(ATTR_ICON)
+        icon = self.entity_type_config.get(ATTR_ICON)
         if isinstance(icon, dict):
             return icon.get(self._state, icon[ATTR_DEFAULT])
         return icon
 
     @property
     def unit_of_measurement(self) -> Optional[str]:
-        return self._entity_config.get(ATTR_UNIT_OF_MEASUREMENT)
+        return self.entity_type_config.get(ATTR_UNIT_OF_MEASUREMENT)
 
 
 class PandoraCASBooleanEntity(PandoraCASEntity):
@@ -787,7 +724,7 @@ class PandoraCASBooleanEntity(PandoraCASEntity):
             return icon[int(bool(self._state))]
 
     async def _run_boolean_command(self, enable: bool, shallow_update: bool = True):
-        command = self._entity_config[ATTR_COMMAND]
+        command = self.entity_type_config[ATTR_COMMAND]
 
         if isinstance(command, str):
             raise NotImplementedError
@@ -801,7 +738,7 @@ class PandoraCASBooleanEntity(PandoraCASEntity):
 
     async def async_update(self):
         """Update entity from upstream device data."""
-        config = self._entity_config
+        config = self.entity_type_config
         if config.get(ATTR_STATE_SENSITIVE) and not self._device.is_online:
             self._available = False
             self._state = None
@@ -809,10 +746,11 @@ class PandoraCASBooleanEntity(PandoraCASEntity):
             return
 
         if not self.assumed_state:
-            value = getattr(self._device, config[ATTR_ATTRIBUTE])
+            value = self._get_attribute_value()
+
             if ATTR_FLAG in config:
                 value &= config[ATTR_FLAG]
 
-            self._state = bool(value) ^ self._entity_config.get(ATTR_INVERSE, False)
+            self._state = bool(value) ^ self.entity_type_config.get(ATTR_INVERSE, False)
 
         self._available = True

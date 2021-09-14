@@ -3,31 +3,30 @@
 For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/device_tracker.bmw_connected_drive/
 """
-__all__ = ["async_setup_entry", "PLATFORM_DOMAIN"]
+__all__ = ("async_setup_entry", "PLATFORM_DOMAIN")
+
 import logging
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 from homeassistant import config_entries
 from homeassistant.components.device_tracker import (
-    SOURCE_TYPE_GPS,
     DOMAIN as PLATFORM_DOMAIN,
+    SOURCE_TYPE_GPS,
 )
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_USERNAME, ATTR_VOLTAGE
+from homeassistant.const import ATTR_VOLTAGE, CONF_USERNAME
 from homeassistant.helpers.typing import HomeAssistantType
 
-from . import DOMAIN as PANDORA_DOMAIN, DATA_CONFIG, ATTR_DEFAULT, BasePandoraCASEntity
+from . import (
+    BasePandoraCASEntity,
+)
 from .api import PandoraOnlineAccount, PandoraOnlineDevice
+from .const import *
 
 _LOGGER = logging.getLogger(__name__)
 
-
-ATTR_GSM_LEVEL = "gsm_level"
-ATTR_DIRECTION = "direction"
-ATTR_CARDINAL = "cardinal"
-
-DEFAULT_ADD_DEVICE_TRACKER = True
+DEFAULT_ADD_DEVICE_TRACKER: Final = True
 
 
 async def async_setup_entry(
@@ -39,7 +38,7 @@ async def async_setup_entry(
     if config_entry.source == config_entries.SOURCE_IMPORT:
         account_cfg = hass.data[DATA_CONFIG][username]
 
-    account_object: PandoraOnlineAccount = hass.data[PANDORA_DOMAIN][username]
+    account_object: PandoraOnlineAccount = hass.data[DOMAIN][username]
 
     new_devices = []
     for device in account_object.devices:
@@ -113,12 +112,12 @@ class PandoraCASTracker(BasePandoraCASEntity, TrackerEntity):
             self._available = False
             return
 
-        self._latitude = device.latitude
-        self._longitude = device.longitude
-        self._voltage = device.battery_voltage
-        self._gsm_level = device.gsm_level
-        self._direction_degrees = device.rotation
-        self._direction_cardinal = device.direction
+        self._latitude = device.state.latitude
+        self._longitude = device.state.longitude
+        self._voltage = device.state.voltage
+        self._gsm_level = device.state.gsm_level
+        self._direction_degrees = device.state.rotation
+        self._direction_cardinal = device.state.direction
 
         self._available = True
 
