@@ -233,10 +233,25 @@ class Features(Flag):
         return result
 
 
-@attr.s(kw_only=True, frozen=True, slots=True)
+@attr.s(frozen=True, slots=True)
 class BalanceState:
     value: float = attr.ib(converter=float)
     currency: str = attr.ib()
+
+    def __float__(self) -> float:
+        return self.value
+
+    def __int__(self) -> int:
+        return int(self.value)
+
+    def __round__(self, n=None):
+        return round(self.value, n)
+
+
+@attr.s(kw_only=True, frozen=True, slots=True)
+class FuelTank:
+    id: int = attr.ib()
+    value: float = attr.ib()
 
     def __float__(self) -> float:
         return self.value
@@ -310,6 +325,24 @@ class CurrentState:
         default=None, converter=_empty_is_none
     )
 
+    can_tpms_front_left: Optional[float] = attr.ib(default=None)
+    can_tpms_front_right: Optional[float] = attr.ib(default=None)
+    can_tpms_back_left: Optional[float] = attr.ib(default=None)
+    can_tpms_back_right: Optional[float] = attr.ib(default=None)
+    can_glass_front_left: Optional[bool] = attr.ib(default=None)
+    can_glass_front_right: Optional[bool] = attr.ib(default=None)
+    can_glass_back_left: Optional[bool] = attr.ib(default=None)
+    can_glass_back_right: Optional[bool] = attr.ib(default=None)
+    can_low_liquid_warning: Optional[bool] = attr.ib(default=None)
+    can_mileage_by_battery: Optional[float] = attr.ib(default=None)
+    can_mileage_until_empty: Optional[float] = attr.ib(default=None)
+
+    ev_charging_connected: Optional[bool] = attr.ib(default=None)
+    ev_charging_slow: Optional[bool] = attr.ib(default=None)
+    ev_charging_fast: Optional[bool] = attr.ib(default=None)
+    ev_status_ready: Optional[bool] = attr.ib(default=None)
+    battery_temperature: Optional[int] = attr.ib(default=None)
+
     # undecoded parameters
     smeter: int = attr.ib(default=None)
     tconsum: int = attr.ib(default=None)
@@ -318,7 +351,7 @@ class CurrentState:
     bunker: int = attr.ib(default=None)
     ex_status: int = attr.ib(default=None)
     balance_other: Any = attr.ib(default=None)
-    fuel_tanks: Collection[Any] = attr.ib(default=None)
+    fuel_tanks: Collection[FuelTank] = attr.ib(default=None)
 
     state_timestamp: int = attr.ib()
     state_timestamp_utc: int = attr.ib()
@@ -666,6 +699,28 @@ class PandoraOnlineAccount:
                         lock_latitude=data["lock_x"] / 1000000,
                         lock_longitude=data["lock_y"] / 1000000,
                         rotation=data["rot"],
+                        can_tpms_front_left=data.get("CAN_TMPS_forvard_left"),
+                        can_tpms_front_right=data.get("CAN_TMPS_forvard_right"),
+                        can_tpms_back_left=data.get("CAN_TMPS_back_left"),
+                        can_tpms_back_right=data.get("CAN_TMPS_back_right"),
+                        can_glass_front_left=data.get("CAN_driver_glass"),
+                        can_glass_front_right=data.get("CAN_passenger_glass"),
+                        can_glass_back_left=data.get("CAN_back_left_glass"),
+                        can_glass_back_right=data.get("CAN_back_right_glass"),
+                        can_low_liquid_warning=data.get("CAN_low_liquid"),
+                        can_mileage_by_battery=data.get("CAN_mileage_by_battery"),
+                        can_mileage_until_empty=data.get("CAN_mileage_to_empty"),
+                        ev_charging_connected=data.get("charging_connect"),
+                        ev_charging_slow=data.get("charging_slow"),
+                        ev_charging_fast=data.get("charging_fast"),
+                        ev_status_ready=data.get("ev_status_ready"),
+                        battery_temperature=data.get("battery_temperature"),
+                        fuel_tanks=tuple(
+                            FuelTank(
+                                id=fuel_tank_data["id"], value=fuel_tank_data["value"]
+                            )
+                            for fuel_tank_data in data["tanks"]
+                        ),
                     )
 
                     try:
@@ -678,7 +733,7 @@ class PandoraOnlineAccount:
                         raise
 
                     except BaseException as e:
-                        _LOGGER.error(f"Error during callback handling: {e}")
+                        _LOGGER.exception(f"Error during callback handling: {e}")
 
                 else:
                     _LOGGER.warning(
@@ -768,6 +823,52 @@ class PandoraOnlineAccount:
                             args["lock_longitude"] = data["lock_y"] / 1000000
                         if "rot" in data:
                             args["rotation"] = data["rot"]
+                        if "CAN_TMPS_forvard_left" in data:
+                            args["can_tpms_front_left"] = data["CAN_TMPS_forvard_left"]
+                        if "CAN_TMPS_forvard_right" in data:
+                            args["can_tpms_front_right"] = data[
+                                "CAN_TMPS_forvard_right"
+                            ]
+                        if "CAN_TMPS_back_left" in data:
+                            args["can_tpms_back_left"] = data["CAN_TMPS_back_left"]
+                        if "CAN_TMPS_back_right" in data:
+                            args["can_tpms_back_right"] = data["CAN_TMPS_back_right"]
+                        if "CAN_driver_glass" in data:
+                            args["can_glass_front_left"] = data["CAN_driver_glass"]
+                        if "CAN_passenger_glass" in data:
+                            args["can_glass_front_right"] = data["CAN_passenger_glass"]
+                        if "CAN_back_left_glass" in data:
+                            args["can_glass_back_left"] = data["CAN_back_left_glass"]
+                        if "CAN_back_right_glass" in data:
+                            args["can_glass_back_right"] = data["CAN_back_right_glass"]
+                        if "CAN_low_liquid" in data:
+                            args["can_low_liquid_warning"] = data["CAN_low_liquid"]
+                        if "CAN_mileage_by_battery" in data:
+                            args["can_mileage_by_battery"] = data[
+                                "CAN_mileage_by_battery"
+                            ]
+                        if "CAN_mileage_to_empty" in data:
+                            args["can_mileage_until_empty"] = data[
+                                "CAN_mileage_to_empty"
+                            ]
+                        if "charging_connect" in data:
+                            args["ev_charging_connected"] = data["charging_connect"]
+                        if "charging_slow" in data:
+                            args["ev_charging_slow"] = data["charging_slow"]
+                        if "charging_fast" in data:
+                            args["ev_charging_fast"] = data["charging_fast"]
+                        if "ev_status_ready" in data:
+                            args["ev_status_ready"] = data["ev_status_ready"]
+                        if "battery_temperature" in data:
+                            args["battery_temperature"] = data["battery_temperature"]
+                        if "tanks" in data:
+                            args["fuel_tanks"] = tuple(
+                                FuelTank(
+                                    id=fuel_tank_data["id"],
+                                    value=fuel_tank_data["value"],
+                                )
+                                for fuel_tank_data in data["tanks"]
+                            )
 
                         device_object.state = attr.evolve(device_state, **args)
 
@@ -781,7 +882,7 @@ class PandoraOnlineAccount:
                             raise
 
                         except BaseException as e:
-                            _LOGGER.error(f"Error during callback handling: {e}")
+                            _LOGGER.exception(f"Error during callback handling: {e}")
 
                     else:
                         _LOGGER.warning(

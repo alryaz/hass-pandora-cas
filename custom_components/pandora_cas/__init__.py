@@ -24,7 +24,6 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
-    ATTR_ASSUMED_STATE,
     ATTR_COMMAND,
     ATTR_DEVICE_CLASS,
     ATTR_ICON,
@@ -315,9 +314,8 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
                 if hasattr(entity, "entity_type_config"):
                     entity_type_config = entity.entity_type_config
 
-                    if not (
-                        entity_type_config.get(ATTR_ASSUMED_STATE)
-                        or entity_type_config.get(ATTR_ATTRIBUTE_SOURCE)
+                    if ATTR_ATTRIBUTE in entity_type_config and not (
+                        entity_type_config.get(ATTR_ATTRIBUTE_SOURCE)
                         or entity_type_config[ATTR_ATTRIBUTE] in updated_stats
                     ):
                         continue
@@ -448,17 +446,7 @@ async def async_platform_setup_entry(
                 device_directive = platform_directive.get(ATTR_DEFAULT)
 
         # Apply filters
-        if device_directive is None:
-            enabled_entity_types = [
-                sensor_type
-                for sensor_type, sensor_config in entity_configs.items()
-                if sensor_config.get(ATTR_DEFAULT, False)
-            ]
-            logger.debug(
-                'Using default objects for device "%s" during platform "%s" setup'
-                % (device_id, platform_id)
-            )
-        elif device_directive is True:
+        if device_directive is True or device_directive is None:
             enabled_entity_types = entity_configs.keys()
             logger.debug(
                 'Adding all objects to device "%s" during platform "%s" setup'
@@ -590,7 +578,7 @@ class BasePandoraCASEntity(Entity):
         }
 
     @property
-    def device_state_attributes(self):
+    def device_state_attributes(self) -> Dict[str, Any]:
         """Return the state attributes of an entity."""
         return {
             ATTR_DEVICE_ID: self._device.device_id,

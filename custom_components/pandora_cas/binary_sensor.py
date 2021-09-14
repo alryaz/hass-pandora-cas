@@ -3,7 +3,9 @@ __all__ = ["ENTITY_TYPES", "async_setup_entry"]
 
 import logging
 from functools import partial
+from typing import Any, Dict
 
+import attr
 from homeassistant.components.binary_sensor import (
     DEVICE_CLASS_CONNECTIVITY,
     DEVICE_CLASS_DOOR,
@@ -21,6 +23,7 @@ from .const import *
 _LOGGER = logging.getLogger(__name__)
 
 _car_door_icons = ("mdi:car-door-lock", "mdi:car-door")
+_car_glass_icons = ("mdi:car-windshield", "mdi:car-windshield-outline")
 
 ENTITY_TYPES = {
     "connection_state": {
@@ -28,7 +31,6 @@ ENTITY_TYPES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_CONNECTIVITY,
         ATTR_ATTRIBUTE: "is_online",
         ATTR_ATTRIBUTE_SOURCE: True,
-        ATTR_DEFAULT: True,
     },
     "moving": {
         ATTR_NAME: "Moving",
@@ -44,7 +46,6 @@ ENTITY_TYPES = {
         ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.DOOR_FRONT_LEFT_OPEN,
         ATTR_STATE_SENSITIVE: True,
-        ATTR_DEFAULT: True,
     },
     "right_front_door": {
         ATTR_NAME: "Right Front Door",
@@ -53,7 +54,6 @@ ENTITY_TYPES = {
         ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.DOOR_FRONT_RIGHT_OPEN,
         ATTR_STATE_SENSITIVE: True,
-        ATTR_DEFAULT: True,
     },
     "left_back_door": {
         ATTR_NAME: "Left Back Door",
@@ -62,7 +62,6 @@ ENTITY_TYPES = {
         ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.DOOR_BACK_LEFT_OPEN,
         ATTR_STATE_SENSITIVE: True,
-        ATTR_DEFAULT: True,
     },
     "right_back_door": {
         ATTR_NAME: "Right Back Door",
@@ -71,7 +70,34 @@ ENTITY_TYPES = {
         ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.DOOR_BACK_RIGHT_OPEN,
         ATTR_STATE_SENSITIVE: True,
-        ATTR_DEFAULT: True,
+    },
+    "left_front_glass": {
+        ATTR_NAME: "Left Front Glass",
+        ATTR_ICON: _car_glass_icons,
+        ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
+        ATTR_ATTRIBUTE: "can_glass_front_left",
+        ATTR_STATE_SENSITIVE: True,
+    },
+    "right_front_glass": {
+        ATTR_NAME: "Right Front Glass",
+        ATTR_ICON: _car_glass_icons,
+        ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
+        ATTR_ATTRIBUTE: "can_glass_front_right",
+        ATTR_STATE_SENSITIVE: True,
+    },
+    "left_back_glass": {
+        ATTR_NAME: "Left Back Glass",
+        ATTR_ICON: _car_glass_icons,
+        ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
+        ATTR_ATTRIBUTE: "can_glass_back_left",
+        ATTR_STATE_SENSITIVE: True,
+    },
+    "right_back_glass": {
+        ATTR_NAME: "Right Back Glass",
+        ATTR_ICON: _car_glass_icons,
+        ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
+        ATTR_ATTRIBUTE: "can_glass_back_right",
+        ATTR_STATE_SENSITIVE: True,
     },
     "trunk": {
         ATTR_NAME: "Trunk",
@@ -80,7 +106,6 @@ ENTITY_TYPES = {
         ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.TRUNK_OPEN,
         ATTR_STATE_SENSITIVE: True,
-        ATTR_DEFAULT: True,
     },
     "hood": {
         ATTR_NAME: "Hood",
@@ -89,7 +114,6 @@ ENTITY_TYPES = {
         ATTR_ATTRIBUTE: "bit_state",
         ATTR_FLAG: BitStatus.HOOD_OPEN,
         ATTR_STATE_SENSITIVE: True,
-        ATTR_DEFAULT: True,
     },
     "parking": {
         ATTR_NAME: "Parking Mode",
@@ -105,6 +129,12 @@ ENTITY_TYPES = {
         ATTR_FLAG: BitStatus.BRAKES_ENGAGED,
         ATTR_STATE_SENSITIVE: True,
     },
+    "ev_charging_connected": {
+        ATTR_NAME: "EV Charging Connected",
+        ATTR_ICON: "mdi:ev-station",
+        ATTR_ATTRIBUTE: "ev_charging_connected",
+        ATTR_STATE_SENSITIVE: True,
+    },
 }
 
 
@@ -116,6 +146,28 @@ class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
     def is_on(self) -> bool:
         """Return current state of"""
         return bool(self._state)
+
+    @property
+    def device_state_attributes(self) -> Dict[str, Any]:
+        existing_attributes = super().device_state_attributes
+        entity_type = self._entity_type
+
+        if entity_type == "connection_state":
+            state = self._device.state
+            if state is not None:
+                existing_attributes.update(attr.asdict(state, True))
+
+        elif entity_type == "ev_charging_connected":
+            if not self._device.is_online:
+                return existing_attributes
+
+            state = self._device.state
+
+            existing_attributes["slow_charging"] = state.ev_charging_slow
+            existing_attributes["fast_charging"] = state.ev_charging_fast
+            existing_attributes["ready_status"] = state.ev_status_ready
+
+        return existing_attributes
 
 
 async_setup_entry = partial(

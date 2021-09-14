@@ -3,6 +3,8 @@
 # _Pandora Car Alarm System_ для _Home Assistant_
 > Автоматизация управления охранными системами Pandora™ и PanDECT<sup>®</sup> в Home Assistant.
 >
+> &gt;= Home Assistant 2021.9.4
+> 
 >[![hacs_badge](https://img.shields.io/badge/HACS-Default-green.svg)](https://github.com/custom-components/hacs)
 >[![Лицензия](https://img.shields.io/badge/%D0%9B%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 >[![Поддержка](https://img.shields.io/badge/%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%B8%D0%B2%D0%B0%D0%B5%D1%82%D1%81%D1%8F%3F-%D0%B4%D0%B0-green.svg)](https://github.com/alryaz/hass-pandora-cas/graphs/commit-activity)  
@@ -15,9 +17,12 @@
 > [![Donate](https://img.shields.io/badge/donate-Yandex-orange.svg)](https://money.yandex.ru/to/41001690673042)
 
 > ⚠️ **ВНИМАНИЕ** ⚠️  
-> ~~Единственная доступная мне машина для тестирования (с Pandora на борту) вышла из строя (насовсем). Поэтому дальнейшее развитие проекта приостановлено.~~
-> Благодаря пользователям, работа над проектом возобновлена.
-> Если кто-то заинтересован в тестировании расширения функционала, пожалуйста, напишите в мне Telegram: **@alryaz**.
+> Разработчик в поисках владельцев следующих конфигураций:
+> - Pandora UX-4G
+> - Pandect X-1800 L
+> - Автомобили с отображением TPMS по CAN-шине
+>
+> При возникновении в тестировании ограниченного (скрытого) функционала, пожалуйста, напишите в мне Telegram: **@alryaz**.
 
 [![Расположение элементов по-умолчанию](https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/screenshot_default.png)](https://github.com/alryaz/hass-pandora-cas/blob/master/images/screenshot_default.png)
 
@@ -41,9 +46,6 @@
 
 #### Посредством HACS _(рекомендованый способ)_
 1. Установить [HACS](https://hacs.xyz/docs/installation/manual)
-1. Зайти в HACS в управление _Custom Repositories_
-1. Добавить URL этого репозитория как _Integration_:  
-   ```https://github.com/alryaz/hass-pandora-cas```
 1. Установить компонент _Pandora Car Alarm System_
 1. Выполнить конфигурацию одним из нижеупомянутых способов
 1. _(опционально, для YAML)_ Перезапустить _Home Assistant_
@@ -211,40 +213,53 @@ lovelace UI и автоматизации.
 ### Платформа `sensor`
 <a id="platform_sensor"/>
 
-| Объект | Вкл.<sup>*</sup> | Назначение | Примечание |
-| ------ | ---- | ---------- | ---------- | 
-| sensor.`PANDORA_ID`_mileage | ✓ | Пробег | км |
-| sensor.`PANDORA_ID`_fuel | ✓ | Наполненность топливом <sup>1</sup> | % |
-| sensor.`PANDORA_ID`_interior_temperature | ✓ | Температура салона | °C |
-| sensor.`PANDORA_ID`_engine_temperature | ✓ | Температура двигателя | °C |
-| sensor.`PANDORA_ID`_exterior_temperature | ✓ | Уличная температура | °C |
-| sensor.`PANDORA_ID`_balance | ✓ | Баланс СИМ-карты <sup>2</sup> | ₽ |
-| sensor.`PANDORA_ID`_speed |   | Скорость | км/ч |
-| sensor.`PANDORA_ID`_tachometer |   | Тахометр (обороты двигателя) | rpm |
-| sensor.`PANDORA_ID`_gsm_level | ✓ | Уровень сигнала GSM| 0 ... 3 |
-| sensor.`PANDORA_ID`_battery_voltage | ✓ | Напряжение аккумулятора | В |
+| Объект | Назначение | Примечание |
+| ------ | ---------- | ---------- | 
+| sensor.`PANDORA_ID`_mileage | Пробег | км |
+| sensor.`PANDORA_ID`_fuel | Наполненность топливом <sup>1</sup> | % |
+| sensor.`PANDORA_ID`_interior_temperature | Температура салона | °C |
+| sensor.`PANDORA_ID`_engine_temperature | Температура двигателя | °C |
+| sensor.`PANDORA_ID`_exterior_temperature | Уличная температура | °C |
+| sensor.`PANDORA_ID`_balance | Баланс СИМ-карты <sup>2</sup> | ₽ |
+| sensor.`PANDORA_ID`_speed | Скорость | км/ч |
+| sensor.`PANDORA_ID`_tachometer | Тахометр (обороты двигателя) | rpm |
+| sensor.`PANDORA_ID`_gsm_level | Уровень сигнала GSM| 0 ... 3 |
+| sensor.`PANDORA_ID`_battery_voltage | Напряжение аккумулятора | В |
+| sensor.`PANDORA_ID`_left_front_tire_pressure | Давление левой передней шины<sup>1</sup> | открыта / закрыта |
+| sensor.`PANDORA_ID`_right_front_tire_pressure | Давление правой передней шины<sup>1</sup> | открыта / закрыта |
+| sensor.`PANDORA_ID`_left_back_tire_pressure | Давление левой задней шины<sup>1</sup> | открыта / закрыта |
+| sensor.`PANDORA_ID`_right_back_tire_pressure | Давление правой задней шины<sup>1</sup> | открыта / закрыта |
 
-<sup>*</sup> _Вкл._ подразумевает добавление устройства при конфигурации по-умолчанию  
+<sup>1</sup> Данные объекты будут доступны только в том случае, если Ваше устройство предоставляет
+информацию о соответствующих им характеристиках по CAN-шине. Уточняйте поддержку у производителя.
+ 
 <sup>1</sup> В грядущих релизах будет реализовано отображение топлива в литрах в качестве атрибутов данного датчика.  
 <sup>2</sup> Будет изменено на реальную валюту СИМ-карты  
 
 ### Платформа `binary_sensor`
 <a id="platform_binary_sensor"/>
 
-| Объект | Вкл.<sup>*</sup> | Назначение | Примечание |
-| ------ | ---- | ---------- | ---------- |
-| binary_sensor.`PANDORA_ID`_connection_state | ✓ | Связь с автомобилем | есть / нет |
-| binary_sensor.`PANDORA_ID`_moving  | | Статус движения | в движении / без движения |
-| binary_sensor.`PANDORA_ID`_left_front_door | ✓ | Левая передняя дверь | открыта / закрыта |
-| binary_sensor.`PANDORA_ID`_right_front_door | ✓ | Правая передняя дверь | открыта / закрыта |
-| binary_sensor.`PANDORA_ID`_left_back_door | ✓ | Левая задняя дверь | открыта / закрыта |
-| binary_sensor.`PANDORA_ID`_right_back_door | ✓ | Правая задняя дверь | открыта / закрыта |
-| binary_sensor.`PANDORA_ID`_trunk | ✓ | Багажник | открыт / закрыт |
-| binary_sensor.`PANDORA_ID`_hood | ✓ | Капот | открыт / закрыт |
-| binary_sensor.`PANDORA_ID`_parking  |   | Режим паркнинга | включен / выключен |
-| binary_sensor.`PANDORA_ID`_brakes  |   | Педаль тормоза | нажата / отпущена |
+| Объект | Назначение | Примечание |
+| ------ | ---------- | ---------- |
+| binary_sensor.`PANDORA_ID`_connection_state | Связь с автомобилем<sup>*</sup> | есть / нет |
+| binary_sensor.`PANDORA_ID`_moving  | Статус движения | в движении / без движения |
+| binary_sensor.`PANDORA_ID`_left_front_door | Левая передняя дверь | открыта / закрыта |
+| binary_sensor.`PANDORA_ID`_right_front_door | Правая передняя дверь | открыта / закрыта |
+| binary_sensor.`PANDORA_ID`_left_back_door | Левая задняя дверь | открыта / закрыта |
+| binary_sensor.`PANDORA_ID`_right_back_door | Правая задняя дверь | открыта / закрыта |
+| binary_sensor.`PANDORA_ID`_trunk | Багажник | открыт / закрыт |
+| binary_sensor.`PANDORA_ID`_hood | Капот | открыт / закрыт |
+| binary_sensor.`PANDORA_ID`_parking  | Режим паркнинга | включен / выключен |
+| binary_sensor.`PANDORA_ID`_brakes  | Педаль тормоза | нажата / отпущена |
+| binary_sensor.`PANDORA_ID`_left_front_glass | Левое переднее окно (водительское)<sup>1</sup><sup>2</sup> | открыта / закрыта |
+| binary_sensor.`PANDORA_ID`_right_front_glass | Правое переднее окно (пассажирское)<sup>1</sup><sup>2</sup> | открыта / закрыта |
+| binary_sensor.`PANDORA_ID`_left_back_glass | Левая заднее окно<sup>1</sup> | открыта / закрыта |
+| binary_sensor.`PANDORA_ID`_right_back_glass | Правое заднее окно<sup>1</sup> | открыта / закрыта |
 
-<sup>*</sup> _Вкл._ подразумевает добавление устройства при конфигурации по-умолчанию  
+<sup>1</sup> Данные объекты будут доступны только в том случае, если Ваше устройство предоставляет
+информацию о соответствующих им характеристиках по CAN-шине. Уточняйте поддержку у производителя.  
+<sup>2</sup> Компонент не тестировался для праворульных транспортных средств. Может возникнуть
+ситуация, что из коробки данные сенсоры перепутаны местами.
 
 ### Платформы `lock` и `switch`
 <a id="platform_lock"/>
@@ -253,17 +268,16 @@ lovelace UI и автоматизации.
 > Внимание! Через 10с после изменения состояния переключателя производится принудительное автоматическое обновление 
 > состояния автомобиля. Данный функционал вскоре будет возможно отключить вручную.
 
-| Объект | Вкл.<sup>*</sup> | Назначение | Примечание |
-| ------ | ---- | ---------- | ---------- |
-| lock.`PANDORA_ID`_central_lock | ✓ | Статус блокировки замка | разблокирован / заблокирован |
-| switch.`PANDORA_ID`_active_security | ✓ | Статус активной защиты | включена / выключена |
-| switch.`PANDORA_ID`_coolant_heater | ✓ | Статус предпускового подогревателя | включен / выключен |
-| switch.`PANDORA_ID`_engine | ✓ | Статус двигателя | запущен / заглушен |
-| switch.`PANDORA_ID`_tracking | | Статус отслеживания (GPS-трек) | включен / выключен |
-| switch.`PANDORA_ID`_service_mode |   | Режим сервиса <sup>3</sup> | включить / выключить |
-| switch.`PANDORA_ID`_ext_channel |   | Дополнительный канал <sup>3</sup> | включить / выключить |
-
-<sup>*</sup> _Вкл._ подразумевает добавление устройства при конфигурации по-умолчанию  
+| Объект | Назначение | Примечание |
+| ------ | ---------- | ---------- |
+| lock.`PANDORA_ID`_central_lock | Статус блокировки замка | разблокирован / заблокирован |
+| switch.`PANDORA_ID`_active_security | Статус активной защиты | включена / выключена |
+| switch.`PANDORA_ID`_coolant_heater | Статус предпускового подогревателя | включен / выключен |
+| switch.`PANDORA_ID`_engine | Статус двигателя | запущен / заглушен |
+| switch.`PANDORA_ID`_tracking | Статус отслеживания (GPS-трек) | включен / выключен |
+| switch.`PANDORA_ID`_service_mode | Режим сервиса (обслуживания) | включен / выключен |
+| switch.`PANDORA_ID`_ext_channel | Дополнительный канал <sup>3</sup> | включить / выключить |
+ 
 <sup>3</sup> Состояние не остслеживается  
 
 ### Платформа `device_tracker`

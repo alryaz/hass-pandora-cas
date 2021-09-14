@@ -3,7 +3,7 @@ __all__ = ("ENTITY_TYPES", "async_setup_entry")
 
 import logging
 from functools import partial
-from typing import Optional, Union
+from typing import Any, Dict, Mapping, Optional, Union
 
 from homeassistant.components.sensor import DOMAIN as PLATFORM_DOMAIN, ENTITY_ID_FORMAT
 from homeassistant.const import (
@@ -35,7 +35,6 @@ ENTITY_TYPES = {
         ATTR_STATE_SENSITIVE: True,
         ATTR_FORMATTER: lambda v: round(float(v), 2),
         ATTR_ADDITIONAL_ATTRIBUTES: {},
-        ATTR_DEFAULT: True,
     },
     "fuel": {
         ATTR_NAME: "Fuel Level",
@@ -43,7 +42,6 @@ ENTITY_TYPES = {
         ATTR_UNIT_OF_MEASUREMENT: "%",
         ATTR_ATTRIBUTE: "fuel",
         ATTR_STATE_SENSITIVE: False,
-        ATTR_DEFAULT: True,
     },
     "interior_temperature": {
         ATTR_NAME: "Interior Temperature",
@@ -66,13 +64,19 @@ ENTITY_TYPES = {
         ATTR_ATTRIBUTE: "exterior_temperature",
         ATTR_STATE_SENSITIVE: True,
     },
+    "battery_temperature": {
+        ATTR_NAME: "Battery Temperature",
+        ATTR_ICON: "mdi:thermometer",
+        ATTR_UNIT_OF_MEASUREMENT: TEMP_CELSIUS,
+        ATTR_ATTRIBUTE: "battery_temperature",
+        ATTR_STATE_SENSITIVE: True,
+    },
     "balance": {
         ATTR_NAME: "Balance",
         ATTR_ICON: "mdi:cash",
         ATTR_UNIT_OF_MEASUREMENT: None,
         ATTR_ATTRIBUTE: "balance",
         ATTR_STATE_SENSITIVE: False,
-        ATTR_DEFAULT: True,
     },
     "speed": {
         ATTR_NAME: "Speed",
@@ -99,7 +103,6 @@ ENTITY_TYPES = {
         },
         ATTR_ATTRIBUTE: "gsm_level",
         ATTR_STATE_SENSITIVE: True,
-        ATTR_DEFAULT: True,
     },
     "battery_voltage": {
         ATTR_NAME: "Battery voltage",
@@ -107,7 +110,30 @@ ENTITY_TYPES = {
         ATTR_UNIT_OF_MEASUREMENT: ELECTRIC_POTENTIAL_VOLT,
         ATTR_ATTRIBUTE: "voltage",
         ATTR_STATE_SENSITIVE: True,
-        ATTR_DEFAULT: True,
+    },
+    "left_front_tire_pressure": {
+        ATTR_NAME: "Left Front Tire Pressure",
+        ATTR_ICON: "mdi:car-tire-alert",
+        ATTR_ATTRIBUTE: "can_tpms_front_left",
+        ATTR_STATE_SENSITIVE: True,
+    },
+    "right_front_tire_pressure": {
+        ATTR_NAME: "Right Front Tire Pressure",
+        ATTR_ICON: "mdi:car-tire-alert",
+        ATTR_ATTRIBUTE: "can_tpms_front_right",
+        ATTR_STATE_SENSITIVE: True,
+    },
+    "left_back_tire_pressure": {
+        ATTR_NAME: "Left Back Tire Pressure",
+        ATTR_ICON: "mdi:car-tire-alert",
+        ATTR_ATTRIBUTE: "can_tpms_back_left",
+        ATTR_STATE_SENSITIVE: True,
+    },
+    "right_back_tire_pressure": {
+        ATTR_NAME: "Right Back Tire Pressure",
+        ATTR_ICON: "mdi:car-tire-alert",
+        ATTR_ATTRIBUTE: "can_tpms_back_right",
+        ATTR_STATE_SENSITIVE: True,
     },
 }
 
@@ -135,6 +161,24 @@ class PandoraCASSensor(PandoraCASEntity):
                 return None
             return state.currency
         return super().unit_of_measurement
+
+    @property
+    def device_state_attributes(self) -> Dict[str, Any]:
+        existing_attributes = super().device_state_attributes
+        if self._entity_type != "fuel":
+            return existing_attributes
+
+        state = self._device.state
+        if state is None or not state.fuel_tanks:
+            return existing_attributes
+
+        for i, fuel_tank in enumerate(
+            sorted(state.fuel_tanks, key=lambda x: x.id), start=1
+        ):
+            existing_attributes[f"fuel_tank_{i}_id"] = fuel_tank.id
+            existing_attributes[f"fuel_tank_{i}_capacity"] = fuel_tank.value
+
+        return existing_attributes
 
 
 async_setup_entry = partial(

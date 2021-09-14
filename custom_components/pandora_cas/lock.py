@@ -29,7 +29,6 @@ ENTITY_TYPES = {
         ATTR_FLAG: BitStatus.LOCKED,
         ATTR_STATE_SENSITIVE: True,
         ATTR_COMMAND: (CommandID.UNLOCK, CommandID.LOCK),
-        ATTR_DEFAULT: True,
     },
 }
 

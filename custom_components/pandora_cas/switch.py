@@ -32,7 +32,6 @@ ENTITY_TYPES = {
             CommandID.ENABLE_ACTIVE_SECURITY,
         ),
         ATTR_FEATURE: Features.ACTIVE_SECURITY,
-        ATTR_DEFAULT: True,
     },
     "tracking": {
         ATTR_NAME: "Tracking",
@@ -54,15 +53,7 @@ ENTITY_TYPES = {
             CommandID.TURN_ON_COOLANT_HEATER,
         ),
         ATTR_FEATURE: Features.COOLANT_HEATER,
-        ATTR_DEFAULT: True,
     },
-    # 'ext_channel': {
-    #     ATTR_NAME: "Extra Channel",
-    #     ATTR_ATTRIBUTE: "bit_state", ATTR_FLAG: BitStatus.COOLANT_HEATER,
-    #     ATTR_STATE_SENSITIVE: True,
-    #     ATTR_COMMAND: (CommandID.TURN_OFF_EXT_CHANNEL, CommandID.TURN_ON_COOLANT_HEATER),
-    #     ATTR_FEATURE: Features.EXT_CHANNEL,
-    # },
     "engine": {
         ATTR_NAME: "Engine",
         ATTR_ICON: ("mdi:fan-off", "mdi:fan"),
@@ -70,11 +61,13 @@ ENTITY_TYPES = {
         ATTR_FLAG: BitStatus.ENGINE_RUNNING,
         ATTR_STATE_SENSITIVE: True,
         ATTR_COMMAND: (CommandID.STOP_ENGINE, CommandID.START_ENGINE),
-        ATTR_DEFAULT: True,
     },
     "service_mode": {
         ATTR_NAME: "Service Mode",
         ATTR_ICON: "mdi:wrench",
+        ATTR_ATTRIBUTE: "bit_state",
+        ATTR_FLAG: BitStatus.SERVICE_MODE_ACTIVE,
+        ATTR_STATE_SENSITIVE: True,
         ATTR_COMMAND: (CommandID.DISABLE_SERVICE_MODE, CommandID.ENABLE_SERVICE_MODE),
     },
     "ext_channel": {
