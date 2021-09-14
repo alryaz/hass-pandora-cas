@@ -225,10 +225,10 @@ lovelace UI и автоматизации.
 | sensor.`PANDORA_ID`_tachometer | Тахометр (обороты двигателя) | rpm |
 | sensor.`PANDORA_ID`_gsm_level | Уровень сигнала GSM| 0 ... 3 |
 | sensor.`PANDORA_ID`_battery_voltage | Напряжение аккумулятора | В |
-| sensor.`PANDORA_ID`_left_front_tire_pressure | Давление левой передней шины<sup>1</sup> | открыта / закрыта |
-| sensor.`PANDORA_ID`_right_front_tire_pressure | Давление правой передней шины<sup>1</sup> | открыта / закрыта |
-| sensor.`PANDORA_ID`_left_back_tire_pressure | Давление левой задней шины<sup>1</sup> | открыта / закрыта |
-| sensor.`PANDORA_ID`_right_back_tire_pressure | Давление правой задней шины<sup>1</sup> | открыта / закрыта |
+| sensor.`PANDORA_ID`_left_front_tire_pressure | Давление левой передней шины<sup>1</sup> | кПа |
+| sensor.`PANDORA_ID`_right_front_tire_pressure | Давление правой передней шины<sup>1</sup> | кПа |
+| sensor.`PANDORA_ID`_left_back_tire_pressure | Давление левой задней шины<sup>1</sup> | кПа |
+| sensor.`PANDORA_ID`_right_back_tire_pressure | Давление правой задней шины<sup>1</sup> | кПа |
 
 <sup>1</sup> Данные объекты будут доступны только в том случае, если Ваше устройство предоставляет
 информацию о соответствующих им характеристиках по CAN-шине. Уточняйте поддержку у производителя.
@@ -251,10 +251,10 @@ lovelace UI и автоматизации.
 | binary_sensor.`PANDORA_ID`_hood | Капот | открыт / закрыт |
 | binary_sensor.`PANDORA_ID`_parking  | Режим паркнинга | включен / выключен |
 | binary_sensor.`PANDORA_ID`_brakes  | Педаль тормоза | нажата / отпущена |
-| binary_sensor.`PANDORA_ID`_left_front_glass | Левое переднее окно (водительское)<sup>1</sup><sup>2</sup> | открыта / закрыта |
-| binary_sensor.`PANDORA_ID`_right_front_glass | Правое переднее окно (пассажирское)<sup>1</sup><sup>2</sup> | открыта / закрыта |
-| binary_sensor.`PANDORA_ID`_left_back_glass | Левая заднее окно<sup>1</sup> | открыта / закрыта |
-| binary_sensor.`PANDORA_ID`_right_back_glass | Правое заднее окно<sup>1</sup> | открыта / закрыта |
+| binary_sensor.`PANDORA_ID`_left_front_glass | Левое переднее окно (водительское)<sup>1,2</sup> | открыто / закрыто |
+| binary_sensor.`PANDORA_ID`_right_front_glass | Правое переднее окно (пассажирское)<sup>1,2</sup> | открыто / закрыто |
+| binary_sensor.`PANDORA_ID`_left_back_glass | Левое заднее окно<sup>1</sup> | открыто / закрыто |
+| binary_sensor.`PANDORA_ID`_right_back_glass | Правое заднее окно<sup>1</sup> | открыто / закрыто |
 
 <sup>1</sup> Данные объекты будут доступны только в том случае, если Ваше устройство предоставляет
 информацию о соответствующих им характеристиках по CAN-шине. Уточняйте поддержку у производителя.  
