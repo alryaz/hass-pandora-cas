@@ -86,11 +86,18 @@ class CommandID(IntEnum):
     ENABLE_SERVICE_MODE = 40
     DISABLE_SERVICE_MODE = 41
 
+    # Status output toggle
+    ENABLE_STATUS_OUTPUT = 48
+    DISABLE_STATUS_OUTPUT = 49
+
     # Various commands
     TRIGGER_HORN = 23
     TRIGGER_LIGHT = 24
     TRIGGER_TRUNK = 34
     CHECK = 255
+
+    ERASE_DTC = 57856
+    READ_DTC = 57857
 
     # Additional commands
     ADDITIONAL_COMMAND_1 = 100
@@ -366,6 +373,85 @@ class CurrentState:
         return _degrees_to_direction(self.rotation)
 
 
+class PrimaryEventID(IntEnum):
+    UNKNOWN = 0
+    LOCKING_ENABLED = 1
+    LOCKING_DISABLED = 2
+    ALERT = 3
+    ENGINE_STARTED = 4
+    ENGINE_STOPPED = 5
+    ENGINE_LOCKED = 6
+    SERVICE_MODE_ENABLED = 7
+    SETTINGS_CHANGED = 8
+    REFUEL = 9
+    COLLISION = 10
+    GSM_CONNECTION = 11
+    EMERGENCY_CALL = 12
+    FAILED_START_ATTEMPT = 13
+    TRACKING_ENABLED = 14
+    TRACKING_DISABLED = 15
+    SYSTEM_POWER_LOSS = 16
+    SECURE_TRUNK_OPEN = 17
+    FACTORY_TESTING = 18
+    POWER_DIP = 19
+    CHECK_RECEIVED = 20
+    SYSTEM_LOGIN = 29
+    ACTIVE_SECURITY_ENABLED = 32
+    ACTIVE_SECURITY_DISABLED = 33
+    ACTIVE_SECURITY_ALERT = 34
+    BLOCK_HEATER_ENABLED = 35
+    BLOCK_HEATER_DISABLED = 36
+    ROUGH_ROAD_CONDITIONS = 37
+    DRIVING = 38
+    ENGINE_RUNNING_PROLONGATION = 40
+    SERVICE_MODE_DISABLED = 41
+    GSM_CHANNEL_ENABLED = 42
+    GSM_CHANNEL_DISABLED = 43
+    NAV_11_STATUS = 48
+    DTC_READ_REQUEST = 166
+    DTC_READ_ERROR = 167
+    DTC_READ_ACTIVE = 168
+    DTC_ERASE_REQUEST = 169
+    DTC_ERASE_ACTIVE = 170
+    SYSTEM_MESSAGE = 176
+    ECO_MODE_ENABLED = 177
+    ECO_MODE_DISABLED = 178
+    TIRE_PRESSURE_LOW = 179
+    BLUETOOTH_STATUS = 220
+    TAG_REQUIREMENT_ENABLED = 230
+    TAG_REQUIREMENT_DISABLED = 231
+    TAG_POLLING_ENABLED = 232
+    TAG_POLLING_DISABLED = 233
+    POINT = 250
+
+    @classmethod
+    def _missing_(cls, value: object) -> Any:
+        return cls.UNKNOWN
+
+
+@attr.s(kw_only=True, frozen=True, slots=True)
+class TrackingEvent:
+    identifier: int = attr.ib()
+    bit_state: BitStatus = attr.ib()
+    cabin_temperature: float = attr.ib()
+    engine_rpm: float = attr.ib()
+    engine_temperature: float = attr.ib()
+    event_id_primary: int = attr.ib()
+    event_id_secondary: int = attr.ib()
+    fuel: int = attr.ib()
+    gsm_level: int = attr.ib()
+    exterior_temperature: int = attr.ib()
+    voltage: float = attr.ib()
+    latitude: float = attr.ib()
+    longitude: float = attr.ib()
+    timestamp: int = attr.ib()
+    recorded_timestamp: int = attr.ib()
+
+    @property
+    def primary_event_enum(self) -> PrimaryEventID:
+        return PrimaryEventID(self.event_id_primary)
+
+
 class PandoraOnlineAccount:
     """Pandora Online account interface."""
 
@@ -376,20 +462,16 @@ class PandoraOnlineAccount:
         username: str,
         password: str,
         access_token: Optional[str] = None,
-        user_agent: Optional[str] = None,
     ) -> None:
         """
         Instantiate Pandora Online account object.
         :param username: Account username
         :param password: Account password
         :param access_token: Access token (optional)
-        :param user_agent: (optional) Specify differing user agent
         """
         self._username = username
         self._password = password
         self._access_token = access_token
-        self._user_agent = user_agent
-        self._user_agent = user_agent if user_agent else DEFAULT_USER_AGENT
         self._session = aiohttp.ClientSession()
 
         #: last update timestamp
@@ -639,265 +721,271 @@ class PandoraOnlineAccount:
 
         return content, updated_device_ids
 
+    def _process_ws_initial_state(
+        self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
+    ) -> Tuple[CurrentState, Dict[str, Any]]:
+        _LOGGER.debug(
+            f"Initializing stats data for device with ID '{device.device_id}'"
+        )
+
+        current_state_args = dict(
+            identifier=data["id"],
+            latitude=data["x"],
+            longitude=data["y"],
+            speed=data["speed"],
+            bit_state=BitStatus(data["bit_state_1"]),
+            engine_rpm=data["engine_rpm"],
+            engine_temperature=data["engine_temp"],
+            interior_temperature=data["cabin_temp"],
+            exterior_temperature=data["out_temp"],
+            balance=(
+                BalanceState(
+                    value=data["balance"]["value"],
+                    currency=data["balance"]["cur"],
+                )
+                if data["balance"]
+                else None
+            ),
+            balance_other=data["balance1"],
+            mileage=data["mileage"],
+            can_mileage=data["mileage_CAN"],
+            tag_number=data["metka"],
+            key_number=data["brelok"],
+            is_moving=data["move"],
+            is_evacuating=data["evaq"],
+            fuel=data["fuel"],
+            gsm_level=data["gsm_level"],
+            relay=data["relay"],
+            voltage=data["voltage"],
+            state_timestamp=data["state"],
+            state_timestamp_utc=data["state_utc"],
+            online_timestamp=data["online"],
+            online_timestamp_utc=data["online_utc"],
+            settings_timestamp_utc=data["setting_utc"],
+            command_timestamp_utc=data["command_utc"],
+            active_sim=data["active_sim"],
+            tracking_remaining=data["track_remains"],
+            lock_latitude=data["lock_x"] / 1000000,
+            lock_longitude=data["lock_y"] / 1000000,
+            rotation=data["rot"],
+            can_tpms_front_left=data.get("CAN_TMPS_forvard_left"),
+            can_tpms_front_right=data.get("CAN_TMPS_forvard_right"),
+            can_tpms_back_left=data.get("CAN_TMPS_back_left"),
+            can_tpms_back_right=data.get("CAN_TMPS_back_right"),
+            can_glass_front_left=data.get("CAN_driver_glass"),
+            can_glass_front_right=data.get("CAN_passenger_glass"),
+            can_glass_back_left=data.get("CAN_back_left_glass"),
+            can_glass_back_right=data.get("CAN_back_right_glass"),
+            can_low_liquid_warning=data.get("CAN_low_liquid"),
+            can_mileage_by_battery=data.get("CAN_mileage_by_battery"),
+            can_mileage_until_empty=data.get("CAN_mileage_to_empty"),
+            ev_charging_connected=data.get("charging_connect"),
+            ev_charging_slow=data.get("charging_slow"),
+            ev_charging_fast=data.get("charging_fast"),
+            ev_status_ready=data.get("ev_status_ready"),
+            battery_temperature=data.get("battery_temperature"),
+            fuel_tanks=tuple(
+                FuelTank(id=fuel_tank_data["id"], value=fuel_tank_data["value"])
+                for fuel_tank_data in data["tanks"]
+            ),
+        )
+
+        current_state = CurrentState(**current_state_args)
+        device.state = current_state
+
+        return current_state, current_state_args
+
+    def _process_ws_state(
+        self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
+    ) -> Optional[Tuple[CurrentState, Dict[str, Any]]]:
+        device_state = device.state
+        if device_state is None:
+            _LOGGER.warning(
+                f"Device with ID '{device.device_id}' partial state data retrieved, "
+                f"but no initial data has yet been received. Skipping...",
+            )
+
+            return None
+
+        _LOGGER.debug(f"Appending stats data for device with ID '{device.device_id}'")
+
+        args = {}
+
+        if "x" in data:
+            args["latitude"] = data["x"]
+        if "y" in data:
+            args["longitude"] = data["y"]
+        if "speed" in data:
+            args["speed"] = data["speed"]
+        if "bit_state_1" in data:
+            args["bit_state"] = BitStatus(data["bit_state_1"])
+        if "engine_rpm" in data:
+            args["engine_rpm"] = data["engine_rpm"]
+        if "engine_temp" in data:
+            args["engine_temperature"] = data["engine_temp"]
+        if "cabin_temp" in data:
+            args["interior_temperature"] = data["cabin_temp"]
+        if "out_temp" in data:
+            args["exterior_temperature"] = data["out_temp"]
+        if "balance" in data:
+            args["balance"] = (
+                BalanceState(
+                    value=data["balance"]["value"],
+                    currency=data["balance"]["cur"],
+                )
+                if data["balance"]
+                else None
+            )
+        if "balance1" in data:
+            args["balance_other"] = data["balance1"]
+        if "mileage" in data:
+            args["mileage"] = data["mileage"]
+        if "mileage_CAN" in data:
+            args["can_mileage"] = data["mileage_CAN"]
+        if "metka" in data:
+            args["tag_number"] = data["metka"]
+        if "brelok" in data:
+            args["key_number"] = data["brelok"]
+        if "move" in data:
+            args["is_moving"] = data["move"]
+        if "evaq" in data:
+            args["is_evacuating"] = data["evaq"]
+        if "fuel" in data:
+            args["fuel"] = data["fuel"]
+        if "gsm_level" in data:
+            args["gsm_level"] = data["gsm_level"]
+        if "relay" in data:
+            args["relay"] = data["relay"]
+        if "voltage" in data:
+            args["voltage"] = data["voltage"]
+        if "state" in data:
+            args["state_timestamp"] = data["state"]
+        if "state_utc" in data:
+            args["state_timestamp_utc"] = data["state_utc"]
+        if "online" in data:
+            args["online_timestamp"] = data["online"]
+        if "online_utc" in data:
+            args["online_timestamp_utc"] = data["online_utc"]
+        if "setting_utc" in data:
+            args["settings_timestamp_utc"] = data["setting_utc"]
+        if "command_utc" in data:
+            args["command_timestamp_utc"] = data["command_utc"]
+        if "active_sim" in data:
+            args["active_sim"] = data["active_sim"]
+        if "track_remains" in data:
+            args["tracking_remaining"] = data["track_remains"]
+        if "lock_x" in data:
+            args["lock_latitude"] = data["lock_x"] / 1000000
+        if "lock_y" in data:
+            args["lock_longitude"] = data["lock_y"] / 1000000
+        if "rot" in data:
+            args["rotation"] = data["rot"]
+        if "CAN_TMPS_forvard_left" in data:
+            args["can_tpms_front_left"] = data["CAN_TMPS_forvard_left"]
+        if "CAN_TMPS_forvard_right" in data:
+            args["can_tpms_front_right"] = data["CAN_TMPS_forvard_right"]
+        if "CAN_TMPS_back_left" in data:
+            args["can_tpms_back_left"] = data["CAN_TMPS_back_left"]
+        if "CAN_TMPS_back_right" in data:
+            args["can_tpms_back_right"] = data["CAN_TMPS_back_right"]
+        if "CAN_driver_glass" in data:
+            args["can_glass_front_left"] = data["CAN_driver_glass"]
+        if "CAN_passenger_glass" in data:
+            args["can_glass_front_right"] = data["CAN_passenger_glass"]
+        if "CAN_back_left_glass" in data:
+            args["can_glass_back_left"] = data["CAN_back_left_glass"]
+        if "CAN_back_right_glass" in data:
+            args["can_glass_back_right"] = data["CAN_back_right_glass"]
+        if "CAN_low_liquid" in data:
+            args["can_low_liquid_warning"] = data["CAN_low_liquid"]
+        if "CAN_mileage_by_battery" in data:
+            args["can_mileage_by_battery"] = data["CAN_mileage_by_battery"]
+        if "CAN_mileage_to_empty" in data:
+            args["can_mileage_until_empty"] = data["CAN_mileage_to_empty"]
+        if "charging_connect" in data:
+            args["ev_charging_connected"] = data["charging_connect"]
+        if "charging_slow" in data:
+            args["ev_charging_slow"] = data["charging_slow"]
+        if "charging_fast" in data:
+            args["ev_charging_fast"] = data["charging_fast"]
+        if "ev_status_ready" in data:
+            args["ev_status_ready"] = data["ev_status_ready"]
+        if "battery_temperature" in data:
+            args["battery_temperature"] = data["battery_temperature"]
+        if "tanks" in data:
+            args["fuel_tanks"] = tuple(
+                FuelTank(
+                    id=fuel_tank_data["id"],
+                    value=fuel_tank_data["value"],
+                )
+                for fuel_tank_data in data["tanks"]
+            )
+
+        new_state = attr.evolve(device_state, **args)
+        device.state = new_state
+
+        return new_state, args
+
+    def _process_ws_event(
+        self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
+    ) -> TrackingEvent:
+        return TrackingEvent(
+            identifier=data["id"],
+            bit_state=BitStatus(data["bit_state_1"]),
+            cabin_temperature=data["cabin_temp"],
+            engine_rpm=data["engine_rpm"],
+            engine_temperature=data["engine_temp"],
+            event_id_primary=data["eventid1"],
+            event_id_secondary=data["eventid2"],
+            fuel=data["fuel"],
+            gsm_level=data["gsm_level"],
+            exterior_temperature=data["out_temp"],
+            timestamp=data["dtime"],
+            recorded_timestamp=data["dtime_rec"],
+            voltage=data["voltage"],
+            latitude=data["x"],
+            longitude=data["y"],
+        )
+
+    def _process_ws_command(
+        self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
+    ) -> Tuple[int, int, int]:
+        command_id, result, reply = data["command"], data["result"], data["reply"]
+
+        if device.control_busy:
+            if result:
+                device.release_control_lock()
+            else:
+                device.release_control_lock(f"(CID:{command_id}) {reply}")
+
+        return command_id, result, reply
+
     async def async_listen_for_updates(
         self,
-        update_callback: Callable[
-            ["PandoraOnlineDevice", Collection[str]], Awaitable[None]
-        ],
+        *,
+        state_callback: Optional[
+            Callable[
+                ["PandoraOnlineDevice", CurrentState, Mapping[str, Any]],
+                Awaitable[None],
+            ]
+        ] = None,
+        command_callback: Optional[
+            Callable[
+                ["PandoraOnlineDevice", int, int, Any],
+                Awaitable[None],
+            ]
+        ] = None,
+        event_callback: Optional[
+            Callable[
+                ["PandoraOnlineDevice", TrackingEvent],
+                Awaitable[None],
+            ]
+        ] = None,
         auto_restart: bool = True,
     ) -> None:
         access_token = self._access_token
         if access_token is None:
             raise PandoraOnlineException("Account is not authenticated")
-
-        async def _process_websocket_response(type_: str, data: Mapping[str, Any]):
-            if type_ == "initial-state":
-                device_id = data["dev_id"]
-                device_object = self.get_device(device_id)
-
-                if device_object:
-                    _LOGGER.debug(
-                        f"Initializing stats data for device with ID '{device_id}'"
-                    )
-                    device_object.state = CurrentState(
-                        identifier=data["id"],
-                        latitude=data["x"],
-                        longitude=data["y"],
-                        speed=data["speed"],
-                        bit_state=BitStatus(data["bit_state_1"]),
-                        engine_rpm=data["engine_rpm"],
-                        engine_temperature=data["engine_temp"],
-                        interior_temperature=data["cabin_temp"],
-                        exterior_temperature=data["out_temp"],
-                        balance=(
-                            BalanceState(
-                                value=data["balance"]["value"],
-                                currency=data["balance"]["cur"],
-                            )
-                            if data["balance"]
-                            else None
-                        ),
-                        balance_other=data["balance1"],
-                        mileage=data["mileage"],
-                        can_mileage=data["mileage_CAN"],
-                        tag_number=data["metka"],
-                        key_number=data["brelok"],
-                        is_moving=data["move"],
-                        is_evacuating=data["evaq"],
-                        fuel=data["fuel"],
-                        gsm_level=data["gsm_level"],
-                        relay=data["relay"],
-                        voltage=data["voltage"],
-                        state_timestamp=data["state"],
-                        state_timestamp_utc=data["state_utc"],
-                        online_timestamp=data["online"],
-                        online_timestamp_utc=data["online_utc"],
-                        settings_timestamp_utc=data["setting_utc"],
-                        command_timestamp_utc=data["command_utc"],
-                        active_sim=data["active_sim"],
-                        tracking_remaining=data["track_remains"],
-                        lock_latitude=data["lock_x"] / 1000000,
-                        lock_longitude=data["lock_y"] / 1000000,
-                        rotation=data["rot"],
-                        can_tpms_front_left=data.get("CAN_TMPS_forvard_left"),
-                        can_tpms_front_right=data.get("CAN_TMPS_forvard_right"),
-                        can_tpms_back_left=data.get("CAN_TMPS_back_left"),
-                        can_tpms_back_right=data.get("CAN_TMPS_back_right"),
-                        can_glass_front_left=data.get("CAN_driver_glass"),
-                        can_glass_front_right=data.get("CAN_passenger_glass"),
-                        can_glass_back_left=data.get("CAN_back_left_glass"),
-                        can_glass_back_right=data.get("CAN_back_right_glass"),
-                        can_low_liquid_warning=data.get("CAN_low_liquid"),
-                        can_mileage_by_battery=data.get("CAN_mileage_by_battery"),
-                        can_mileage_until_empty=data.get("CAN_mileage_to_empty"),
-                        ev_charging_connected=data.get("charging_connect"),
-                        ev_charging_slow=data.get("charging_slow"),
-                        ev_charging_fast=data.get("charging_fast"),
-                        ev_status_ready=data.get("ev_status_ready"),
-                        battery_temperature=data.get("battery_temperature"),
-                        fuel_tanks=tuple(
-                            FuelTank(
-                                id=fuel_tank_data["id"], value=fuel_tank_data["value"]
-                            )
-                            for fuel_tank_data in data["tanks"]
-                        ),
-                    )
-
-                    try:
-                        await update_callback(
-                            device_object,
-                            attr.fields_dict(CurrentState).keys(),
-                        )
-
-                    except asyncio.CancelledError:
-                        raise
-
-                    except BaseException as e:
-                        _LOGGER.exception(f"Error during callback handling: {e}")
-
-                else:
-                    _LOGGER.warning(
-                        f"Device with ID '{device_id}' stats data retrieved, "
-                        f"but no object created yet. Skipping...",
-                    )
-
-            elif type_ == "state":
-                device_id = data["dev_id"]
-                device_object = self.get_device(device_id)
-
-                if device_object:
-                    device_state = device_object.state
-                    if device_state:
-                        _LOGGER.debug(
-                            f"Appending stats data for device with ID '{device_id}'"
-                        )
-
-                        args = {}
-
-                        if "x" in data:
-                            args["latitude"] = data["x"]
-                        if "y" in data:
-                            args["longitude"] = data["y"]
-                        if "speed" in data:
-                            args["speed"] = data["speed"]
-                        if "bit_state_1" in data:
-                            args["bit_state"] = BitStatus(data["bit_state_1"])
-                        if "engine_rpm" in data:
-                            args["engine_rpm"] = data["engine_rpm"]
-                        if "engine_temp" in data:
-                            args["engine_temperature"] = data["engine_temp"]
-                        if "cabin_temp" in data:
-                            args["interior_temperature"] = data["cabin_temp"]
-                        if "out_temp" in data:
-                            args["exterior_temperature"] = data["out_temp"]
-                        if "balance" in data:
-                            args["balance"] = (
-                                BalanceState(
-                                    value=data["balance"]["value"],
-                                    currency=data["balance"]["cur"],
-                                )
-                                if data["balance"]
-                                else None
-                            )
-                        if "balance1" in data:
-                            args["balance_other"] = data["balance1"]
-                        if "mileage" in data:
-                            args["mileage"] = data["mileage"]
-                        if "mileage_CAN" in data:
-                            args["can_mileage"] = data["mileage_CAN"]
-                        if "metka" in data:
-                            args["tag_number"] = data["metka"]
-                        if "brelok" in data:
-                            args["key_number"] = data["brelok"]
-                        if "move" in data:
-                            args["is_moving"] = data["move"]
-                        if "evaq" in data:
-                            args["is_evacuating"] = data["evaq"]
-                        if "fuel" in data:
-                            args["fuel"] = data["fuel"]
-                        if "gsm_level" in data:
-                            args["gsm_level"] = data["gsm_level"]
-                        if "relay" in data:
-                            args["relay"] = data["relay"]
-                        if "voltage" in data:
-                            args["voltage"] = data["voltage"]
-                        if "state" in data:
-                            args["state_timestamp"] = data["state"]
-                        if "state_utc" in data:
-                            args["state_timestamp_utc"] = data["state_utc"]
-                        if "online" in data:
-                            args["online_timestamp"] = data["online"]
-                        if "online_utc" in data:
-                            args["online_timestamp_utc"] = data["online_utc"]
-                        if "setting_utc" in data:
-                            args["settings_timestamp_utc"] = data["setting_utc"]
-                        if "command_utc" in data:
-                            args["command_timestamp_utc"] = data["command_utc"]
-                        if "active_sim" in data:
-                            args["active_sim"] = data["active_sim"]
-                        if "track_remains" in data:
-                            args["tracking_remaining"] = data["track_remains"]
-                        if "lock_x" in data:
-                            args["lock_latitude"] = data["lock_x"] / 1000000
-                        if "lock_y" in data:
-                            args["lock_longitude"] = data["lock_y"] / 1000000
-                        if "rot" in data:
-                            args["rotation"] = data["rot"]
-                        if "CAN_TMPS_forvard_left" in data:
-                            args["can_tpms_front_left"] = data["CAN_TMPS_forvard_left"]
-                        if "CAN_TMPS_forvard_right" in data:
-                            args["can_tpms_front_right"] = data[
-                                "CAN_TMPS_forvard_right"
-                            ]
-                        if "CAN_TMPS_back_left" in data:
-                            args["can_tpms_back_left"] = data["CAN_TMPS_back_left"]
-                        if "CAN_TMPS_back_right" in data:
-                            args["can_tpms_back_right"] = data["CAN_TMPS_back_right"]
-                        if "CAN_driver_glass" in data:
-                            args["can_glass_front_left"] = data["CAN_driver_glass"]
-                        if "CAN_passenger_glass" in data:
-                            args["can_glass_front_right"] = data["CAN_passenger_glass"]
-                        if "CAN_back_left_glass" in data:
-                            args["can_glass_back_left"] = data["CAN_back_left_glass"]
-                        if "CAN_back_right_glass" in data:
-                            args["can_glass_back_right"] = data["CAN_back_right_glass"]
-                        if "CAN_low_liquid" in data:
-                            args["can_low_liquid_warning"] = data["CAN_low_liquid"]
-                        if "CAN_mileage_by_battery" in data:
-                            args["can_mileage_by_battery"] = data[
-                                "CAN_mileage_by_battery"
-                            ]
-                        if "CAN_mileage_to_empty" in data:
-                            args["can_mileage_until_empty"] = data[
-                                "CAN_mileage_to_empty"
-                            ]
-                        if "charging_connect" in data:
-                            args["ev_charging_connected"] = data["charging_connect"]
-                        if "charging_slow" in data:
-                            args["ev_charging_slow"] = data["charging_slow"]
-                        if "charging_fast" in data:
-                            args["ev_charging_fast"] = data["charging_fast"]
-                        if "ev_status_ready" in data:
-                            args["ev_status_ready"] = data["ev_status_ready"]
-                        if "battery_temperature" in data:
-                            args["battery_temperature"] = data["battery_temperature"]
-                        if "tanks" in data:
-                            args["fuel_tanks"] = tuple(
-                                FuelTank(
-                                    id=fuel_tank_data["id"],
-                                    value=fuel_tank_data["value"],
-                                )
-                                for fuel_tank_data in data["tanks"]
-                            )
-
-                        device_object.state = attr.evolve(device_state, **args)
-
-                        try:
-                            await update_callback(
-                                device_object,
-                                args.keys(),
-                            )
-
-                        except asyncio.CancelledError:
-                            raise
-
-                        except BaseException as e:
-                            _LOGGER.exception(f"Error during callback handling: {e}")
-
-                    else:
-                        _LOGGER.warning(
-                            f"Device with ID '{device_id}' partial state data retrieved, "
-                            f"but no initial data has yet been received. Skipping...",
-                        )
-
-                else:
-                    _LOGGER.warning(
-                        f"Device with ID '{device_id}' partial stats data retrieved, "
-                        f"but no object created yet. Skipping...",
-                    )
-
-            else:
-                _LOGGER.warning(f"Unknown response type '{type_}' with data '{data}'")
 
         while True:
             try:
@@ -909,21 +997,89 @@ class PandoraOnlineAccount:
                     msg = await ws.receive()
 
                     if msg.type == aiohttp.WSMsgType.closed:
+                        _LOGGER.debug("WebSockets message channel is closed")
                         break
 
                     elif msg.type == aiohttp.WSMsgType.error:
+                        _LOGGER.error(
+                            "WebSockets message channel encountered an error: %s",
+                            msg.data,
+                        )
                         break
 
                     elif msg.type == aiohttp.WSMsgType.text:
+                        callback_coro = None
+
                         contents = json.loads(msg.data)
-                        await _process_websocket_response(
-                            contents["type"], contents["data"]
-                        )
+                        type_, data = contents["type"], contents["data"]
+
+                        device_id = data["dev_id"]
+                        device = self.get_device(device_id)
+
+                        try:
+                            if type_ == "initial-state":
+                                result = self._process_ws_initial_state(device, data)
+                                if state_callback:
+                                    callback_coro = state_callback(device, *result)
+
+                            elif type_ == "state":
+                                result = self._process_ws_state(device, data)
+                                if result is not None and state_callback:
+                                    callback_coro = state_callback(device, *result)
+
+                            elif type_ == "command":
+                                (
+                                    command_id,
+                                    result,
+                                    reply,
+                                ) = self._process_ws_command(device, data)
+
+                                if command_callback:
+                                    callback_coro = command_callback(
+                                        device, command_id, result, reply
+                                    )
+
+                            elif type_ == "event":
+                                tracking_event = self._process_ws_event(device, data)
+
+                                if event_callback:
+                                    callback_coro = event_callback(
+                                        device, tracking_event
+                                    )
+
+                            else:
+                                _LOGGER.warning(
+                                    f"Unknown response type '{type_}' with data '{data}'"
+                                )
+                        except BaseException as e:
+                            _LOGGER.fatal(
+                                f"Error during preliminary response processing: {e}"
+                            )
+                            _LOGGER.fatal(
+                                f"Please, report this error to the developer immediately"
+                            )
+                            _LOGGER.fatal(
+                                f"The component will attempt to ignore this error"
+                            )
+                            continue
+
+                        if callback_coro is not None:
+                            try:
+                                await callback_coro  # read-blocking callbacks are necessary
+
+                            except asyncio.CancelledError:
+                                raise
+
+                            except BaseException as e:
+                                _LOGGER.exception(
+                                    f"Error occurred during callback handling: {e}"
+                                )
 
             except asyncio.CancelledError:
+                _LOGGER.debug("WebSockets reader is cancelled")
                 raise
 
-            except (aiohttp.ClientError, aiohttp.ClientTimeout, OSError) as e:
+            except (aiohttp.ClientError, asyncio.TimeoutError, OSError) as e:
                 _LOGGER.error(f"Error during listening: {e}")
                 if not auto_restart:
                     raise
@@ -1111,6 +1267,22 @@ class PandoraOnlineDevice:
     def control_busy(self) -> bool:
         """Returns whether device is currently busy executing command."""
         return not (self._control_future is None or self._control_future.done())
+
+    def release_control_lock(self, error: Optional[Any] = None) -> None:
+        if self._control_future is None:
+            raise ValueError("control lock is not in effect")
+
+        if error is None:
+            self._control_future.set_result(True)
+            self._control_future = None
+
+        else:
+            self._control_future.set_exception(
+                PandoraOnlineException(
+                    f"Error while executing command: {error}",
+                )
+            )
+            self._control_future = None
 
     # External property accessors
     @property

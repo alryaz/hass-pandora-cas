@@ -1,18 +1,17 @@
 """Config flow for Pandora Car Alarm System component."""
-__all__ = [
-    "PandoraCASConfigFlow",
-]
-import logging
-import voluptuous as vol
-from typing import Optional, Dict, Any
+__all__ = ("PandoraCASConfigFlow", "PandoraCASOptionsFlow")
 
+import logging
+from typing import Any, Dict, List, Optional
+
+import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers.typing import ConfigType
 
-from . import DOMAIN, DEFAULT_POLLING_INTERVAL, CONF_POLLING_INTERVAL, CONF_USER_AGENT
-from .api import PandoraOnlineAccount, PandoraOnlineException, AuthenticationException
+from . import DOMAIN
+from .api import AuthenticationException, PandoraOnlineAccount, PandoraOnlineException
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,11 +27,6 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
             {
                 vol.Required(CONF_USERNAME): str,
                 vol.Required(CONF_PASSWORD): str,
-                vol.Optional(
-                    CONF_POLLING_INTERVAL,
-                    default=DEFAULT_POLLING_INTERVAL.total_seconds(),
-                ): int,
-                vol.Optional(CONF_USER_AGENT): str,
             }
         )
 
@@ -86,7 +80,6 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
         account = PandoraOnlineAccount(
             username=user_input[CONF_USERNAME],
             password=user_input[CONF_PASSWORD],
-            user_agent=user_input.get(CONF_USER_AGENT),
         )
 
         try:

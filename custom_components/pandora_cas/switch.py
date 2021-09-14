@@ -76,6 +76,11 @@ ENTITY_TYPES = {
         ATTR_FEATURE: Features.EXT_CHANNEL,
         ATTR_COMMAND: (CommandID.TURN_OFF_EXT_CHANNEL, CommandID.TURN_ON_EXT_CHANNEL),
     },
+    "status_output": {
+        ATTR_NAME: "Status Output",
+        ATTR_ICON: ("mdi:engine-off", "mdi:engine-on"),
+        ATTR_COMMAND: (CommandID.DISABLE_STATUS_OUTPUT, CommandID.ENABLE_STATUS_OUTPUT),
+    },
 }
 
 
