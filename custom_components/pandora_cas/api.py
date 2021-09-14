@@ -9,6 +9,10 @@ __all__ = [
     "EventType",
     "AlertType",
     "BitStatus",
+    "CurrentState",
+    "BalanceState",
+    "TrackingEvent",
+    "FuelTank",
     # Exceptions
     "PandoraOnlineException",
     "AuthenticationException",

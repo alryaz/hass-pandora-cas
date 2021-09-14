@@ -77,6 +77,7 @@ ENTITY_TYPES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
         ATTR_ATTRIBUTE: "can_glass_front_left",
         ATTR_STATE_SENSITIVE: True,
+        ATTR_DISABLED_BY_DEFAULT: True,
     },
     "right_front_glass": {
         ATTR_NAME: "Right Front Glass",
@@ -84,6 +85,7 @@ ENTITY_TYPES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
         ATTR_ATTRIBUTE: "can_glass_front_right",
         ATTR_STATE_SENSITIVE: True,
+        ATTR_DISABLED_BY_DEFAULT: True,
     },
     "left_back_glass": {
         ATTR_NAME: "Left Back Glass",
@@ -91,6 +93,7 @@ ENTITY_TYPES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
         ATTR_ATTRIBUTE: "can_glass_back_left",
         ATTR_STATE_SENSITIVE: True,
+        ATTR_DISABLED_BY_DEFAULT: True,
     },
     "right_back_glass": {
         ATTR_NAME: "Right Back Glass",
@@ -98,6 +101,7 @@ ENTITY_TYPES = {
         ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
         ATTR_ATTRIBUTE: "can_glass_back_right",
         ATTR_STATE_SENSITIVE: True,
+        ATTR_DISABLED_BY_DEFAULT: True,
     },
     "trunk": {
         ATTR_NAME: "Trunk",
@@ -134,6 +138,7 @@ ENTITY_TYPES = {
         ATTR_ICON: "mdi:ev-station",
         ATTR_ATTRIBUTE: "ev_charging_connected",
         ATTR_STATE_SENSITIVE: True,
+        ATTR_DISABLED_BY_DEFAULT: True,
     },
 }
 

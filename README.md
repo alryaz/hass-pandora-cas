@@ -9,7 +9,7 @@
 >[![Лицензия](https://img.shields.io/badge/%D0%9B%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 >[![Поддержка](https://img.shields.io/badge/%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%B8%D0%B2%D0%B0%D0%B5%D1%82%D1%81%D1%8F%3F-%D0%B4%D0%B0-green.svg)](https://github.com/alryaz/hass-pandora-cas/graphs/commit-activity)  
 >
->[![Пожертвование Yandex](https://img.shields.io/badge/%D0%9F%D0%BE%D0%B6%D0%B5%D1%80%D1%82%D0%B2%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-Yandex-red.svg)](https://money.yandex.ru/to/410012369233217)
+>[![Пожертвование Yandex](https://img.shields.io/badge/%D0%9F%D0%BE%D0%B6%D0%B5%D1%80%D1%82%D0%B2%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-Yandex-red.svg)](https://money.yandex.ru/to/410012369233217)  
 >[![Пожертвование PayPal](https://img.shields.io/badge/%D0%9F%D0%BE%D0%B6%D0%B5%D1%80%D1%82%D0%B2%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-Paypal-blueviolet.svg)](https://www.paypal.me/alryaz)
   
 > Вдохновитель, оригинальный разработчик:  
@@ -169,6 +169,8 @@ pandora_cas:
 указанных выше.
 
 ### Управление объектами через интерфейс
+<a name="integration_entities_control">
+
 Дополнительно имеется возможость (для всех вариантов конфигурации) использовать раздел устройств для управления
 включёнными объектами. Для этого:
 1. Перейдите в раздел _Настройки_ &#10230; _Устройства_ (`/config/devices/dashboard`)
@@ -198,6 +200,16 @@ lovelace UI и автоматизации.
 > Во избежание неожиданных ситуаций,  Вы можете ознакомиться с таблицами поддержки на официальном сайте Pandora:
 > [ссылка на документ](https://alarmtrade.ru/service/sravnitelnye-tablitsy-sistem-pandora-i-pandect/).
 
+> **ПРЕДУПРЕЖДЕНИЕ!**  
+> Общее количество различных объектов, доступных в компоненте, в скором времени перевалит за 40.
+> Ввиду этого, по умолчанию отключены объекты, встречающиеся наиболее редко, такие как:
+> - Состояние зарядки и температура аккумулятора гибридных/электрических автомобилей
+> - Состояние поднятости стёкол и давление в шинах (TPMS), получаемые по CAN-шине
+> 
+> Такие объекты помечаются символом "&#9888;" в таблицах ниже. Если Вы уверены, что Ваш автомобиль
+> вкупе с установленной на нём системой поддерживают данные функции, то Вы можете включить
+> перечисленные объекты следуя инструкции [выше](#integration_entities_control).
+
 ### Платформа `sensor`
 <a id="platform_sensor"/>
 
@@ -208,28 +220,23 @@ lovelace UI и автоматизации.
 | sensor.`PANDORA_ID`_interior_temperature | Температура салона | °C |
 | sensor.`PANDORA_ID`_engine_temperature | Температура двигателя | °C |
 | sensor.`PANDORA_ID`_exterior_temperature | Уличная температура | °C |
-| sensor.`PANDORA_ID`_balance | Баланс СИМ-карты <sup>2</sup> | ₽ |
+| sensor.`PANDORA_ID`_balance | Баланс СИМ-карты | Валюта SIM-карты |
 | sensor.`PANDORA_ID`_speed | Скорость | км/ч |
 | sensor.`PANDORA_ID`_tachometer | Тахометр (обороты двигателя) | rpm |
 | sensor.`PANDORA_ID`_gsm_level | Уровень сигнала GSM| 0 ... 3 |
 | sensor.`PANDORA_ID`_battery_voltage | Напряжение аккумулятора | В |
-| sensor.`PANDORA_ID`_left_front_tire_pressure | Давление левой передней шины<sup>1</sup> | кПа |
-| sensor.`PANDORA_ID`_right_front_tire_pressure | Давление правой передней шины<sup>1</sup> | кПа |
-| sensor.`PANDORA_ID`_left_back_tire_pressure | Давление левой задней шины<sup>1</sup> | кПа |
-| sensor.`PANDORA_ID`_right_back_tire_pressure | Давление правой задней шины<sup>1</sup> | кПа |
-
-<sup>1</sup> Данные объекты будут доступны только в том случае, если Ваше устройство предоставляет
-информацию о соответствующих им характеристиках по CAN-шине. Уточняйте поддержку у производителя.
- 
-<sup>1</sup> В грядущих релизах будет реализовано отображение топлива в литрах в качестве атрибутов данного датчика.  
-<sup>2</sup> Будет изменено на реальную валюту СИМ-карты  
+| &#9888; sensor.`PANDORA_ID`_left_front_tire_pressure | _Давление левой передней шины_ | кПа |
+| &#9888; sensor.`PANDORA_ID`_right_front_tire_pressure | _Давление правой передней шины_ | кПа |
+| &#9888; sensor.`PANDORA_ID`_left_back_tire_pressure | _Давление левой задней шины_ | кПа |
+| &#9888; sensor.`PANDORA_ID`_right_back_tire_pressure | _Давление правой задней шины_ | кПа |
+| &#9888; sensor.`PANDORA_ID`_battery_temperature | _Температура аккумулятора_ | °C |
 
 ### Платформа `binary_sensor`
 <a id="platform_binary_sensor"/>
 
 | Объект | Назначение | Примечание |
 | ------ | ---------- | ---------- |
-| binary_sensor.`PANDORA_ID`_connection_state | Связь с автомобилем<sup>*</sup> | есть / нет |
+| binary_sensor.`PANDORA_ID`_connection_state | Связь с автомобилем<sup>1</sup> | есть / нет |
 | binary_sensor.`PANDORA_ID`_moving  | Статус движения | в движении / без движения |
 | binary_sensor.`PANDORA_ID`_left_front_door | Левая передняя дверь | открыта / закрыта |
 | binary_sensor.`PANDORA_ID`_right_front_door | Правая передняя дверь | открыта / закрыта |
@@ -239,13 +246,14 @@ lovelace UI и автоматизации.
 | binary_sensor.`PANDORA_ID`_hood | Капот | открыт / закрыт |
 | binary_sensor.`PANDORA_ID`_parking  | Режим паркнинга | включен / выключен |
 | binary_sensor.`PANDORA_ID`_brakes  | Педаль тормоза | нажата / отпущена |
-| binary_sensor.`PANDORA_ID`_left_front_glass | Левое переднее окно (водительское)<sup>1,2</sup> | открыто / закрыто |
-| binary_sensor.`PANDORA_ID`_right_front_glass | Правое переднее окно (пассажирское)<sup>1,2</sup> | открыто / закрыто |
-| binary_sensor.`PANDORA_ID`_left_back_glass | Левое заднее окно<sup>1</sup> | открыто / закрыто |
-| binary_sensor.`PANDORA_ID`_right_back_glass | Правое заднее окно<sup>1</sup> | открыто / закрыто |
+| &#9888; binary_sensor.`PANDORA_ID`_left_front_glass | _Левое переднее окно (водительское)<sup>2</sup>_ | открыто / закрыто |
+| &#9888; binary_sensor.`PANDORA_ID`_right_front_glass | _Правое переднее окно (пассажирское)<sup>2</sup>_ | открыто / закрыто |
+| &#9888; binary_sensor.`PANDORA_ID`_left_back_glass | _Левое заднее окно_ | открыто / закрыто |
+| &#9888; binary_sensor.`PANDORA_ID`_right_back_glass | _Правое заднее окно_ | открыто / закрыто |
+| &#9888; binary_sensor.`PANDORA_ID`_ev_charging_connected | _Зарядка аккумулятора электрокара_ | подключено / отключено |
 
-<sup>1</sup> Данные объекты будут доступны только в том случае, если Ваше устройство предоставляет
-информацию о соответствующих им характеристиках по CAN-шине. Уточняйте поддержку у производителя.  
+<sup>1</sup> Данный объект содержит полный перечень свойств, получаемых в момент обновления состояния автомобиля,
+и тем самым может быть запросто использован для `template`-выражений.  
 <sup>2</sup> Компонент не тестировался для праворульных транспортных средств. Может возникнуть
 ситуация, что из коробки данные сенсоры перепутаны местами.
 
@@ -265,13 +273,33 @@ lovelace UI и автоматизации.
 | switch.`PANDORA_ID`_tracking | Статус отслеживания (GPS-трек) | включен / выключен |
 | switch.`PANDORA_ID`_service_mode | Режим сервиса (обслуживания) | включен / выключен |
 | switch.`PANDORA_ID`_ext_channel | Дополнительный канал <sup>3</sup> | включить / выключить |
+| switch.`PANDORA_ID`_status_output | Статусный выход (для нештатных иммобилайзеров) | включить / выключить |
  
 <sup>3</sup> Состояние не остслеживается  
 
 ### Платформа `device_tracker`
 <a id="platform_device_tracker"/>
 
-Для каждого автомобиля будет создан объект device_tracker.pandora_`PANDORA_ID`, где `PANDORA_ID` уникальный идентификатор автомобиля в системе Pandora. Доступны все обычные действия для Device Tracker: отслеживание местоположения [на карте](https://www.home-assistant.io/lovelace/map/), [треккинг пути](https://www.home-assistant.io/blog/2020/04/08/release-108/#lovelace-map-history), [контроль зон](https://www.home-assistant.io/docs/automation/trigger/#zone-trigger) и т.д.
+Для каждого автомобиля будет создан объект device_tracker.pandora_`PANDORA_ID`, где
+`PANDORA_ID` уникальный идентификатор автомобиля в системе Pandora. Доступны все
+обычные действия для Device Tracker: отслеживание местоположения
+[на карте](https://www.home-assistant.io/lovelace/map/),
+[трекинг пути](https://www.home-assistant.io/blog/2020/04/08/release-108/#lovelace-map-history),
+[контроль зон](https://www.home-assistant.io/docs/automation/trigger/#zone-trigger) и т.д.
+
+Объект обладает следующими атрибутами:
+
+| Параметр | Тип   | Описание |
+| -------- | :---: | -------- |
+| latitude | `float` | Широта |
+| longitude | `float` | Долгота |
+| device_id | `int` | Идентификатор устройства |
+| voltage | `float` | Бортовое напряжение |
+| gsm_level | `int` | Уровень связи |
+| direction | `int` | Направление (в градусах) |
+| cardinal | `str` | Направление (в сторонах света) |
+| key_number | `int` | Номер используемого ключа |
+| tag_number | `int` | Номер используемой метки |
 
 ## События
 <a id="events_supported"/>
@@ -285,8 +313,8 @@ lovelace UI и автоматизации.
 Данное событие делегирует информацию из системы Pandora прямиком в Home Assistant. Следующие данные
 будут доступны при получении события:
 
-| Параметр | Тип | Описание |
-| -------- | --- | -------- |
+| Параметр | Тип   | Описание |
+| -------- | :---: | -------- |
 | device_id | `int` | Идентификатор устройства |
 | event_id_primary | `int` | Первичный код события |
 | event_id_secondary | `int` | Вторичный код события |
@@ -306,8 +334,8 @@ lovelace UI и автоматизации.
 
 Для всех команд будут выполняться события-уведомители. Данные события содержат следующие данные:
 
-| Параметр | Тип | Описание |
-| -------- | --- | -------- |
+| Параметр | Тип   | Описание |
+| -------- | :---: | -------- |
 | device_id | `int` | Идентификатор устройства |
 | command_id | `int` | Номер команды _(см. раздел ниже)_ |
 | result | `int` | Результат выполнения (`0` - успех, любое другое значение - ошибка) |
@@ -342,7 +370,7 @@ lovelace UI и автоматизации.
 Для справки, ниже представлена таблица доступных к выполнению команд (сгруппированых по смысловому признаку):
 
 | ID      | Постфикс | Действие | Примечание |
-| ------- | -------- | -------- | ---------- |
+| ------: | -------- | -------- | ---------- |
 | **1**   | `lock` | Поставить на охрану | Может быть запрещено настройками блока сигнализации |
 | **2**   | `unlock` | Снять с охраны | Может быть запрещено настройками блока сигнализации |
 | **4**   | `start_engine` | Запустить двигатель | |
@@ -364,8 +392,8 @@ lovelace UI и автоматизации.
 | **128** | `additional_command_2` | Дополнительная команда №2 | Настраивается инструментами конфигурации блока сигнализации |
 | **240** | `enable_connection` | Продлить период коммуникации | ? |
 | **15**  | `disable_connection` | Завершить период коммуникации | ? |
-| **48**  | `enable_status_output` | Выключение статусного выхода | ? |
-| **49**  | `disable_status_output` | Включение статусного выхода | ? |
+| **48**  | `enable_status_output` | Выключение статусного выхода | Подразумевается поддержка на стороне автомобиля |
+| **49**  | `disable_status_output` | Включение статусного выхода | Подразумевается поддержка на стороне автомобиля |
 
 ### Примеры использования команд
 <a id="service_examples"/>

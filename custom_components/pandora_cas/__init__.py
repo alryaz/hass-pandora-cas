@@ -20,7 +20,6 @@ from functools import partial
 from typing import (
     Any,
     ClassVar,
-    Collection,
     Dict,
     List,
     Mapping,
@@ -33,6 +32,7 @@ from typing import (
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant import config_entries
+from homeassistant.components.sensor import ATTR_STATE_CLASS
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_COMMAND,
@@ -510,7 +510,18 @@ async def async_platform_setup_entry(
                 device_directive = platform_directive.get(ATTR_DEFAULT)
 
         # Apply filters
-        if device_directive is True or device_directive is None:
+        if device_directive is None:
+            enabled_entity_types = [
+                sensor_type
+                for sensor_type, sensor_config in entity_configs.items()
+                if not sensor_config.get(ATTR_DISABLED_BY_DEFAULT, False)
+            ]
+            logger.debug(
+                'Using default objects for device "%s" during platform "%s" setup'
+                % (device_id, platform_id)
+            )
+
+        elif device_directive is True:
             enabled_entity_types = entity_configs.keys()
             logger.debug(
                 'Adding all objects to device "%s" during platform "%s" setup'
@@ -752,6 +763,10 @@ class PandoraCASEntity(BasePandoraCASEntity):
         return self.entity_type_config.get(ATTR_DEVICE_CLASS)
 
     @property
+    def state_class(self) -> Optional[str]:
+        return self.entity_type_config.get(ATTR_STATE_CLASS)
+
+    @property
     def icon(self) -> Optional[str]:
         """Return device icon (if available)."""
         icon = self.entity_type_config.get(ATTR_ICON)
@@ -762,6 +777,17 @@ class PandoraCASEntity(BasePandoraCASEntity):
     @property
     def unit_of_measurement(self) -> Optional[str]:
         return self.entity_type_config.get(ATTR_UNIT_OF_MEASUREMENT)
+
+    @property
+    def device_state_attributes(self) -> Dict[str, Any]:
+        attributes = super().device_state_attributes
+
+        if ATTR_STATE_CLASS not in attributes:
+            state_class = self.state_class
+            if state_class is not None:
+                attributes[ATTR_STATE_CLASS] = state_class
+
+        return attributes
 
 
 class PandoraCASBooleanEntity(PandoraCASEntity):
