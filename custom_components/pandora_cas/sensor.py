@@ -46,7 +46,15 @@ ENTITY_TYPES = {
         ATTR_STATE_SENSITIVE: True,
         ATTR_STATE_CLASS: STATE_CLASS_TOTAL_INCREASING,
         ATTR_FORMATTER: lambda v: round(float(v), 2),
-        ATTR_ADDITIONAL_ATTRIBUTES: {},
+    },
+    "can_mileage": {
+        ATTR_NAME: "CAN Mileage",
+        ATTR_ICON: "mdi:map-marker-distance",
+        ATTR_UNIT_OF_MEASUREMENT: LENGTH_KILOMETERS,
+        ATTR_ATTRIBUTE: "can_mileage",
+        ATTR_STATE_SENSITIVE: True,
+        ATTR_STATE_CLASS: STATE_CLASS_TOTAL_INCREASING,
+        ATTR_FORMATTER: lambda v: round(float(v), 2),
     },
     "fuel": {
         ATTR_NAME: "Fuel Level",
