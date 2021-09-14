@@ -281,7 +281,6 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
     account = PandoraOnlineAccount(
         username,
         pandora_cfg[CONF_PASSWORD],
-        user_agent=pandora_cfg.get(CONF_USER_AGENT, DEFAULT_USER_AGENT),
     )
 
     try:
