@@ -1,79 +1,261 @@
-# WORK IN PROGRESS!
-
-lock:
-  description: >
-    Description here
+remote_command:
+  description: Выполнение команды по номеру / Execute command by code
   fields:
-    id:
-      description: >
-        The vehicle identification
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
       example: 1234567
+      selector:
+        text:
+    command_id:
+      description: Номер команды / Command code
+      example: 1
+      selector:
+        number:
+          min: 0
+          max: 99999999
+          mode: box
+
+# Locking mechanism
+lock:
+  description: Постановка на охрану / Lock vehicle
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
 
 unlock:
-  description: >
-    Description here
+  description: Снятие с охраны / Unlock vehicle
   fields:
-    id:
-      description: >
-        The vehicle identification
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
       example: 1234567
+      selector:
+        text:
 
+# Engine toggles
 start_engine:
-  description: >
-    Description here
+  description: Запуск двигателя / Start engine
   fields:
-    id:
-      description: >
-        The vehicle identification
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
       example: 1234567
+      selector:
+        text:
 
 stop_engine:
-  description: >
-    Description here
+  description: Остановка двигателя / Stop engine
   fields:
-    id:
-      description: >
-        The vehicle identification
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
       example: 1234567
+      selector:
+        text:
 
-turn_on_ext_channel:
-  description: >
-    Description here
+# Tracking toggle
+enable_tracking:
+  description: Включение отслеживания / Enable tracking
   fields:
-    id:
-      description: >
-        The vehicle identification
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
       example: 1234567
+      selector:
+        text:
 
-turn_off_ext_channel:
-  description: >
-    Description here
+disable_tracking:
+  description: Отключение отслеживания / Enable tracking
   fields:
-    id:
-      description: >
-        The vehicle identification
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
       example: 1234567
+      selector:
+        text:
 
+# Active security toggle
+enable_active_security:
+  description: Включение активной защиты / Enable active security
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+
+disable_active_security:
+  description: Отключение активной защиты / Disable active security
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+
+# Coolant heater toggle
 turn_on_coolant_heater:
-  description: >
-    Turn on coolant heater
+  description: Включение предпускового подогрева / Enable coolant heater
   fields:
-    id:
-      description: >
-        The vehicle identification
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
       example: 1234567
+      selector:
+        text:
 
 turn_off_coolant_heater:
-  description: >
-    Turn on coolant heater
+  description: Отключение предпускового подогрева / Disable coolant heater
   fields:
-    id:
-      description: >
-        The vehicle identification
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
       example: 1234567
+      selector:
+        text:
 
-update_state:
-  description: >
-    Fetch the last state of the vehicles of all your accounts from the BMW
-    server. This does *not* trigger an update from the vehicle, it just gets
-    the data from the BMW servers. This service does not require any attributes.
+# External (timer) channel toggle
+turn_on_ext_channel:
+  description: Включение дополнительного канала (внешнее устройство) / Enable extra channel (external device)
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+
+turn_off_ext_channel:
+  description: Отключение дополнительного канала (внешнее устройство) / Disable extra channel (external device)
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+
+# Service mode toggle
+enable_service_mode:
+  description: Включение сервисного режима ("режим ТО") / Enable service mode
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+
+disable_service_mode:
+  description: Отключение сервисного режима ("режим ТО") / Disable service mode
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+
+# Status output toggle
+enable_status_output:
+  description: Включение статусного выхода (нештатный иммобилайзер) / Enable status output (external immobilizer)
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+
+disable_status_output:
+  description: Выключение статусного выхода (нештатный иммобилайзер) / Disable status output (external immobilizer)
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+
+# Various commands
+trigger_horn:
+  description: Издать звук сиреной / Trigger alarm sound
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+
+trigger_light:
+  description: Включить освещение фарами / Trigger exterior lighting
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+
+trigger_trunk:
+  description: Открыть багажник / Open trunk
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+
+check:
+  description: Отправить команду CHECK / Send CHECK command
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+
+erase_dtc:
+  description: Очистка кодов DTC / Erase DTC codes
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+
+read_dtc:
+  description: Считывание кодов DTC / Read DTC codes
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+
+# Additional commands
+additional_command_1:
+  description: Дополнительная команда №1 / Additional command no. 1
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+
+additional_command_2:
+  description: Дополнительная команда №2 / Additional command no. 2
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+
+# Connection toggle
+enable_connection:
+  description: Форсировать передачу данных / Force data transmission
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+
+disable_connection:
+  description: Приостановить передачу данных / Pause data transmission
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:

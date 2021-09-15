@@ -38,6 +38,7 @@ from homeassistant.const import (
     ATTR_COMMAND,
     ATTR_DEVICE_CLASS,
     ATTR_ICON,
+    ATTR_ID,
     ATTR_NAME,
     ATTR_UNIT_OF_MEASUREMENT,
     CONF_PASSWORD,
@@ -110,17 +111,51 @@ CONFIG_SCHEMA = vol.Schema(
     extra=vol.ALLOW_EXTRA,
 )
 
-SERVICE_REMOTE_COMMAND_PREDEFINED_SCHEMA = vol.Schema(
-    {
-        vol.Required(ATTR_DEVICE_ID): cv.string,
-    }
-)
+
+def _determine_command_by_slug(command_slug: str) -> int:
+    enum_member = command_slug.upper().strip()
+    for key, value in CommandID.__members__.items():
+        if key == enum_member:
+            return value
+
+    raise vol.Invalid("invalid command identifier")
+
 
 SERVICE_REMOTE_COMMAND = "remote_command"
-SERVICE_REMOTE_COMMAND_SCHEMA = SERVICE_REMOTE_COMMAND_PREDEFINED_SCHEMA.extend(
-    {
-        vol.Required(ATTR_COMMAND_ID): vol.Coerce(int),
-    }
+SERVICE_REMOTE_COMMAND_SCHEMA = vol.All(
+    vol.Schema(
+        {
+            vol.Exclusive(ATTR_DEVICE_ID, "device_id"): cv.string,
+            vol.Exclusive(ATTR_ID, "device_id"): cv.string,
+            vol.Required(ATTR_COMMAND_ID): vol.Any(
+                cv.positive_int,
+                vol.All(cv.string, _determine_command_by_slug),
+            ),
+        }
+    ),
+    cv.deprecated(ATTR_ID, ATTR_DEVICE_ID),
+    vol.Schema(
+        {
+            vol.Required(ATTR_DEVICE_ID): cv.string,
+        },
+        extra=vol.ALLOW_EXTRA,
+    ),
+)
+
+SERVICE_PREDEFINED_COMMAND_SCHEMA = vol.All(
+    vol.Schema(
+        {
+            vol.Exclusive(ATTR_DEVICE_ID, "device_id"): cv.string,
+            vol.Exclusive(ATTR_ID, "device_id"): cv.string,
+        }
+    ),
+    cv.deprecated(ATTR_ID, ATTR_DEVICE_ID),
+    vol.Schema(
+        {
+            vol.Required(ATTR_DEVICE_ID): cv.string,
+        },
+        extra=vol.ALLOW_EXTRA,
+    ),
 )
 
 SERVICE_UPDATE_STATE = "update_state"
@@ -148,7 +183,7 @@ def _find_existing_entry(
 async def _async_register_services(hass: HomeAssistantType) -> None:
     async def _execute_remote_command(
         call: "ServiceCall", command_id: Optional[Union[int, CommandID]] = None
-    ) -> bool:
+    ) -> None:
         _LOGGER.debug(f"Called service '{call.service}' with data: {dict(call.data)}")
 
         device_id = call.data[ATTR_DEVICE_ID]
@@ -165,11 +200,9 @@ async def _async_register_services(hass: HomeAssistantType) -> None:
                 if asyncio.iscoroutine(result):
                     await result
 
-                return True
+                return
 
-        _LOGGER.error('Device with ID "%s" not found' % (device_id,))
-
-        return False
+        raise ValueError(f"Device with ID '{device_id}' not found")
 
     # register the remote services
     _register_service = hass.services.async_register
@@ -182,11 +215,18 @@ async def _async_register_services(hass: HomeAssistantType) -> None:
     )
 
     for key, value in CommandID.__members__.items():
+        command_slug = slugify(key.lower())
+        _LOGGER.debug(
+            f"Registered remote command: {command_slug} (command_id={value.value})"
+        )
         _register_service(
             DOMAIN,
-            slugify(key.lower()),
-            partial(_execute_remote_command, command_id=value.value),
-            schema=SERVICE_REMOTE_COMMAND_SCHEMA,
+            command_slug,
+            partial(
+                _execute_remote_command,
+                command_id=value.value,
+            ),
+            schema=SERVICE_PREDEFINED_COMMAND_SCHEMA,
         )
 
 
