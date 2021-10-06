@@ -2,7 +2,7 @@
 __all__ = ("async_setup_entry", "PLATFORM_DOMAIN")
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from homeassistant import config_entries
 from homeassistant.components.device_tracker import (
@@ -97,11 +97,6 @@ class PandoraCASTracker(BasePandoraCASEntity, TrackerEntity):
 
         self._device_state = device.state
         self._available = True
-
-    @property
-    def should_poll(self):
-        """No polling for entities that have location pushed."""
-        return False
 
     @property
     def name(self) -> str:

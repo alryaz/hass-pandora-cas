@@ -1,0 +1,10 @@
+{
+  "state": {
+      "gsm_level": {
+          "0": "Offline",
+          "1": "Weak",
+          "2": "Medium",
+          "3": "Strong"
+      }
+  }
+}

@@ -3,7 +3,7 @@ __all__ = ("ENTITY_TYPES", "async_setup_entry")
 
 import logging
 from functools import partial
-from typing import Any, Dict, Optional, Union
+from typing import Any, Callable, Dict, Optional, Union
 
 from homeassistant.components.sensor import (
     ATTR_STATE_CLASS,
@@ -25,6 +25,7 @@ from homeassistant.const import (
     SPEED_KILOMETERS_PER_HOUR,
     TEMP_CELSIUS,
 )
+from homeassistant.core import Event, callback
 
 from . import PandoraCASEntity, async_platform_setup_entry
 from .const import *
@@ -35,7 +36,6 @@ except ImportError:
     from homeassistant.const import ELECTRIC_POTENTIAL_VOLT
 
 _LOGGER = logging.getLogger(__name__)
-
 
 ENTITY_TYPES = {
     "mileage": {
@@ -134,6 +134,7 @@ ENTITY_TYPES = {
             2: "mdi:network-strength-3",
             3: "mdi:network-strength-4",
         },
+        ATTR_DEVICE_CLASS: "gsm_level",
         ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
         ATTR_ATTRIBUTE: "gsm_level",
         ATTR_STATE_SENSITIVE: True,
@@ -187,6 +188,16 @@ ENTITY_TYPES = {
         ATTR_STATE_SENSITIVE: True,
         ATTR_DISABLED_BY_DEFAULT: True,
     },
+    "track_distance": {
+        ATTR_NAME: "Track Distance",
+        ATTR_ICON: "mdi:road-variant",
+        ATTR_UNIT_OF_MEASUREMENT: LENGTH_KILOMETERS,
+        ATTR_STATE_CLASS: STATE_CLASS_TOTAL_INCREASING,
+        ATTR_STATE_SENSITIVE: True,
+        ATTR_ATTRIBUTE_SOURCE: lambda d: d.last_point,
+        ATTR_ATTRIBUTE: "length",
+        ATTR_DISABLED_BY_DEFAULT: False,
+    },
 }
 
 
@@ -196,13 +207,20 @@ class PandoraCASSensor(PandoraCASEntity):
     ENTITY_TYPES = ENTITY_TYPES
     ENTITY_ID_FORMAT = ENTITY_ID_FORMAT
 
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self._points_listener: Optional[Callable] = None
+
     @property
     def state(self) -> Union[None, str, int, float]:
-        if self._entity_type == "balance":
+        entity_type = self._entity_type
+        if entity_type == "balance":
             state = self._state
             if state is None:
                 return None
             return state.value
+
         return self._state
 
     @property
@@ -214,21 +232,71 @@ class PandoraCASSensor(PandoraCASEntity):
             return state.currency
         return super().unit_of_measurement
 
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+
+        if self._entity_type == "track_distance":
+
+            @callback
+            def _event_filter(event: Event):
+                return event.data.get("device_id") == self._device.device_id
+
+            async def _schedule_update(*_):
+                self.async_schedule_update_ha_state()
+
+            self._points_listener = self.hass.bus.async_listen(
+                f"{DOMAIN}_point",
+                _schedule_update,
+                _event_filter,
+            )
+
+    async def async_will_remove_from_hass(self) -> None:
+        if self._entity_type == "track_distance":
+            points_listener = self._points_listener
+            if points_listener is not None:
+                self._points_listener = None
+                points_listener()
+
+        await super().async_will_remove_from_hass()
+
     @property
     def device_state_attributes(self) -> Dict[str, Any]:
         existing_attributes = super().device_state_attributes
-        if self._entity_type != "fuel":
-            return existing_attributes
+        entity_type = self._entity_type
 
-        state = self._device.state
-        if state is None or not state.fuel_tanks:
-            return existing_attributes
+        if entity_type == "fuel":
+            state = self._device.state
+            if state is None or not state.fuel_tanks:
+                return existing_attributes
 
-        for i, fuel_tank in enumerate(
-            sorted(state.fuel_tanks, key=lambda x: x.id), start=1
-        ):
-            existing_attributes[f"fuel_tank_{i}_id"] = fuel_tank.id
-            existing_attributes[f"fuel_tank_{i}_capacity"] = fuel_tank.value
+            for i, fuel_tank in enumerate(
+                sorted(state.fuel_tanks, key=lambda x: x.id), start=1
+            ):
+                existing_attributes[f"fuel_tank_{i}_id"] = fuel_tank.id
+                existing_attributes[f"fuel_tank_{i}_capacity"] = fuel_tank.value
+
+        elif entity_type == "track_distance":
+            last_point = self._device.last_point
+            if last_point is None:
+                existing_attributes.update(
+                    dict.fromkeys(
+                        (
+                            "timestamp",
+                            "track_id",
+                            "max_speed",
+                            "fuel",
+                            "latitude",
+                            "longitude",
+                        )
+                    )
+                )
+            else:
+                existing_attributes["timestamp"] = last_point.timestamp
+                existing_attributes["track_id"] = last_point.track_id
+                existing_attributes["max_speed"] = last_point.max_speed
+                existing_attributes["fuel"] = last_point.fuel
+                existing_attributes["latitude"] = last_point.latitude
+                existing_attributes["longitude"] = last_point.longitude
 
         return existing_attributes
 

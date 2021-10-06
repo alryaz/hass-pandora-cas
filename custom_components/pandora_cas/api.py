@@ -12,6 +12,7 @@ __all__ = [
     "CurrentState",
     "BalanceState",
     "TrackingEvent",
+    "TrackingPoint",
     "FuelTank",
     # Exceptions
     "PandoraOnlineException",
@@ -22,11 +23,13 @@ __all__ = [
     "DEFAULT_USER_AGENT",
     "DEFAULT_CONTROL_TIMEOUT",
 ]
+
 import asyncio
 import json
 import logging
 from enum import Flag, IntEnum, IntFlag, auto
 from json import JSONDecodeError
+from time import time
 from types import MappingProxyType
 from typing import (
     Any,
@@ -44,6 +47,7 @@ from typing import (
 )
 
 import aiohttp
+import async_timeout
 import attr
 
 _LOGGER = logging.getLogger(__name__)
@@ -455,6 +459,19 @@ class TrackingEvent:
     @property
     def primary_event_enum(self) -> PrimaryEventID:
         return PrimaryEventID(self.event_id_primary)
+
+
+@attr.s(kw_only=True, frozen=True, slots=True)
+class TrackingPoint:
+    identifier: int = attr.ib()
+    latitude: float = attr.ib()
+    longitude: float = attr.ib()
+    track_id: Optional[int] = attr.ib(default=None)
+    timestamp: float = attr.ib(default=time)
+    fuel: Optional[int] = attr.ib(default=None)
+    speed: Optional[float] = attr.ib(default=None)
+    max_speed: Optional[float] = attr.ib(default=None)
+    length: Optional[float] = attr.ib(default=None)
 
 
 class PandoraOnlineAccount:
@@ -952,6 +969,53 @@ class PandoraOnlineAccount:
             longitude=data["y"],
         )
 
+    def _process_ws_point(
+        self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
+    ) -> TrackingPoint:
+        try:
+            fuel = data["fuel"]
+        except KeyError:
+            fuel = None
+        else:
+            if fuel is not None:
+                fuel = float(fuel)
+
+        try:
+            speed = data["speed"]
+        except KeyError:
+            speed = None
+        else:
+            if speed is not None:
+                speed = float(speed)
+
+        try:
+            max_speed = data["max_speed"]
+        except KeyError:
+            max_speed = None
+        else:
+            if max_speed is not None:
+                max_speed = float(max_speed)
+
+        try:
+            length = data["length"]
+        except KeyError:
+            length = None
+        else:
+            if length is not None:
+                length = float(length)
+
+        return TrackingPoint(
+            identifier=device.device_id,
+            track_id=data["track_id"],
+            latitude=data["x"],
+            longitude=data["y"],
+            timestamp=data.get("dtime") or time(),
+            fuel=fuel,
+            speed=speed,
+            max_speed=max_speed,
+            length=length,
+        )
+
     def _process_ws_command(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
     ) -> Tuple[int, int, int]:
@@ -986,113 +1050,159 @@ class PandoraOnlineAccount:
                 Awaitable[None],
             ]
         ] = None,
+        point_callback: Optional[
+            Callable[
+                ["PandoraOnlineDevice", TrackingPoint],
+                Awaitable[None],
+            ]
+        ] = None,
         auto_restart: bool = True,
     ) -> None:
-        access_token = self._access_token
-        if access_token is None:
-            raise PandoraOnlineException("Account is not authenticated")
+        try:
 
-        while True:
-            try:
-                ws = await self._session.ws_connect(
-                    self.BASE_URL + f"/api/v4/updates/ws?access_token={access_token}"
-                )
+            while True:
+                try:
+                    async with self._session.ws_connect(
+                        self.BASE_URL
+                        + f"/api/v4/updates/ws?access_token={self._access_token}"
+                    ) as ws:
+                        _LOGGER.debug(f"[{self}] WebSockets connected")
 
-                while True:
-                    msg = await ws.receive()
-
-                    if msg.type == aiohttp.WSMsgType.closed:
-                        _LOGGER.debug("WebSockets message channel is closed")
-                        break
-
-                    elif msg.type == aiohttp.WSMsgType.error:
-                        _LOGGER.error(
-                            "WebSockets message channel encountered an error: %s",
-                            msg.data,
-                        )
-                        break
-
-                    elif msg.type == aiohttp.WSMsgType.text:
-                        callback_coro = None
-
-                        contents = json.loads(msg.data)
-                        type_, data = contents["type"], contents["data"]
-
-                        device_id = data["dev_id"]
-                        device = self.get_device(device_id)
-
-                        try:
-                            if type_ == "initial-state":
-                                result = self._process_ws_initial_state(device, data)
-                                if state_callback:
-                                    callback_coro = state_callback(device, *result)
-
-                            elif type_ == "state":
-                                result = self._process_ws_state(device, data)
-                                if result is not None and state_callback:
-                                    callback_coro = state_callback(device, *result)
-
-                            elif type_ == "command":
-                                (
-                                    command_id,
-                                    result,
-                                    reply,
-                                ) = self._process_ws_command(device, data)
-
-                                if command_callback:
-                                    callback_coro = command_callback(
-                                        device, command_id, result, reply
-                                    )
-
-                            elif type_ == "event":
-                                tracking_event = self._process_ws_event(device, data)
-
-                                if event_callback:
-                                    callback_coro = event_callback(
-                                        device, tracking_event
-                                    )
-
-                            else:
-                                _LOGGER.warning(
-                                    f"Unknown response type '{type_}' with data '{data}'"
-                                )
-                        except BaseException as e:
-                            _LOGGER.fatal(
-                                f"Error during preliminary response processing: {e}"
-                            )
-                            _LOGGER.fatal(
-                                f"Please, report this error to the developer immediately"
-                            )
-                            _LOGGER.fatal(
-                                f"The component will attempt to ignore this error"
-                            )
-                            continue
-
-                        if callback_coro is not None:
+                        while True:
                             try:
-                                await callback_coro  # read-blocking callbacks are necessary
-
-                            except asyncio.CancelledError:
-                                raise
-
-                            except BaseException as e:
-                                _LOGGER.exception(
-                                    f"Error occurred during callback handling: {e}"
+                                async with async_timeout.timeout(180):
+                                    msg = await ws.receive()
+                            except asyncio.TimeoutError:
+                                _LOGGER.debug(
+                                    f"[{self}] Timed out (WebSockets may be dead)"
                                 )
+                                # @TODO: think of a better way to check this
+                                break
 
-            except asyncio.CancelledError:
-                _LOGGER.debug("WebSockets reader is cancelled")
-                raise
+                            _LOGGER.debug(f"[{self}] Current message: {msg}")
 
-            except (aiohttp.ClientError, asyncio.TimeoutError, OSError) as e:
-                _LOGGER.error(f"Error during listening: {e}")
+                            if msg.type == aiohttp.WSMsgType.closed:
+                                _LOGGER.debug(
+                                    f"[{self}] WebSockets message channel is closed"
+                                )
+                                break
+
+                            elif msg.type == aiohttp.WSMsgType.error:
+                                _LOGGER.error(
+                                    "WebSockets message channel encountered an error: %s",
+                                    msg.data,
+                                )
+                                break
+
+                            elif msg.type == aiohttp.WSMsgType.text:
+                                callback_coro = None
+
+                                contents = json.loads(msg.data)
+                                type_, data = contents["type"], contents["data"]
+
+                                device_id = data["dev_id"]
+                                device = self.get_device(device_id)
+
+                                try:
+                                    if type_ == "initial-state":
+                                        result = self._process_ws_initial_state(
+                                            device, data
+                                        )
+                                        if state_callback:
+                                            callback_coro = state_callback(
+                                                device, *result
+                                            )
+
+                                    elif type_ == "state":
+                                        result = self._process_ws_state(device, data)
+                                        if result is not None and state_callback:
+                                            callback_coro = state_callback(
+                                                device, *result
+                                            )
+
+                                    elif type_ == "point":
+                                        result = self._process_ws_point(device, data)
+                                        if point_callback:
+                                            callback_coro = point_callback(
+                                                device, result
+                                            )
+
+                                    elif type_ == "command":
+                                        (
+                                            command_id,
+                                            result,
+                                            reply,
+                                        ) = self._process_ws_command(device, data)
+
+                                        if command_callback:
+                                            callback_coro = command_callback(
+                                                device, command_id, result, reply
+                                            )
+
+                                    elif type_ == "event":
+                                        tracking_event = self._process_ws_event(
+                                            device, data
+                                        )
+
+                                        if event_callback:
+                                            callback_coro = event_callback(
+                                                device, tracking_event
+                                            )
+
+                                    else:
+                                        _LOGGER.warning(
+                                            f"Unknown response type '{type_}' with data '{data}'"
+                                        )
+                                except BaseException as e:
+                                    _LOGGER.fatal(
+                                        f"Error during preliminary response processing: {e}"
+                                    )
+                                    _LOGGER.fatal(
+                                        f"Please, report this error to the developer immediately"
+                                    )
+                                    _LOGGER.fatal(
+                                        f"The component will attempt to ignore this error"
+                                    )
+                                    continue
+
+                                if callback_coro is not None:
+                                    try:
+                                        _LOGGER.debug("CREATED TASK")
+                                        await asyncio.shield(callback_coro)
+                                    except asyncio.CancelledError:
+                                        raise
+                                    except BaseException as e:
+                                        _LOGGER.exception(
+                                            f"[{self}] Error during "
+                                            f"callback handling: {e}"
+                                        )
+
+                except (aiohttp.ClientError, asyncio.TimeoutError, OSError) as e:
+                    _LOGGER.error(f"[{self}] Error during listening: {e}")
+                    if not auto_restart:
+                        raise
+
                 if not auto_restart:
-                    raise
+                    break
 
-                _LOGGER.info(
-                    "Restarting listener in 3 seconds automatically per instruction"
-                )
-                await asyncio.sleep(3)
+                _LOGGER.debug(f"[{self}] Will restart listener in 10 seconds")
+                await asyncio.sleep(10)
+                _LOGGER.debug(f"[{self}] Reauthenticating before restarting")
+                try:
+                    await self.async_authenticate()
+                except asyncio.CancelledError:
+                    raise
+                except BaseException as e:
+                    _LOGGER.exception(f"[{self}] Error during reauthentication: {e}")
+
+            _LOGGER.info(
+                f"[{self}] Restarting listener in 3 seconds automatically per instruction"
+            )
+            await asyncio.sleep(3)
+
+        except asyncio.CancelledError:
+            _LOGGER.debug(f"[{self}] WebSockets stopped")
+            return
 
 
 class PandoraOnlineDevice:
@@ -1118,6 +1228,7 @@ class PandoraOnlineDevice:
         self._features = None
         self._attributes = attributes
         self._current_state = current_state
+        self._last_point: Optional[TrackingPoint] = None
 
         # Control timeout setting
         self.control_timeout = control_timeout
@@ -1158,6 +1269,41 @@ class PandoraOnlineDevice:
                 self._control_future = None
 
         self._current_state = value
+
+    @property
+    def last_point(self) -> Optional[TrackingPoint]:
+        return self._last_point
+
+    @last_point.setter
+    def last_point(self, value: Optional[TrackingPoint]) -> None:
+        if value is None:
+            self._last_point = None
+            return
+
+        if value.identifier != self.device_id:
+            raise ValueError("Point does not belong to device identifier")
+
+        timestamp = value.timestamp
+        current_state = self._current_state
+        if current_state is not None and (
+            timestamp is None or current_state.state_timestamp < timestamp
+        ):
+            evolve_args = {}
+
+            fuel = value.fuel
+            if fuel is not None:
+                evolve_args["fuel"] = fuel
+
+            speed = value.speed
+            if speed is not None:
+                evolve_args["speed"] = speed
+
+            evolve_args["latitude"] = value.latitude
+            evolve_args["longitude"] = value.longitude
+
+            self._current_state = attr.evolve(current_state, **evolve_args)
+
+        self._last_point = value
 
     # Remote command execution section
     async def async_remote_command(

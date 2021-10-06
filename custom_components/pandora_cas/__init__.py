@@ -59,6 +59,7 @@ from .api import (
     PandoraOnlineAccount,
     PandoraOnlineDevice,
     PandoraOnlineException,
+    TrackingPoint,
     TrackingEvent,
 )
 from .const import *
@@ -426,6 +427,25 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
             },
         )
 
+    async def _point_catcher_listener(
+        device: PandoraOnlineDevice,
+        point: TrackingPoint,
+    ):
+        _LOGGER.info("Received point: %s", point)
+
+        hass.bus.async_fire(
+            f"{DOMAIN}_point",
+            {
+                "device_id": device.device_id,
+                "timestamp": point.timestamp,
+                "track_id": point.track_id,
+                "fuel": point.fuel,
+                "speed": point.speed,
+                "max_speed": point.max_speed,
+                "length": point.length,
+            },
+        )
+
     # Start listening for updates
     hass.data.setdefault(DATA_UPDATERS, {})[
         config_entry.entry_id
@@ -434,6 +454,7 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
             state_callback=_state_changes_listener,
             command_callback=_command_execution_listener,
             event_callback=_event_catcher_listener,
+            point_callback=_point_catcher_listener,
         )
     )
 
