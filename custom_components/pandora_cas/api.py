@@ -1486,6 +1486,10 @@ class PandoraOnlineDevice:
     def voice_version(self) -> str:
         return self._attributes["voice_version"]
 
+    @property
+    def color(self) -> Optional[str]:
+        return self._attributes.get("color")
+
 
 class PandoraOnlineException(Exception):
     """Base class for Pandora Car Alarm System exceptions"""
