@@ -16,14 +16,6 @@
 > [![Репозиторий GitHub](https://img.shields.io/badge/GitHub-turbo--lab%2Fpandora--cas-blue)](https://github.com/turbo-lab/pandora-cas)
 > [![Donate](https://img.shields.io/badge/donate-Yandex-orange.svg)](https://money.yandex.ru/to/41001690673042)
 
-> ⚠️ **ВНИМАНИЕ** ⚠️  
-> Разработчик в поисках владельцев следующих конфигураций:
-> - Pandora UX-4G
-> - Pandect X-1800 L
-> - Автомобили с отображением TPMS по CAN-шине
->
-> При возникновении в тестировании ограниченного (скрытого) функционала, пожалуйста, напишите в мне Telegram: **@alryaz**.
-
 [![Расположение элементов по-умолчанию](https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/screenshot_default.png)](https://github.com/alryaz/hass-pandora-cas/blob/master/images/screenshot_default.png)
 
 Автомобиль тоже может быть частью умного дома. С помощью этого компонента вы сможете отслеживать состояние, управлять
