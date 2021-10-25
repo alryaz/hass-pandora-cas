@@ -38,6 +38,7 @@ from typing import (
     Collection,
     Dict,
     Final,
+    Iterable,
     List,
     Mapping,
     Optional,
@@ -183,9 +184,7 @@ class BitStatus(IntFlag):
     TRUNK_OPEN = pow(2, 25)  # Trunk open
     HOOD_OPEN = pow(2, 26)  # Hood open
     HANDBRAKE_ENGAGED = pow(2, 27)  # Handbrake is engaged
-    BRAKES_ENGAGED = pow(
-        2, 28
-    )  # Any brake system is engaged #@TODO: description might be invalid
+    BRAKES_ENGAGED = pow(2, 28)  # Pedal brake is engaged
     BLOCK_HEATER_ACTIVE = pow(2, 29)  # Pre-start heater active
     ACTIVE_SECURITY = pow(2, 30)  # Active security active
     BLOCK_HEATER_ENABLED = pow(2, 31)  # Pre-start heater function is available
@@ -268,6 +267,8 @@ class BalanceState:
 class FuelTank:
     id: int = attr.ib()
     value: float = attr.ib()
+    ras: Optional[float] = attr.ib(default=None)
+    ras_t: Optional[float] = attr.ib(default=None)
 
     def __float__(self) -> float:
         return self.value
@@ -552,9 +553,7 @@ class PandoraOnlineAccount:
     ):
         try:
             if response.status != expected_status:
-                raise RequestException(
-                    "unexpected status: %d" % (response.status,)
-                ) from None
+                raise RequestException(f"unexpected status", response.status) from None
 
             content = await response.json()
 
@@ -806,16 +805,54 @@ class PandoraOnlineAccount:
             ev_charging_fast=data.get("charging_fast"),
             ev_status_ready=data.get("ev_status_ready"),
             battery_temperature=data.get("battery_temperature"),
-            fuel_tanks=tuple(
-                FuelTank(id=fuel_tank_data["id"], value=fuel_tank_data["value"])
-                for fuel_tank_data in data["tanks"]
-            ),
+            fuel_tanks=self.parse_fuel_tanks(data.get("tanks")),
         )
 
         current_state = CurrentState(**current_state_args)
         device.state = current_state
 
         return current_state, current_state_args
+
+    @staticmethod
+    def parse_fuel_tanks(
+        fuel_tanks_data: Optional[Iterable[Mapping[str, Any]]],
+        existing_fuel_tanks: Optional[Collection[FuelTank]] = None,
+    ) -> Tuple[FuelTank, ...]:
+        fuel_tanks = []
+
+        for fuel_tank_data in fuel_tanks_data or ():
+            id_ = int(fuel_tank_data["id"])
+
+            fuel_tank = None
+
+            for existing_fuel_tank in existing_fuel_tanks or ():
+                if existing_fuel_tank.id == id_:
+                    fuel_tank = existing_fuel_tank
+                    break
+
+            try:
+                ras = float(fuel_tank_data["ras"])
+            except (ValueError, TypeError, LookupError):
+                ras = None
+
+            try:
+                ras_t = float(fuel_tank_data["ras_t"])
+            except (ValueError, TypeError, LookupError):
+                ras_t = None
+
+            try:
+                value = float(fuel_tank_data["val"])
+            except (ValueError, TypeError, LookupError):
+                value = 0.0
+
+            if fuel_tank is None:
+                fuel_tanks.append(FuelTank(id=id_, value=value, ras=ras, ras_t=ras_t))
+            else:
+                object.__setattr__(fuel_tank, "value", value)
+                object.__setattr__(fuel_tank, "ras", ras)
+                object.__setattr__(fuel_tank, "ras_t", ras_t)
+
+        return tuple(fuel_tanks)
 
     def _process_ws_state(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
@@ -935,13 +972,7 @@ class PandoraOnlineAccount:
         if "battery_temperature" in data:
             args["battery_temperature"] = data["battery_temperature"]
         if "tanks" in data:
-            args["fuel_tanks"] = tuple(
-                FuelTank(
-                    id=fuel_tank_data["id"],
-                    value=fuel_tank_data["value"],
-                )
-                for fuel_tank_data in data["tanks"]
-            )
+            args["fuel_tanks"] = self.parse_fuel_tanks(data["tanks"])
 
         new_state = attr.evolve(device_state, **args)
         device.state = new_state
@@ -1155,19 +1186,14 @@ class PandoraOnlineAccount:
                                         )
                                 except BaseException as e:
                                     _LOGGER.fatal(
-                                        f"Error during preliminary response processing: {e}"
-                                    )
-                                    _LOGGER.fatal(
-                                        f"Please, report this error to the developer immediately"
-                                    )
-                                    _LOGGER.fatal(
-                                        f"The component will attempt to ignore this error"
+                                        f"Error during preliminary response processing "
+                                        f"with message type {type_}: {repr(e)}\nPlease, "
+                                        f"report this error to the developer immediately!"
                                     )
                                     continue
 
                                 if callback_coro is not None:
                                     try:
-                                        _LOGGER.debug("CREATED TASK")
                                         await asyncio.shield(callback_coro)
                                     except asyncio.CancelledError:
                                         raise
