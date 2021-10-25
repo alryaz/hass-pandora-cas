@@ -16,8 +16,6 @@
 > [![Репозиторий GitHub](https://img.shields.io/badge/GitHub-turbo--lab%2Fpandora--cas-blue)](https://github.com/turbo-lab/pandora-cas)
 > [![Donate](https://img.shields.io/badge/donate-Yandex-orange.svg)](https://money.yandex.ru/to/41001690673042)
 
-[![Расположение элементов по-умолчанию](https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/screenshot_default.png)](https://github.com/alryaz/hass-pandora-cas/blob/master/images/screenshot_default.png)
-
 Автомобиль тоже может быть частью умного дома. С помощью этого компонента вы сможете отслеживать состояние, управлять
 и автоматизировать свой автомобиль, если он оборудован охранной системой Pandora. После настройки ваши
 устройства Pandora™ и PanDECT<sup>®</sup> автоматически добавятся в _Home Assistant_.
@@ -43,6 +41,10 @@
 - Pandora DX-4G
 - _[Сообщите о Вашем успехе!](mailto:alryaz@xavux.com?subject=Pandora%20Car%20Alarm%20System%20%D0%B4%D0%BB%D1%8F%20Home%20Assistant%20-%20%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%BA%D0%B0%20%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%B0&body=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5!%0D%0A%0D%0A%D0%9F%D0%BE%D0%B4%D1%82%D0%B2%D0%B5%D1%80%D0%B6%D0%B4%D0%B0%D1%8E%2C%20%D1%87%D1%82%D0%BE%20%D0%B8%D0%BD%D1%82%D0%B5%D0%B3%D1%80%D0%B0%D1%86%D0%B8%D1%8F%20%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0%D0%B5%D1%82%20%D1%81%20%D0%BC%D0%BE%D0%B8%D0%BC%20%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%BE%D0%BC%20...!%0D%0A%0D%0A(%D0%95%D1%81%D0%BB%D0%B8%20%D1%8D%D1%82%D0%BE%20%D0%BD%D0%B5%20%D1%82%D0%B0%D0%BA%2C%20%D0%BE%D0%BF%D0%B8%D1%88%D0%B8%D1%82%D0%B5%2C%20%D0%BF%D0%BE%D0%B6%D0%B0%D0%BB%D1%83%D0%B9%D1%81%D1%82%D0%B0%2C%20%D0%92%D0%B0%D1%88%D0%B8%20%D0%BD%D0%B0%D0%B1%D0%BB%D1%8E%D0%B4%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BE%20%D0%BD%D0%B5%D0%BF%D0%BE%D0%BB%D0%B0%D0%B4%D0%BA%D0%B0%D1%85))_
 
+## Панель со всеми поддерживаемыми элементами
+
+[![Расположение элементов по-умолчанию](https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/screenshot_default.png)](https://github.com/alryaz/hass-pandora-cas/blob/master/images/screenshot_default.png)
+
 ## Установка
 
 #### Посредством HACS _(рекомендованый способ)_
@@ -66,18 +68,25 @@
 
 ### Через интерфейс _"Интеграции"_
 Поддерживается базовый функционал конфигурации через веб-интерфейс _Home Assistant_. Конфигурация данным способов
-возможна без перезагрузки _Home Assistant_. Для перехода к настройке, выполните следующие действия:
+возможна без перезагрузки _Home Assistant_.
 
-1. Перейдите в раздел _Настройки_ &#10230; _Интеграции_ (`/config/integrations`)
-1. Нажмите на круглую кнопку с плюсом внутри в нижнем правом углу экрана
-1. Во всплывшем окне, введите в верхнем поле поиска `Pandora`; одним из результатов должен оказаться
-   `Pandora Car Alarm System` (с соответствующим логотипом торговой марки _Pandora Car Alarm System_)
-1. Нажмите на предложенный результат
-1. Введите имя пользователя / пароль в соответствующие поля
-1. Нажмите внизу справа на кнопку `Подтвердить`
-   1. В случае обнаружения системой каких-либо ошибок, они будут отображены в окошке
-1. Обновление займёт не более 5-10 секунд (проверено на Raspberry Pi 4), элементы в конфигурации по-умолчанию должны
-   появится на главном экране (при использовании конфигурациии Lovelace по-умолчанию)
+[![Установить интеграцию pandora_cas](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=pandora_cas)
+
+<details>
+  <summary>Вручную (если кнопка выше не работает)</summary>
+  Для перехода к настройке, выполните следующие действия:
+  <ol>
+    <li>Перейдите в раздел <i>Настройки</i>&nbsp;&#10230;&nbsp;<i>Интеграции</i> (`/config/integrations`)</li>
+    <li>Нажмите на круглую кнопку с плюсом внутри в нижнем правом углу экрана</li>
+    <li>Во всплывшем окне, введите в верхнем поле поиска: <b>Pandora</b>; одним из результатов должен оказаться
+      <b>Pandora&nbsp;Car&nbsp;Alarm&nbsp;System</b> (с соответствующим логотипом торговой марки <i>Pandora Car Alarm System</i>)</li>
+    <li>Нажмите на предложенный результат</li>
+    <li>Введите имя пользователя и пароль в соответствующие поля</li>
+    <li>Нажмите внизу справа на кнопку <i>Подтвердить</i>. В случае обнаружения системой каких-либо ошибок, они будут отображены в окошке</li>
+    <li>Обновление займёт не более 5-10 секунд (проверено на Raspberry Pi 4), элементы в конфигурации по-умолчанию должны
+        появиться на главном экране (при использовании конфигурациии Lovelace по-умолчанию)</li>
+  </ol>
+</details>
 
 ### Базовая конфигурация
 Чтобы активировать компонент, добавьте эти строки в файл `configuration.yaml`:
