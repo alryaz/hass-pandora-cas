@@ -641,7 +641,7 @@ class BasePandoraCASEntity(Entity):
         entity_type: str,
         default_enable: bool = True,
         name_format: str = DEFAULT_NAME_FORMAT,
-    ):
+    ) -> None:
         self._device = device
         self._entity_type = entity_type
         self._default_enable = default_enable

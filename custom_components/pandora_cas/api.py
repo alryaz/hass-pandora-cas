@@ -1516,6 +1516,33 @@ class PandoraOnlineDevice:
     def color(self) -> Optional[str]:
         return self._attributes.get("color")
 
+    @property
+    def car_type_id(self) -> Optional[int]:
+        return self._attributes.get("car_type")
+
+    @property
+    def car_type(self) -> Optional[str]:
+        car_type = self.car_type_id
+        if car_type is None:
+            return None
+        if car_type == 1:
+            return "truck"
+        if car_type == 2:
+            return "moto"
+        return "car"
+
+    @property
+    def photo_id(self) -> Optional[str]:
+        return self._attributes.get("photo")
+
+    @property
+    def photo_url(self) -> Optional[str]:
+        photo_id = self.photo_id
+        if not photo_id:
+            return photo_id
+
+        return f"/images/avatars/{photo_id}.jpg"
+
 
 class PandoraOnlineException(Exception):
     """Base class for Pandora Car Alarm System exceptions"""
