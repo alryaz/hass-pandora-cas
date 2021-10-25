@@ -296,6 +296,11 @@ lovelace UI и автоматизации.
 [трекинг пути](https://www.home-assistant.io/blog/2020/04/08/release-108/#lovelace-map-history),
 [контроль зон](https://www.home-assistant.io/docs/automation/trigger/#zone-trigger) и т.д.
 
+<details>
+  <summary>Пример отображения маркера на карте (цвет, поворот)</summary>
+  <img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/screenshot_map_marker.png" alt="Скриншот: Маркер автомобиля с поворотом на карте Home Assistant">
+</details>
+
 Объект обладает следующими атрибутами:
 
 | Параметр | Тип   | Описание |
