@@ -227,7 +227,7 @@ class PandoraCASSensor(PandoraCASEntity):
                 return None
 
             if state < 5:
-                return None
+                return 0.0
 
             device_idx = str(self._device.device_id)
 
