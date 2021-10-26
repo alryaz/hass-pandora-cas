@@ -12,6 +12,7 @@ DATA_CONFIG: Final = DOMAIN + "_config"
 DATA_UPDATERS: Final = DOMAIN + "_updaters"
 DATA_DEVICE_ENTITIES: Final = DOMAIN + "_device_entities"
 DATA_UPDATE_LISTENERS: Final = DOMAIN + "_update_listeners"
+DATA_FINAL_CONFIG: Final = DOMAIN + "_final_config"
 CONF_POLLING_INTERVAL: Final = "polling_interval"
 CONF_READ_ONLY: Final = "read_only"
 CONF_NAME_FORMAT: Final = "name_format"
@@ -33,3 +34,9 @@ ATTR_CARDINAL: Final = "cardinal"
 ATTR_KEY_NUMBER: Final = "key_number"
 ATTR_TAG_NUMBER: Final = "tag_number"
 ATTR_DISABLED_BY_DEFAULT: Final = "disabled_by_default"
+
+CONF_RPM_COEFFICIENT: Final = "rpm_coefficient"
+CONF_RPM_OFFSET: Final = "rpm_offset"
+
+DEFAULT_RPM_COEFFICIENT: Final = 1.0
+DEFAULT_RPM_OFFSET: Final = 0.0

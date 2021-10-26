@@ -215,13 +215,45 @@ class PandoraCASSensor(PandoraCASEntity):
     @property
     def state(self) -> Union[None, str, int, float]:
         entity_type = self._entity_type
+        state = self._state
+
         if entity_type == "balance":
-            state = self._state
             if state is None:
                 return None
             return state.value
 
-        return self._state
+        elif entity_type == "tachometer":
+            if state is None:
+                return None
+
+            if state < 5:
+                return None
+
+            device_idx = str(self._device.device_id)
+
+            coefficient = None
+            coefficient_dict = self._account_cfg.get(CONF_RPM_COEFFICIENT)
+            if coefficient_dict:
+                coefficient = coefficient_dict.get(device_idx)
+                if coefficient is None:
+                    coefficient = coefficient_dict.get(ATTR_DEFAULT)
+
+            if coefficient is None:
+                coefficient = DEFAULT_RPM_COEFFICIENT
+
+            offset = None
+            offset_dict = self._account_cfg.get(CONF_RPM_OFFSET)
+            if offset_dict:
+                offset = offset_dict.get(device_idx)
+                if offset is None:
+                    offset = offset_dict.get(ATTR_DEFAULT)
+
+            if offset is None:
+                offset = DEFAULT_RPM_OFFSET
+
+            return state * coefficient + offset
+
+        return state
 
     @property
     def unit_of_measurement(self) -> Optional[str]:

@@ -3,9 +3,8 @@ __all__ = ("async_setup_entry", "PLATFORM_DOMAIN")
 
 import base64
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Mapping
 
-from homeassistant import config_entries
 from homeassistant.components.device_tracker import (
     DOMAIN as PLATFORM_DOMAIN,
     SOURCE_TYPE_GPS,
@@ -28,12 +27,8 @@ DEFAULT_ADD_DEVICE_TRACKER: Final = True
 async def async_setup_entry(
     hass: HomeAssistantType, config_entry: ConfigEntry, async_add_devices
 ):
-    account_cfg = config_entry.data
+    account_cfg = hass.data[DATA_FINAL_CONFIG][config_entry.entry_id]
     username = account_cfg[CONF_USERNAME]
-
-    if config_entry.source == config_entries.SOURCE_IMPORT:
-        account_cfg = hass.data[DATA_CONFIG][username]
-
     account_object: PandoraOnlineAccount = hass.data[DOMAIN][config_entry.entry_id]
 
     new_devices = []
@@ -64,7 +59,7 @@ async def async_setup_entry(
         _LOGGER.debug(
             'Adding "%s" object to device "%s"' % (PLATFORM_DOMAIN, device.device_id)
         )
-        new_devices.append(PandoraCASTracker(device))
+        new_devices.append(PandoraCASTracker(config_entry, account_cfg, device))
 
     if new_devices:
         async_add_devices(new_devices, True)
@@ -78,8 +73,13 @@ async def async_setup_entry(
 class PandoraCASTracker(BasePandoraCASEntity, TrackerEntity):
     """Pandora Car Alarm System location tracker."""
 
-    def __init__(self, device: PandoraOnlineDevice) -> None:
-        super().__init__(device, "location_tracker")
+    def __init__(
+        self,
+        config_entry: ConfigEntry,
+        account_cfg: Mapping[str, Any],
+        device: PandoraOnlineDevice,
+    ) -> None:
+        super().__init__(config_entry, account_cfg, device, "location_tracker")
 
         self._device_state = device.state
 

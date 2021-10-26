@@ -12,7 +12,6 @@ __all__ = [
     "SERVICE_REMOTE_COMMAND",
 ]
 
-
 import asyncio
 import logging
 from datetime import timedelta
@@ -59,8 +58,8 @@ from .api import (
     PandoraOnlineAccount,
     PandoraOnlineDevice,
     PandoraOnlineException,
-    TrackingPoint,
     TrackingEvent,
+    TrackingPoint,
 )
 from .const import *
 
@@ -77,6 +76,21 @@ _PLATFORM_CONFIG_SCHEMA = vol.Any(
     {_DEVICE_INDEX_SCHEMA: _PLATFORM_OPTION_SCHEMA},
 )
 
+_PLATFORM_TYPES_VALIDATOR = vol.Any(
+    cv.boolean, vol.All(cv.ensure_list, [cv.string], vol.Coerce(set), vol.Coerce(list))
+)
+
+
+def _get_validator(validator, default_value):
+    return vol.Any(
+        vol.All(validator, lambda x: {ATTR_DEFAULT: x}),
+        {
+            vol.Optional(ATTR_DEFAULT, default=default_value): validator,
+            cv.string: validator,
+        },
+    )
+
+
 PANDORA_ACCOUNT_SCHEMA = vol.All(
     vol.Schema(
         {
@@ -84,18 +98,28 @@ PANDORA_ACCOUNT_SCHEMA = vol.All(
             vol.Required(CONF_PASSWORD): cv.string,
             vol.Optional(CONF_USER_AGENT): cv.string,
             vol.Optional(CONF_NAME_FORMAT, default=DEFAULT_NAME_FORMAT): cv.string,
-            vol.Optional(
-                CONF_POLLING_INTERVAL, default=DEFAULT_POLLING_INTERVAL
-            ): vol.All(cv.time_period, vol.Clamp(min=MIN_POLLING_INTERVAL)),
             # Exemption: device_tracker (hardwired single entity in this context)
-            vol.Optional("device_tracker"): vol.Any(
+            vol.Optional("device_tracker", default=True): vol.Any(
                 vol.All(cv.boolean, lambda x: {ATTR_DEFAULT: x}),
-                {_DEVICE_INDEX_SCHEMA: cv.boolean},
+                vol.All(
+                    cv.ensure_list,
+                    [cv.string],
+                    lambda x: {ATTR_DEFAULT: False, **dict.fromkeys(x, True)},
+                ),
+                vol.All(cv.boolean, lambda x: {ATTR_DEFAULT: x}),
+            ),
+            vol.Optional(
+                CONF_RPM_COEFFICIENT, default=DEFAULT_RPM_COEFFICIENT
+            ): _get_validator(cv.positive_float, DEFAULT_RPM_COEFFICIENT),
+            vol.Optional(CONF_RPM_OFFSET, default=DEFAULT_RPM_OFFSET): _get_validator(
+                cv.positive_float, DEFAULT_RPM_OFFSET
             ),
         }
     ).extend(
         {
-            vol.Optional(platform_id): _PLATFORM_CONFIG_SCHEMA
+            vol.Optional(platform_id, default=True): _get_validator(
+                _PLATFORM_TYPES_VALIDATOR, True
+            )
             for platform_id in PANDORA_COMPONENTS
             if platform_id != "device_tracker"
         }
@@ -103,7 +127,6 @@ PANDORA_ACCOUNT_SCHEMA = vol.All(
     cv.deprecated(CONF_USER_AGENT),
     cv.deprecated(CONF_POLLING_INTERVAL),
 )
-
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -316,7 +339,7 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
             return False
 
     else:
-        pandora_cfg = PANDORA_ACCOUNT_SCHEMA(dict(pandora_cfg))
+        pandora_cfg = PANDORA_ACCOUNT_SCHEMA({**pandora_cfg, **config_entry.options})
 
     # create account object
     account = PandoraOnlineAccount(
@@ -458,6 +481,8 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
         )
     )
 
+    hass.data.setdefault(DATA_FINAL_CONFIG, {})[config_entry.entry_id] = pandora_cfg
+
     # forward sub-entity setup
     for entity_domain in PANDORA_COMPONENTS:
         hass.async_create_task(
@@ -535,12 +560,8 @@ async def async_platform_setup_entry(
         % (platform_id, entity_class.__name__)
     )
 
-    account_cfg = config_entry.data
+    account_cfg = hass.data[DATA_FINAL_CONFIG][config_entry.entry_id]
     username = account_cfg[CONF_USERNAME]
-
-    if config_entry.source == config_entries.SOURCE_IMPORT:
-        account_cfg = hass.data[DATA_CONFIG][username]
-
     account_object: PandoraOnlineAccount = hass.data[DOMAIN][config_entry.entry_id]
 
     logger.debug('Account object for account "%s": %r' % (username, account_object))
@@ -613,10 +634,11 @@ async def async_platform_setup_entry(
 
             new_entities.append(
                 entity_class(
+                    config_entry=config_entry,
+                    account_cfg=account_cfg,
                     device=device,
                     entity_type=entity_type,
                     default_enable=entity_type in enabled_entity_types,
-                    name_format=account_cfg.get(CONF_NAME_FORMAT, DEFAULT_NAME_FORMAT),
                 )
             )
 
@@ -637,15 +659,17 @@ async def async_platform_setup_entry(
 class BasePandoraCASEntity(Entity):
     def __init__(
         self,
+        config_entry: ConfigEntry,
+        account_cfg: Mapping[str, Any],
         device: "PandoraOnlineDevice",
         entity_type: str,
         default_enable: bool = True,
-        name_format: str = DEFAULT_NAME_FORMAT,
     ) -> None:
         self._device = device
         self._entity_type = entity_type
         self._default_enable = default_enable
-        self._name_format = name_format
+        self._account_cfg = account_cfg
+        self._config_entry = config_entry
 
         self._available = False
 
@@ -661,7 +685,9 @@ class BasePandoraCASEntity(Entity):
     @property
     def name(self) -> str:
         """Return default device name."""
-        return self._name_format.format(**self._entity_name_vars)
+        return (self._account_cfg.get(CONF_NAME_FORMAT) or DEFAULT_NAME_FORMAT).format(
+            **self._entity_name_vars
+        )
 
     @property
     def available(self) -> bool:
@@ -729,18 +755,12 @@ class PandoraCASEntity(BasePandoraCASEntity):
     ENTITY_TYPES: ClassVar[Dict[str, Dict[str, Any]]] = NotImplemented
     ENTITY_ID_FORMAT: ClassVar[str] = NotImplemented
 
-    def __init__(
-        self,
-        device: "PandoraOnlineDevice",
-        entity_type: str,
-        default_enable: bool = True,
-        name_format: str = DEFAULT_NAME_FORMAT,
-    ):
-        super().__init__(device, entity_type, default_enable, name_format)
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
 
         self._state = None
         self.entity_id = self.ENTITY_ID_FORMAT.format(
-            slugify(str(device.device_id)) + "_" + slugify(entity_type)
+            slugify(str(self._device.device_id)) + "_" + slugify(self._entity_type)
         )
 
     # Core functionality

@@ -10,7 +10,7 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers.typing import ConfigType
 
-from . import DOMAIN
+from .const import DOMAIN
 from .api import AuthenticationException, PandoraOnlineAccount, PandoraOnlineException
 
 _LOGGER = logging.getLogger(__name__)
@@ -117,10 +117,16 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlow):
         self.config_codes: Optional[Dict[str, List[str]]] = None
 
     async def async_generate_schema_dict(self, user_input: Optional[ConfigType] = None):
-        user_input = {} if user_input is None else user_input
-        schema_dict = {}
+        config_entry = self.config_entry
 
-        schema_dict[vol.Optional(CONF_PASSWORD)] = str
+        # @TODO: reserved for future use
+        final_config = {**config_entry.data, **config_entry.options}
+        if user_input:
+            final_config.update(user_input)
+
+        schema_dict = {
+            vol.Optional(CONF_PASSWORD): str,
+        }
 
         return schema_dict
 
