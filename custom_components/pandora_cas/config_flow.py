@@ -2,7 +2,7 @@
 __all__ = ("PandoraCASConfigFlow", "PandoraCASOptionsFlow")
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Final, List, Optional
 
 import voluptuous as vol
 from homeassistant import config_entries
@@ -20,7 +20,8 @@ _LOGGER = logging.getLogger(__name__)
 class PandoraCASConfigFlow(config_entries.ConfigFlow):
     """Handle a config flow for Pandora Car Alarm System config entries."""
 
-    CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
+    CONNECTION_CLASS: Final[str] = config_entries.CONN_CLASS_CLOUD_POLL
+    VERSION: Final[int] = 2
 
     def __init__(self) -> None:
         self._user_schema = vol.Schema(

@@ -4,6 +4,7 @@ __all__ = [
     "async_setup",
     "async_setup_entry",
     "async_unload_entry",
+    "async_migrate_entry",
     "async_platform_setup_entry",
     "BasePandoraCASEntity",
     "PandoraCASEntity",
@@ -395,8 +396,8 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
                     entity_type_config = entity.entity_type_config
 
                     if entity_type_config.get(ATTR_ATTRIBUTE_SOURCE) is None and not (
-                        ATTR_ATTRIBUTE in entity_type_config
-                        and entity_type_config[ATTR_ATTRIBUTE] in updated_stats
+                            ATTR_ATTRIBUTE in entity_type_config
+                            and entity_type_config[ATTR_ATTRIBUTE] in updated_stats
                     ):
                         continue
 
@@ -546,6 +547,24 @@ async def async_unload_entry(
     return True
 
 
+async def async_migrate_entry(hass: HomeAssistantType, config_entry: ConfigEntry) -> bool:
+    _LOGGER.info(f"Upgrading configuration entry from version {config_entry.version}")
+
+    new_data = {**config_entry.data}
+    new_options = {**config_entry.options}
+
+    if config_entry.version < 2:
+        for src in (new_data, new_options):
+            for key in (CONF_POLLING_INTERVAL, CONF_USER_AGENT):
+                if key in src:
+                    del src[key]
+        config_entry.version = 2
+
+    _LOGGER.info(f"Upgraded configuration entry to version {config_entry.version}")
+
+    return hass.config_entries.async_update_entry(config_entry, data=new_data, options=new_options)
+
+
 async def async_platform_setup_entry(
     platform_id: str,
     entity_class: Type["PandoraCASEntity"],
@@ -623,8 +642,8 @@ async def async_platform_setup_entry(
 
         for entity_type, entity_config in entity_configs.items():
             if (
-                ATTR_FEATURE in entity_config
-                and not entity_config[ATTR_FEATURE] & device.features
+                    ATTR_FEATURE in entity_config
+                    and not entity_config[ATTR_FEATURE] & device.features
             ):
                 logger.debug(
                     'Entity "%s" disabled because end device "%s" does not support it'
@@ -734,8 +753,8 @@ class BasePandoraCASEntity(Entity):
             "manufacturer": "Pandora",
             "model": self._device.model,
             "sw_version": self._device.firmware_version
-            + " / "
-            + self._device.voice_version,
+                          + " / "
+                          + self._device.voice_version,
         }
 
     @property
@@ -788,8 +807,8 @@ class PandoraCASEntity(BasePandoraCASEntity):
     async def async_update(self):
         """Update entity from upstream device data."""
         if (
-            self.entity_type_config.get(ATTR_STATE_SENSITIVE)
-            and not self._device.is_online
+                self.entity_type_config.get(ATTR_STATE_SENSITIVE)
+                and not self._device.is_online
         ):
             self._available = False
             self._state = None
