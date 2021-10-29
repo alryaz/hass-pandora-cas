@@ -39,6 +39,7 @@
 - PanDECT X-1700 BT
 - Pandora DX-9X LoRa + NAV-10
 - Pandora DX-4G
+- Pandora DX-90BT + NAV-10
 - _[Сообщите о Вашем успехе!](mailto:alryaz@xavux.com?subject=Pandora%20Car%20Alarm%20System%20%D0%B4%D0%BB%D1%8F%20Home%20Assistant%20-%20%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%BA%D0%B0%20%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%B0&body=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5!%0D%0A%0D%0A%D0%9F%D0%BE%D0%B4%D1%82%D0%B2%D0%B5%D1%80%D0%B6%D0%B4%D0%B0%D1%8E%2C%20%D1%87%D1%82%D0%BE%20%D0%B8%D0%BD%D1%82%D0%B5%D0%B3%D1%80%D0%B0%D1%86%D0%B8%D1%8F%20%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0%D0%B5%D1%82%20%D1%81%20%D0%BC%D0%BE%D0%B8%D0%BC%20%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%BE%D0%BC%20...!%0D%0A%0D%0A(%D0%95%D1%81%D0%BB%D0%B8%20%D1%8D%D1%82%D0%BE%20%D0%BD%D0%B5%20%D1%82%D0%B0%D0%BA%2C%20%D0%BE%D0%BF%D0%B8%D1%88%D0%B8%D1%82%D0%B5%2C%20%D0%BF%D0%BE%D0%B6%D0%B0%D0%BB%D1%83%D0%B9%D1%81%D1%82%D0%B0%2C%20%D0%92%D0%B0%D1%88%D0%B8%20%D0%BD%D0%B0%D0%B1%D0%BB%D1%8E%D0%B4%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BE%20%D0%BD%D0%B5%D0%BF%D0%BE%D0%BB%D0%B0%D0%B4%D0%BA%D0%B0%D1%85))_
 
 ## Панель со всеми поддерживаемыми элементами
@@ -241,6 +242,24 @@ lovelace UI и автоматизации.
 | &#9888;&nbsp;sensor.`PANDORA_ID`_right_back_tire_pressure | _Давление правой задней шины_ | кПа _(?)_ |
 | &#9888;&nbsp;sensor.`PANDORA_ID`_battery_temperature | _Температура аккумулятора_ | °C |
 
+Дополнительно возможно адаптировать показания тахометра:
+```yaml
+pandora_cas:
+  ...
+  rpm_coefficient: 1.5  # Умножит показание тахометра на два; коэффициент по умолчанию: 1.0
+  rpm_offset: 100  # Увеличит показание тахометра на 100 об/м; сдвиг по умолчанию: 0.0
+```
+
+Также это возможно выполнить под каждое устройство:
+```yaml
+pandora_cas:
+  ...
+  rpm_coefficient:
+    '123412241': 1.5
+    '124551222': 25.0
+    '222212412': 0.333
+```
+  
 ### Платформа `binary_sensor`
 <a id="platform_binary_sensor"/>
 

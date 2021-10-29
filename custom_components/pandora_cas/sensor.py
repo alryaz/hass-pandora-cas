@@ -227,7 +227,7 @@ class PandoraCASSensor(PandoraCASEntity):
                 return None
 
             if state < 5:
-                return 0.0
+                return 0
 
             device_idx = str(self._device.device_id)
 
@@ -251,7 +251,7 @@ class PandoraCASSensor(PandoraCASEntity):
             if offset is None:
                 offset = DEFAULT_RPM_OFFSET
 
-            return state * coefficient + offset
+            return int(state * coefficient + offset)
 
         return state
 
