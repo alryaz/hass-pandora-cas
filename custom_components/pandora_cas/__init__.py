@@ -557,9 +557,12 @@ async def async_migrate_entry(hass: HomeAssistantType, config_entry: ConfigEntry
                     del src[key]
         config_entry.version = 2
 
+    hass.config_entries.async_update_entry(config_entry, data=new_data, options=new_options)
+
     _LOGGER.info(f"Upgraded configuration entry to version {config_entry.version}")
 
-    return hass.config_entries.async_update_entry(config_entry, data=new_data, options=new_options)
+    return True
+
 
 
 async def async_platform_setup_entry(
