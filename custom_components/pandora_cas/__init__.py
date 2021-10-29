@@ -97,7 +97,6 @@ PANDORA_ACCOUNT_SCHEMA = vol.All(
         {
             vol.Required(CONF_USERNAME): cv.string,
             vol.Required(CONF_PASSWORD): cv.string,
-            vol.Optional(CONF_USER_AGENT): cv.string,
             vol.Optional(CONF_NAME_FORMAT, default=DEFAULT_NAME_FORMAT): cv.string,
             # Exemption: device_tracker (hardwired single entity in this context)
             vol.Optional("device_tracker", default=True): vol.Any(
@@ -125,8 +124,6 @@ PANDORA_ACCOUNT_SCHEMA = vol.All(
             if platform_id != "device_tracker"
         }
     ),
-    cv.deprecated(CONF_USER_AGENT),
-    cv.deprecated(CONF_POLLING_INTERVAL),
 )
 
 CONFIG_SCHEMA = vol.Schema(
@@ -555,7 +552,7 @@ async def async_migrate_entry(hass: HomeAssistantType, config_entry: ConfigEntry
 
     if config_entry.version < 2:
         for src in (new_data, new_options):
-            for key in (CONF_POLLING_INTERVAL, CONF_USER_AGENT):
+            for key in ("polling_interval", "user_agent"):
                 if key in src:
                     del src[key]
         config_entry.version = 2
@@ -752,9 +749,11 @@ class BasePandoraCASEntity(Entity):
             "name": self._device.name,
             "manufacturer": "Pandora",
             "model": self._device.model,
-            "sw_version": self._device.firmware_version
-                          + " / "
-                          + self._device.voice_version,
+            "sw_version": (
+                self._device.firmware_version
+                + " / "
+                + self._device.voice_version
+            ),
         }
 
     @property
