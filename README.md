@@ -46,6 +46,25 @@
 
 [![Расположение элементов по-умолчанию](https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/screenshot_default.png)](https://github.com/alryaz/hass-pandora-cas/blob/master/images/screenshot_default.png)
 
+## Раздел управления
+
+[![Панель управления в конфигурации "default_dark"](https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/stack_default_dark.png)]
+
+### Подготовка собственной конфигурации
+
+Конфигурация существует трёх видов:
+
+- Карточка (содержит только графическое изображение транспортного средства)
+- Стек (карточка + элементы управления + сенсоры)
+- Панель (карта по левую сторону, стек по правую)
+
+Чтобы подготовить собственную конфигурацию, выполните следующие действия:
+
+1. Открыть [папку с подготовленными конфигурациями](https://github.com/alryaz/hass-pandora-cas/tree/interface)
+2. Выбрать файл с желаемым типом конфигурации
+3. Скопировать содержимое файла в текстовый редактор
+4. Заменить все вхождения `REPLACE_WITH_PANDORA_ID` на идентификатор автомобиля (`device_id` на сенсорах)
+
 ## Установка
 
 #### Посредством HACS _(рекомендованый способ)_
