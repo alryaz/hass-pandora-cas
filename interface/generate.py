@@ -157,8 +157,7 @@ class ForAnimation(ForProcessing):
             frame.crop((min_x, min_y, max_sx, max_sy)) for frame in frames
         ]
 
-        body_x, body_y, body_sx, body_sy = body_image.getbbox()
-        body_w, body_h = body_sx - body_x, body_sy - body_y
+        body_w, body_h = body_image.size
 
         width, height = (max_sx - min_x), (max_sy - min_y)
         width_pct = 100 * width / body_w
@@ -170,8 +169,8 @@ class ForAnimation(ForProcessing):
         }
 
         if self._use_full_width:
-            left_pct = 100 * (min_x - body_x) / body_w
-            top_pct = 100 * (min_y - body_y) / body_h
+            left_pct = 100 * min_x / body_w
+            top_pct = 100 * min_y / body_h
             style_vars["left"] = str(round(left_pct, 3)) + "%"
             style_vars["top"] = str(round(top_pct, 3)) + "%"
 
@@ -267,7 +266,7 @@ class CarType:
         yaml_dict = {
             "type": "picture-elements",
             "image": ForProcessing.image_as_data_uri(
-                body_image.crop(body_image.getbbox())
+                body_image
             ),
             "elements": elements,
             **kwargs,
