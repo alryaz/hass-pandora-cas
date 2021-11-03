@@ -44,11 +44,11 @@
 
 ## Панель со всеми поддерживаемыми элементами
 
-[![Расположение элементов по-умолчанию](https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/screenshot_default.png)](https://github.com/alryaz/hass-pandora-cas/blob/master/images/screenshot_default.png)
+![Расположение элементов по-умолчанию](https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/screenshot_default.png)
 
 ## Раздел управления
 
-[![Панель управления в конфигурации "default_dark"](https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/stack_default_dark.png)]
+![Панель управления в конфигурации "default_dark"](https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/stack_default_dark.png)
 
 ### Подготовка собственной конфигурации
 
