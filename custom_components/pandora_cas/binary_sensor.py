@@ -133,6 +133,18 @@ ENTITY_TYPES = {
         ATTR_FLAG: BitStatus.BRAKES_ENGAGED,
         ATTR_STATE_SENSITIVE: True,
     },
+    "ignition": {
+        ATTR_NAME: "Ignition",
+        ATTR_ICON: "mdi:key-variant",
+        ATTR_ATTRIBUTE: "bit_state",
+        ATTR_FLAG: BitStatus.IGNITION,
+    },
+    "exterior_lights": {
+        ATTR_NAME: "Exterior Lights",
+        ATTR_ICON: "mdi:car-light-high",
+        ATTR_ATTRIBUTE: "bit_state",
+        ATTR_FLAG: BitStatus.EXTERIOR_LIGHTS_ACTIVE,
+    },
     "ev_charging_connected": {
         ATTR_NAME: "EV Charging Connected",
         ATTR_ICON: "mdi:ev-station",
