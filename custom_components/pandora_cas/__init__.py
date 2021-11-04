@@ -112,7 +112,7 @@ PANDORA_ACCOUNT_SCHEMA = vol.All(
                 CONF_RPM_COEFFICIENT, default=DEFAULT_RPM_COEFFICIENT
             ): _get_validator(cv.positive_float, DEFAULT_RPM_COEFFICIENT),
             vol.Optional(CONF_RPM_OFFSET, default=DEFAULT_RPM_OFFSET): _get_validator(
-                cv.positive_float, DEFAULT_RPM_OFFSET
+                vol.Coerce(float), DEFAULT_RPM_OFFSET
             ),
         }
     ).extend(
@@ -498,10 +498,10 @@ async def async_setup_entry(hass: HomeAssistantType, config_entry: ConfigEntry) 
 
 async def async_reload_entry(
     hass: HomeAssistantType, config_entry: ConfigEntry
-) -> None:
+) -> bool:
     """Reload Lkcomu InterRAO entry"""
     _LOGGER.info("Reloading configuration entry")
-    await hass.config_entries.async_reload(config_entry.entry_id)
+    return await hass.config_entries.async_reload(config_entry.entry_id)
 
 
 async def async_unload_entry(
@@ -544,7 +544,9 @@ async def async_unload_entry(
     return True
 
 
-async def async_migrate_entry(hass: HomeAssistantType, config_entry: ConfigEntry) -> bool:
+async def async_migrate_entry(
+    hass: HomeAssistantType, config_entry: ConfigEntry
+) -> bool:
     _LOGGER.info(f"Upgrading configuration entry from version {config_entry.version}")
 
     new_data = {**config_entry.data}
@@ -562,7 +564,6 @@ async def async_migrate_entry(hass: HomeAssistantType, config_entry: ConfigEntry
     _LOGGER.info(f"Upgraded configuration entry to version {config_entry.version}")
 
     return True
-
 
 
 async def async_platform_setup_entry(

@@ -45,7 +45,7 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
 
         return False
 
-    async def _create_entry(self, config: ConfigType) -> Dict[str, Any]:
+    async def _create_entry(self, config: Dict[str, Any]) -> Dict[str, Any]:
         """
         Finalize flow and create account entry.
         :param config: Configuration for account
@@ -65,7 +65,7 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
         return self.async_create_entry(title=username, data=config)
 
     async def async_step_user(
-        self, user_input: Optional[ConfigType] = None
+        self, user_input: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         @callback
         def _show_form(error: Optional[str] = None):
@@ -94,7 +94,7 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
         return await self._create_entry(user_input)
 
     async def async_step_import(
-        self, user_input: Optional[ConfigType] = None
+        self, user_input: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         if user_input is None:
             _LOGGER.error("Called import step without configuration")
@@ -117,7 +117,9 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlow):
         self.use_text_fields = False
         self.config_codes: Optional[Dict[str, List[str]]] = None
 
-    async def async_generate_schema_dict(self, user_input: Optional[ConfigType] = None):
+    async def async_generate_schema_dict(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> Dict[vol.Marker, Any]:
         config_entry = self.config_entry
 
         # @TODO: reserved for future use
@@ -132,7 +134,7 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlow):
         return schema_dict
 
     async def async_step_init(
-        self, user_input: Optional[ConfigType] = None
+        self, user_input: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         if self.config_entry.source == config_entries.SOURCE_IMPORT:
             return self.async_abort(reason="yaml_not_supported")
@@ -163,5 +165,5 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(schema_dict),
-            errors=errors or None,
+            errors=errors,
         )

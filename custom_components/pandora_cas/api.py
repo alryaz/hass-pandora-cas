@@ -767,7 +767,14 @@ class PandoraOnlineAccount:
                 if data["balance"]
                 else None
             ),
-            balance_other=data["balance1"],
+            balance_other=(
+                BalanceState(
+                    value=data["balance1"]["value"],
+                    currency=data["balance1"]["cur"],
+                )
+                if data["balance1"]
+                else None
+            ),
             mileage=data["mileage"],
             can_mileage=data["mileage_CAN"],
             tag_number=data["metka"],
@@ -896,7 +903,14 @@ class PandoraOnlineAccount:
                 else None
             )
         if "balance1" in data:
-            args["balance_other"] = data["balance1"]
+            args["balance_other"] = (
+                BalanceState(
+                    value=data["balance1"]["value"],
+                    currency=data["balance1"]["cur"],
+                )
+                if data["balance1"]
+                else None
+            )
         if "mileage" in data:
             args["mileage"] = data["mileage"]
         if "mileage_CAN" in data:

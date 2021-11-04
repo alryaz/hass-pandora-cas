@@ -9,8 +9,6 @@ from homeassistant.components.sensor import (
     ATTR_STATE_CLASS,
     DOMAIN as PLATFORM_DOMAIN,
     ENTITY_ID_FORMAT,
-    STATE_CLASS_MEASUREMENT,
-    STATE_CLASS_TOTAL_INCREASING,
 )
 from homeassistant.const import (
     ATTR_DEVICE_CLASS,
@@ -23,6 +21,7 @@ from homeassistant.const import (
     DEVICE_CLASS_VOLTAGE,
     LENGTH_KILOMETERS,
     SPEED_KILOMETERS_PER_HOUR,
+    STATE_UNAVAILABLE,
     TEMP_CELSIUS,
 )
 from homeassistant.core import Event, callback
@@ -31,9 +30,27 @@ from . import PandoraCASEntity, async_platform_setup_entry
 from .const import *
 
 try:
+    from homeassistant.components.sensor import STATE_CLASS_TOTAL
+except ImportError:
+    STATE_CLASS_TOTAL = "total"
+
+try:
+    from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT
+except ImportError:
+    STATE_CLASS_MEASUREMENT = "measurement"
+
+try:
+    from homeassistant.components.sensor import STATE_CLASS_TOTAL_INCREASING
+except ImportError:
+    STATE_CLASS_TOTAL_INCREASING = "total_increasing"
+
+try:
     from homeassistant.const import VOLT as ELECTRIC_POTENTIAL_VOLT
 except ImportError:
-    from homeassistant.const import ELECTRIC_POTENTIAL_VOLT
+    try:
+        from homeassistant.const import ELECTRIC_POTENTIAL_VOLT
+    except ImportError:
+        ELECTRIC_POTENTIAL_VOLT = "V"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,7 +61,7 @@ ENTITY_TYPES = {
         ATTR_UNIT_OF_MEASUREMENT: LENGTH_KILOMETERS,
         ATTR_ATTRIBUTE: "mileage",
         ATTR_STATE_SENSITIVE: True,
-        ATTR_STATE_CLASS: STATE_CLASS_TOTAL_INCREASING,
+        ATTR_STATE_CLASS: STATE_CLASS_TOTAL,
         ATTR_FORMATTER: lambda v: round(float(v), 2),
     },
     "can_mileage": {
@@ -53,7 +70,7 @@ ENTITY_TYPES = {
         ATTR_UNIT_OF_MEASUREMENT: LENGTH_KILOMETERS,
         ATTR_ATTRIBUTE: "can_mileage",
         ATTR_STATE_SENSITIVE: True,
-        ATTR_STATE_CLASS: STATE_CLASS_TOTAL_INCREASING,
+        ATTR_STATE_CLASS: STATE_CLASS_TOTAL,
         ATTR_FORMATTER: lambda v: round(float(v), 2),
     },
     "fuel": {
@@ -109,6 +126,16 @@ ENTITY_TYPES = {
         ATTR_ATTRIBUTE: "balance",
         ATTR_STATE_SENSITIVE: False,
     },
+    "balance_secondary": {
+        ATTR_NAME: "Balance Secondary",
+        ATTR_ICON: "mdi:cash",
+        ATTR_UNIT_OF_MEASUREMENT: None,
+        ATTR_DEVICE_CLASS: DEVICE_CLASS_MONETARY,
+        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
+        ATTR_ATTRIBUTE: "balance_other",
+        ATTR_STATE_SENSITIVE: False,
+        ATTR_DISABLED_BY_DEFAULT: True,
+    },
     "speed": {
         ATTR_NAME: "Speed",
         ATTR_ICON: "mdi:gauge",
@@ -128,11 +155,11 @@ ENTITY_TYPES = {
     "gsm_level": {
         ATTR_NAME: "GSM Level",
         ATTR_ICON: {
-            ATTR_DEFAULT: "mdi:network-strength-off",
-            0: "mdi:network-strength-1",
-            1: "mdi:network-strength-2",
-            2: "mdi:network-strength-3",
-            3: "mdi:network-strength-4",
+            ATTR_DEFAULT: "mdi:sim-off",
+            0: "mdi:signal-cellular-outline",
+            1: "mdi:signal-cellular-1",
+            2: "mdi:signal-cellular-2",
+            3: "mdi:signal-cellular-3",
         },
         ATTR_DEVICE_CLASS: "gsm_level",
         ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
@@ -217,14 +244,14 @@ class PandoraCASSensor(PandoraCASEntity):
         entity_type = self._entity_type
         state = self._state
 
-        if entity_type == "balance":
+        if entity_type in ("balance", "balance_secondary"):
             if state is None:
-                return None
+                return STATE_UNAVAILABLE
             return state.value
 
         elif entity_type == "tachometer":
             if state is None:
-                return None
+                return STATE_UNAVAILABLE
 
             if state < 5:
                 return 0
@@ -257,7 +284,7 @@ class PandoraCASSensor(PandoraCASEntity):
 
     @property
     def unit_of_measurement(self) -> Optional[str]:
-        if self._entity_type == "balance":
+        if self._entity_type == ("balance", "balance_secondary"):
             state = self._state
             if state is None:
                 return None
