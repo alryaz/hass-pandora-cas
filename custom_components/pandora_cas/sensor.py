@@ -284,7 +284,7 @@ class PandoraCASSensor(PandoraCASEntity):
 
     @property
     def unit_of_measurement(self) -> Optional[str]:
-        if self._entity_type == ("balance", "balance_secondary"):
+        if self._entity_type in ("balance", "balance_secondary"):
             state = self._state
             if state is None:
                 return None
