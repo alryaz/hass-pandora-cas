@@ -3,7 +3,7 @@
 # _Pandora Car Alarm System_ для _Home Assistant_
 > Автоматизация управления охранными системами Pandora™ и PanDECT<sup>®</sup> в Home Assistant.
 >
-> &gt;= Home Assistant 2021.9.4
+> &gt;= Home Assistant 2021.12.0
 > 
 >[![hacs_badge](https://img.shields.io/badge/HACS-Default-green.svg)](https://github.com/custom-components/hacs)
 >[![Лицензия](https://img.shields.io/badge/%D0%9B%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
