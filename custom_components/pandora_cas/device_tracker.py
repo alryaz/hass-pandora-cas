@@ -29,10 +29,13 @@ async def async_setup_entry(
 ):
     account_cfg = hass.data[DATA_FINAL_CONFIG][config_entry.entry_id]
     username = account_cfg[CONF_USERNAME]
-    account_object: PandoraOnlineAccount = hass.data[DOMAIN][config_entry.entry_id]
+    account_object: PandoraOnlineAccount = hass.data[DOMAIN][
+        config_entry.entry_id
+    ]
 
     new_devices = []
     for device in account_object.devices:
+        device_id = str(device.device_id)
         # Use default settings for device directive
         device_directive = DEFAULT_ADD_DEVICE_TRACKER
 
@@ -41,7 +44,7 @@ async def async_setup_entry(
         if isinstance(platform_directive, bool):
             device_directive = platform_directive
         elif platform_directive is not None:
-            device_directive = platform_directive.get(str(device.device_id))
+            device_directive = platform_directive.get(device_id)
             if device_directive is None:
                 device_directive = platform_directive.get(ATTR_DEFAULT)
 
@@ -50,22 +53,26 @@ async def async_setup_entry(
             device_directive is None and not DEFAULT_ADD_DEVICE_TRACKER
         ):
             _LOGGER.debug(
-                'Skipping device "%s" during platform "%s" setup'
-                % (device.device_id, PLATFORM_DOMAIN)
+                f'Skipping device "{device_id}" '
+                f'during platform "{PLATFORM_DOMAIN}" setup'
             )
             continue
 
         # Add device tracker
         _LOGGER.debug(
-            'Adding "%s" object to device "%s"' % (PLATFORM_DOMAIN, device.device_id)
+            f'Adding "{PLATFORM_DOMAIN}" object to device "{device_id}"'
         )
-        new_devices.append(PandoraCASTracker(config_entry, account_cfg, device))
+        new_devices.append(
+            PandoraCASTracker(config_entry, account_cfg, device)
+        )
 
     if new_devices:
         async_add_devices(new_devices, True)
         _LOGGER.debug('Added device trackers for account "%s"' % (username,))
     else:
-        _LOGGER.debug('Did not add any device trackers for account "%s"' % (username,))
+        _LOGGER.debug(
+            'Did not add any device trackers for account "%s"' % (username,)
+        )
 
     return True
 

@@ -11,7 +11,11 @@ from homeassistant.core import callback
 from homeassistant.helpers.typing import ConfigType
 
 from .const import DOMAIN
-from .api import AuthenticationException, PandoraOnlineAccount, PandoraOnlineException
+from .api import (
+    AuthenticationException,
+    PandoraOnlineAccount,
+    PandoraOnlineException,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -20,7 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 class PandoraCASConfigFlow(config_entries.ConfigFlow):
     """Handle a config flow for Pandora Car Alarm System config entries."""
 
-    CONNECTION_CLASS: Final[str] = config_entries.CONN_CLASS_CLOUD_POLL
+    CONNECTION_CLASS: Final[str] = config_entries.CONN_CLASS_CLOUD_PUSH
     VERSION: Final[int] = 2
 
     def __init__(self) -> None:
@@ -101,7 +105,9 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
             return self.async_abort("empty_configuration_import")
 
         # Finalize with entry creation
-        return await self._create_entry({CONF_USERNAME: user_input[CONF_USERNAME]})
+        return await self._create_entry(
+            {CONF_USERNAME: user_input[CONF_USERNAME]}
+        )
 
     @staticmethod
     @callback

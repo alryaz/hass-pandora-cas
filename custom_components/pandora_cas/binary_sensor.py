@@ -188,5 +188,8 @@ class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
 
 
 async_setup_entry = partial(
-    async_platform_setup_entry, PLATFORM_DOMAIN, PandoraCASBinarySensor, logger=_LOGGER
+    async_platform_setup_entry,
+    PLATFORM_DOMAIN,
+    PandoraCASBinarySensor,
+    logger=_LOGGER,
 )

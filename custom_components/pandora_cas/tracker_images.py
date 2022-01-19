@@ -4,9 +4,13 @@ from typing import Final, Optional
 
 def from_path(path: str) -> str:
     return (
-        '<?xml version="1.0" encoding="UTF-8" standalone="no"?>'
-        + '<svg version="1.1" width="512" height="512" xmlns="http://www.w3.org/2000/svg" '
-        + 'xmlns:svg="http://www.w3.org/2000/svg"><path transform="rotate({rotation} 256 256)" '
+        '<?xml version="1.0" encoding="UTF-8" standalone="no"?>' + "<svg "
+        'version="1.1" '
+        'width="512" '
+        'height="512" '
+        'xmlns="http://www.w3.org/2000/svg" '
+        'xmlns:svg="http://www.w3.org/2000/svg">' + "<path "
+        'transform="rotate({rotation} 256 256)" '
         + 'style="fill:{fill};fill-opacity:1" d="'
         + path
         + '"/></svg>'
@@ -404,10 +408,14 @@ if __name__ == "__main__":
 
         parser = argparse.ArgumentParser()
         parser.add_argument("type", choices=IMAGE_REGISTRY.keys())
-        parser.add_argument("-o", "--output", type=argparse.FileType("w"), default="-")
+        parser.add_argument(
+            "-o", "--output", type=argparse.FileType("w"), default="-"
+        )
         parser.add_argument("-r", "--rotation", type=float, default=0.0)
         parser.add_argument("-f", "--fill", type=str, default="#000000")
         args = parser.parse_args()
-        args.output.write(IMAGE_REGISTRY.get_image(args.type, args.rotation, args.fill))
+        args.output.write(
+            IMAGE_REGISTRY.get_image(args.type, args.rotation, args.fill)
+        )
 
     main()

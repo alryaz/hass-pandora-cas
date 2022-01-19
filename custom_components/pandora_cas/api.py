@@ -336,7 +336,9 @@ class CurrentState:
     rotation: float = attr.ib(converter=float)
     phone: Optional[str] = attr.ib(default=None, converter=_empty_is_none)
     imei: Optional[int] = attr.ib(default=None, converter=_empty_is_none)
-    phone_other: Optional[str] = attr.ib(default=None, converter=_empty_is_none)
+    phone_other: Optional[str] = attr.ib(
+        default=None, converter=_empty_is_none
+    )
     active_sim: int = attr.ib()
     tracking_remaining: Optional[float] = attr.ib(
         default=None, converter=_empty_is_none
@@ -538,7 +540,9 @@ class PandoraOnlineAccount:
         """Devices (immutable) accessor."""
         return tuple(self._devices)
 
-    def get_device(self, device_id: Union[int, str]) -> Optional["PandoraOnlineDevice"]:
+    def get_device(
+        self, device_id: Union[int, str]
+    ) -> Optional["PandoraOnlineDevice"]:
         _device_id = int(device_id)
         for device in self._devices:
             if _device_id == device.device_id:
@@ -553,7 +557,9 @@ class PandoraOnlineAccount:
     ):
         try:
             if response.status != expected_status:
-                raise RequestException(f"unexpected status", response.status) from None
+                raise RequestException(
+                    f"unexpected status", response.status
+                ) from None
 
             content = await response.json()
 
@@ -597,7 +603,9 @@ class PandoraOnlineAccount:
             except KeyError:
                 raise PandoraOnlineException("Access token not found")
             except aiohttp.ClientError as e:
-                raise PandoraOnlineException(f"Error fetching access token: {e}")
+                raise PandoraOnlineException(
+                    f"Error fetching access token: {e}"
+                )
             except asyncio.TimeoutError:
                 raise PandoraOnlineException("Timeout fetching access token")
 
@@ -626,7 +634,8 @@ class PandoraOnlineAccount:
                 raise AuthenticationException(*e.args) from None
 
             _LOGGER.info(
-                'Authentication successful for username "%s"!' % (self._username,)
+                'Authentication successful for username "%s"!'
+                % (self._username,)
             )
             self._access_token = access_token
 
@@ -636,7 +645,9 @@ class PandoraOnlineAccount:
         if access_token is None:
             raise PandoraOnlineException("Account is not authenticated")
 
-        _LOGGER.debug('Updating vehicle list for username "%s"' % (self._username,))
+        _LOGGER.debug(
+            'Updating vehicle list for username "%s"' % (self._username,)
+        )
 
         async with self._session.get(
             self.BASE_URL + "/api/devices",
@@ -668,7 +679,9 @@ class PandoraOnlineAccount:
         if access_token is None:
             raise PandoraOnlineException("Account is not authenticated")
 
-        _LOGGER.debug('Sending command "%d" to device "%d"' % (command_id, device_id))
+        _LOGGER.debug(
+            'Sending command "%d" to device "%d"' % (command_id, device_id)
+        )
 
         async with self._session.post(
             self.BASE_URL + "/api/devices/command",
@@ -676,12 +689,18 @@ class PandoraOnlineAccount:
             params={"access_token": self._access_token},
         ) as response:
             command_result = await self._handle_response(response)
-            status = command_result.get("action_result", {}).get(str(device_id))
+            status = command_result.get("action_result", {}).get(
+                str(device_id)
+            )
 
             if status != "sent":
-                raise CommandExecutionException("could not execute command", status)
+                raise CommandExecutionException(
+                    "could not execute command", status
+                )
 
-            _LOGGER.debug('Command "%d" sent to device "%d"' % (command_id, device_id))
+            _LOGGER.debug(
+                'Command "%d" sent to device "%d"' % (command_id, device_id)
+            )
 
     async def async_fetch_changes(self, timestamp: Optional[int] = None):
         """
@@ -853,7 +872,9 @@ class PandoraOnlineAccount:
                 value = 0.0
 
             if fuel_tank is None:
-                fuel_tanks.append(FuelTank(id=id_, value=value, ras=ras, ras_t=ras_t))
+                fuel_tanks.append(
+                    FuelTank(id=id_, value=value, ras=ras, ras_t=ras_t)
+                )
             else:
                 object.__setattr__(fuel_tank, "value", value)
                 object.__setattr__(fuel_tank, "ras", ras)
@@ -873,7 +894,9 @@ class PandoraOnlineAccount:
 
             return None
 
-        _LOGGER.debug(f"Appending stats data for device with ID '{device.device_id}'")
+        _LOGGER.debug(
+            f"Appending stats data for device with ID '{device.device_id}'"
+        )
 
         args = {}
 
@@ -1064,7 +1087,11 @@ class PandoraOnlineAccount:
     def _process_ws_command(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
     ) -> Tuple[int, int, int]:
-        command_id, result, reply = data["command"], data["result"], data["reply"]
+        command_id, result, reply = (
+            data["command"],
+            data["result"],
+            data["reply"],
+        )
 
         if device.control_busy:
             if result:
@@ -1143,15 +1170,20 @@ class PandoraOnlineAccount:
                                 callback_coro = None
 
                                 contents = json.loads(msg.data)
-                                type_, data = contents["type"], contents["data"]
+                                type_, data = (
+                                    contents["type"],
+                                    contents["data"],
+                                )
 
                                 device_id = data["dev_id"]
                                 device = self.get_device(device_id)
 
                                 try:
                                     if type_ == "initial-state":
-                                        result = self._process_ws_initial_state(
-                                            device, data
+                                        result = (
+                                            self._process_ws_initial_state(
+                                                device, data
+                                            )
                                         )
                                         if state_callback:
                                             callback_coro = state_callback(
@@ -1159,14 +1191,21 @@ class PandoraOnlineAccount:
                                             )
 
                                     elif type_ == "state":
-                                        result = self._process_ws_state(device, data)
-                                        if result is not None and state_callback:
+                                        result = self._process_ws_state(
+                                            device, data
+                                        )
+                                        if (
+                                            result is not None
+                                            and state_callback
+                                        ):
                                             callback_coro = state_callback(
                                                 device, *result
                                             )
 
                                     elif type_ == "point":
-                                        result = self._process_ws_point(device, data)
+                                        result = self._process_ws_point(
+                                            device, data
+                                        )
                                         if point_callback:
                                             callback_coro = point_callback(
                                                 device, result
@@ -1177,16 +1216,23 @@ class PandoraOnlineAccount:
                                             command_id,
                                             result,
                                             reply,
-                                        ) = self._process_ws_command(device, data)
+                                        ) = self._process_ws_command(
+                                            device, data
+                                        )
 
                                         if command_callback:
                                             callback_coro = command_callback(
-                                                device, command_id, result, reply
+                                                device,
+                                                command_id,
+                                                result,
+                                                reply,
                                             )
 
                                     elif type_ == "event":
-                                        tracking_event = self._process_ws_event(
-                                            device, data
+                                        tracking_event = (
+                                            self._process_ws_event(
+                                                device, data
+                                            )
                                         )
 
                                         if event_callback:
@@ -1217,7 +1263,11 @@ class PandoraOnlineAccount:
                                             f"callback handling: {e}"
                                         )
 
-                except (aiohttp.ClientError, asyncio.TimeoutError, OSError) as e:
+                except (
+                    aiohttp.ClientError,
+                    asyncio.TimeoutError,
+                    OSError,
+                ) as e:
                     _LOGGER.error(f"[{self}] Error during listening: {e}")
                     if not auto_restart:
                         raise
@@ -1233,7 +1283,9 @@ class PandoraOnlineAccount:
                 except asyncio.CancelledError:
                     raise
                 except BaseException as e:
-                    _LOGGER.exception(f"[{self}] Error during reauthentication: {e}")
+                    _LOGGER.exception(
+                        f"[{self}] Error during reauthentication: {e}"
+                    )
 
             _LOGGER.info(
                 f"[{self}] Restarting listener in 3 seconds automatically per instruction"
@@ -1303,7 +1355,8 @@ class PandoraOnlineDevice:
         else:
             if (
                 self.control_busy
-                and old_state.command_timestamp_utc < value.command_timestamp_utc
+                and old_state.command_timestamp_utc
+                < value.command_timestamp_utc
             ):
                 self._control_future.set_result(True)
                 self._control_future = None
@@ -1367,7 +1420,9 @@ class PandoraOnlineDevice:
                     "Ensuring command completion (timeout: %d seconds)"
                     % (self.control_timeout,)
                 )
-                await asyncio.wait_for(self._control_future, self.control_timeout)
+                await asyncio.wait_for(
+                    self._control_future, self.control_timeout
+                )
                 self._control_future.result()
 
             except asyncio.TimeoutError:
@@ -1380,14 +1435,20 @@ class PandoraOnlineDevice:
         return await self.async_remote_command(CommandID.LOCK, ensure_complete)
 
     async def async_remote_unlock(self, ensure_complete: bool = True):
-        return await self.async_remote_command(CommandID.UNLOCK, ensure_complete)
+        return await self.async_remote_command(
+            CommandID.UNLOCK, ensure_complete
+        )
 
     # Engine toggle
     async def async_remote_start_engine(self, ensure_complete: bool = True):
-        return await self.async_remote_command(CommandID.START_ENGINE, ensure_complete)
+        return await self.async_remote_command(
+            CommandID.START_ENGINE, ensure_complete
+        )
 
     async def async_remote_stop_engine(self, ensure_complete: bool = True):
-        return await self.async_remote_command(CommandID.STOP_ENGINE, ensure_complete)
+        return await self.async_remote_command(
+            CommandID.STOP_ENGINE, ensure_complete
+        )
 
     # Tracking toggle
     async def async_remote_enable_tracking(self, ensure_complete: bool = True):
@@ -1395,7 +1456,9 @@ class PandoraOnlineDevice:
             CommandID.ENABLE_TRACKING, ensure_complete
         )
 
-    async def async_remote_disable_tracking(self, ensure_complete: bool = True):
+    async def async_remote_disable_tracking(
+        self, ensure_complete: bool = True
+    ):
         return await self.async_remote_command(
             CommandID.DISABLE_TRACKING, ensure_complete
         )
@@ -1406,58 +1469,80 @@ class PandoraOnlineDevice:
             CommandID.ENABLE_ACTIVE_SECURITY, ensure_complete
         )
 
-    async def async_disable_active_security(self, ensure_complete: bool = True):
+    async def async_disable_active_security(
+        self, ensure_complete: bool = True
+    ):
         return await self.async_remote_command(
             CommandID.DISABLE_ACTIVE_SECURITY, ensure_complete
         )
 
     # Coolant heater toggle
-    async def async_remote_turn_on_coolant_heater(self, ensure_complete: bool = True):
+    async def async_remote_turn_on_coolant_heater(
+        self, ensure_complete: bool = True
+    ):
         return await self.async_remote_command(
             CommandID.TURN_ON_COOLANT_HEATER, ensure_complete
         )
 
-    async def async_remote_turn_off_coolant_heater(self, ensure_complete: bool = True):
+    async def async_remote_turn_off_coolant_heater(
+        self, ensure_complete: bool = True
+    ):
         return await self.async_remote_command(
             CommandID.TURN_OFF_COOLANT_HEATER, ensure_complete
         )
 
     # External (timer_ channel toggle
-    async def async_remote_turn_on_ext_channel(self, ensure_complete: bool = True):
+    async def async_remote_turn_on_ext_channel(
+        self, ensure_complete: bool = True
+    ):
         return await self.async_remote_command(
             CommandID.TURN_ON_EXT_CHANNEL, ensure_complete
         )
 
-    async def async_remote_turn_off_ext_channel(self, ensure_complete: bool = True):
+    async def async_remote_turn_off_ext_channel(
+        self, ensure_complete: bool = True
+    ):
         return await self.async_remote_command(
             CommandID.TURN_OFF_EXT_CHANNEL, ensure_complete
         )
 
     # Service mode toggle
-    async def async_remote_enable_service_mode(self, ensure_complete: bool = True):
+    async def async_remote_enable_service_mode(
+        self, ensure_complete: bool = True
+    ):
         return await self.async_remote_command(
             CommandID.ENABLE_SERVICE_MODE, ensure_complete
         )
 
-    async def async_remote_disable_service_mode(self, ensure_complete: bool = True):
+    async def async_remote_disable_service_mode(
+        self, ensure_complete: bool = True
+    ):
         return await self.async_remote_command(
             CommandID.DISABLE_SERVICE_MODE, ensure_complete
         )
 
     # Various commands
     async def async_remote_trigger_horn(self, ensure_complete: bool = True):
-        return await self.async_remote_command(CommandID.TRIGGER_HORN, ensure_complete)
+        return await self.async_remote_command(
+            CommandID.TRIGGER_HORN, ensure_complete
+        )
 
     async def async_remote_trigger_light(self, ensure_complete: bool = True):
-        return await self.async_remote_command(CommandID.TRIGGER_LIGHT, ensure_complete)
+        return await self.async_remote_command(
+            CommandID.TRIGGER_LIGHT, ensure_complete
+        )
 
     async def async_remote_trigger_trunk(self, ensure_complete: bool = True):
-        return await self.async_remote_command(CommandID.TRIGGER_TRUNK, ensure_complete)
+        return await self.async_remote_command(
+            CommandID.TRIGGER_TRUNK, ensure_complete
+        )
 
     @property
     def control_busy(self) -> bool:
         """Returns whether device is currently busy executing command."""
-        return not (self._control_future is None or self._control_future.done())
+        return not (
+            self._control_future is None or self._control_future.done()
+        )
 
     def release_control_lock(self, error: Optional[Any] = None) -> None:
         if self._control_future is None:
@@ -1488,7 +1573,9 @@ class PandoraOnlineDevice:
     def is_online(self) -> bool:
         """Returns whether vehicle can be deemed online"""
         current_state = self._current_state
-        return current_state is not None and bool(current_state.online_timestamp)
+        return current_state is not None and bool(
+            current_state.online_timestamp
+        )
 
     # Attributes-related properties
     @property

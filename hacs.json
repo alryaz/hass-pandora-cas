@@ -1,16 +1,21 @@
 {
-  "name": "Pandora Car Alarm System",
-  "content_in_root": false,
-  "zip_release": false,
-  "render_readme": true,
-  "domains": [
-    "device_tracker",
-    "binary_sensor",
-    "sensor",
-    "lock",
-    "switch"
-  ],
-  "homeassistant": "2021.8.0",
-  "country": ["RU", "BY", "KZ", "UA"],
-  "iot_class": "Cloud Polling"
+    "name": "Pandora Car Alarm System",
+    "content_in_root": false,
+    "zip_release": false,
+    "render_readme": true,
+    "domains": [
+        "device_tracker",
+        "binary_sensor",
+        "sensor",
+        "lock",
+        "switch"
+    ],
+    "homeassistant": "2021.8.0",
+    "country": [
+        "RU",
+        "BY",
+        "KZ",
+        "UA"
+    ],
+    "iot_class": "Cloud Push"
 }

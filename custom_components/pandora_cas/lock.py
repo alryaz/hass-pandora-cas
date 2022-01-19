@@ -12,7 +12,12 @@ from homeassistant.components.lock import (
     DOMAIN as PLATFORM_DOMAIN,
     ENTITY_ID_FORMAT,
 )
-from homeassistant.const import ATTR_NAME, ATTR_ICON, ATTR_DEVICE_CLASS, ATTR_COMMAND
+from homeassistant.const import (
+    ATTR_NAME,
+    ATTR_ICON,
+    ATTR_DEVICE_CLASS,
+    ATTR_COMMAND,
+)
 
 from . import PandoraCASBooleanEntity, async_platform_setup_entry
 from .api import BitStatus, CommandID
@@ -59,5 +64,8 @@ class PandoraCASLock(PandoraCASBooleanEntity, LockEntity):
 
 
 async_setup_entry = partial(
-    async_platform_setup_entry, PLATFORM_DOMAIN, PandoraCASLock, logger=_LOGGER
+    async_platform_setup_entry,
+    PLATFORM_DOMAIN,
+    PandoraCASLock,
+    logger=_LOGGER,
 )
