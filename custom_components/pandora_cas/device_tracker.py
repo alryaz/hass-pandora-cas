@@ -154,12 +154,12 @@ class PandoraCASTracker(BasePandoraCASEntity, TrackerEntity):
         return SOURCE_TYPE_GPS
 
     @property
-    def device_state_attributes(self) -> Dict[str, Any]:
+    def extra_state_attributes(self) -> Dict[str, Any]:
         """Add some additional device attributes."""
         attributes = {}
         device_state = self._device_state
 
-        attributes.update(super().device_state_attributes)
+        attributes.update(super().extra_state_attributes)
         if device_state is None:
             attributes.update(
                 dict.fromkeys(

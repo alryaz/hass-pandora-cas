@@ -798,7 +798,7 @@ class BasePandoraCASEntity(Entity):
         }
 
     @property
-    def device_state_attributes(self) -> Dict[str, Any]:
+    def extra_state_attributes(self) -> Dict[str, Any]:
         """Return the state attributes of an entity."""
         return {
             ATTR_DEVICE_ID: self._device.device_id,
@@ -922,8 +922,8 @@ class PandoraCASEntity(BasePandoraCASEntity):
         return self.entity_type_config.get(ATTR_UNIT_OF_MEASUREMENT)
 
     @property
-    def device_state_attributes(self) -> Dict[str, Any]:
-        attributes = super().device_state_attributes
+    def extra_state_attributes(self) -> Dict[str, Any]:
+        attributes = super().extra_state_attributes
 
         if ATTR_STATE_CLASS not in attributes:
             state_class = self.state_class

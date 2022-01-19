@@ -319,8 +319,8 @@ class PandoraCASSensor(PandoraCASEntity):
         await super().async_will_remove_from_hass()
 
     @property
-    def device_state_attributes(self) -> Dict[str, Any]:
-        existing_attributes = super().device_state_attributes
+    def extra_state_attributes(self) -> Dict[str, Any]:
+        existing_attributes = super().extra_state_attributes
         entity_type = self._entity_type
 
         if entity_type == "fuel":
@@ -332,7 +332,9 @@ class PandoraCASSensor(PandoraCASEntity):
                 sorted(state.fuel_tanks, key=lambda x: x.id), start=1
             ):
                 existing_attributes[f"fuel_tank_{i}_id"] = fuel_tank.id
-                existing_attributes[f"fuel_tank_{i}_capacity"] = fuel_tank.value
+                existing_attributes[
+                    f"fuel_tank_{i}_capacity"
+                ] = fuel_tank.value
 
         elif entity_type == "track_distance":
             last_point = self._device.last_point
@@ -361,5 +363,8 @@ class PandoraCASSensor(PandoraCASEntity):
 
 
 async_setup_entry = partial(
-    async_platform_setup_entry, PLATFORM_DOMAIN, PandoraCASSensor, logger=_LOGGER
+    async_platform_setup_entry,
+    PLATFORM_DOMAIN,
+    PandoraCASSensor,
+    logger=_LOGGER,
 )

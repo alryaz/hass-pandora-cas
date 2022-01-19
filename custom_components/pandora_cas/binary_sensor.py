@@ -165,8 +165,8 @@ class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
         return bool(self._state)
 
     @property
-    def device_state_attributes(self) -> Dict[str, Any]:
-        existing_attributes = super().device_state_attributes
+    def extra_state_attributes(self) -> Dict[str, Any]:
+        existing_attributes = super().extra_state_attributes
         entity_type = self._entity_type
 
         if entity_type == "connection_state":
