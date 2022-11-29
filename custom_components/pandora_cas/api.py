@@ -344,18 +344,28 @@ class CurrentState:
         default=None, converter=_empty_is_none
     )
 
+    can_seat_taken: Optional[bool] = attr.ib(default=None)
+    can_average_speed: Optional[float] = attr.ib(default=None)
     can_tpms_front_left: Optional[float] = attr.ib(default=None)
     can_tpms_front_right: Optional[float] = attr.ib(default=None)
     can_tpms_back_left: Optional[float] = attr.ib(default=None)
     can_tpms_back_right: Optional[float] = attr.ib(default=None)
+    can_tpms_reserve: Optional[float] = attr.ib(default=None)
     can_glass_front_left: Optional[bool] = attr.ib(default=None)
     can_glass_front_right: Optional[bool] = attr.ib(default=None)
     can_glass_back_left: Optional[bool] = attr.ib(default=None)
     can_glass_back_right: Optional[bool] = attr.ib(default=None)
+    can_belt_front_left: Optional[bool] = attr.ib(default=None)
+    can_belt_front_right: Optional[bool] = attr.ib(default=None)
+    can_belt_back_left: Optional[bool] = attr.ib(default=None)
+    can_belt_back_right: Optional[bool] = attr.ib(default=None)
     can_low_liquid_warning: Optional[bool] = attr.ib(default=None)
     can_mileage_by_battery: Optional[float] = attr.ib(default=None)
     can_mileage_until_empty: Optional[float] = attr.ib(default=None)
+    can_mileage_to_maintenance: Optional[float] = attr.ib(default=None)
 
+    ev_state_of_charge: Optional[float] = attr.ib(default=None)
+    ev_state_of_health: Optional[float] = attr.ib(default=None)
     ev_charging_connected: Optional[bool] = attr.ib(default=None)
     ev_charging_slow: Optional[bool] = attr.ib(default=None)
     ev_charging_fast: Optional[bool] = attr.ib(default=None)
@@ -831,23 +841,44 @@ class PandoraOnlineAccount:
             lock_latitude=data["lock_x"] / 1000000,
             lock_longitude=data["lock_y"] / 1000000,
             rotation=data["rot"],
+            fuel_tanks=self.parse_fuel_tanks(data.get("tanks")),
+
+            # CAN data about wheel pressure
             can_tpms_front_left=data.get("CAN_TMPS_forvard_left"),
             can_tpms_front_right=data.get("CAN_TMPS_forvard_right"),
             can_tpms_back_left=data.get("CAN_TMPS_back_left"),
             can_tpms_back_right=data.get("CAN_TMPS_back_right"),
+            can_tpms_reserve=data.get("CAN_TPMS_reserve"),
+
+            # CAN data about glass up/down
             can_glass_front_left=data.get("CAN_driver_glass"),
             can_glass_front_right=data.get("CAN_passenger_glass"),
             can_glass_back_left=data.get("CAN_back_left_glass"),
             can_glass_back_right=data.get("CAN_back_right_glass"),
+
+            # CAN data about belt buckling
+            can_belt_front_left=data.get("CAN_driver_belt"),
+            can_belt_front_right=data.get("CAN_passenger_belt"),
+            can_belt_back_left=data.get("CAN_back_left_belt"),
+            can_belt_back_right=data.get("CAN_back_right_belt"),
+
+            # Other CAN parameters
+            can_average_speed=data.get("CAN_average_speed"),
             can_low_liquid_warning=data.get("CAN_low_liquid"),
+
+            # CAN mileage values
             can_mileage_by_battery=data.get("CAN_mileage_by_battery"),
             can_mileage_until_empty=data.get("CAN_mileage_to_empty"),
+            can_mileage_to_maintenance=data.get("CAN_mileage_to_maintenance"),
+
+            # EV vehicle status
+            ev_state_of_charge=data.get("SOC"),
+            ev_state_of_health=data.get("SOH"),
             ev_charging_connected=data.get("charging_connect"),
             ev_charging_slow=data.get("charging_slow"),
             ev_charging_fast=data.get("charging_fast"),
             ev_status_ready=data.get("ev_status_ready"),
             battery_temperature=data.get("battery_temperature"),
-            fuel_tanks=self.parse_fuel_tanks(data.get("tanks")),
         )
 
         current_state = CurrentState(**current_state_args)
@@ -992,6 +1023,8 @@ class PandoraOnlineAccount:
             args["lock_longitude"] = data["lock_y"] / 1000000
         if "rot" in data:
             args["rotation"] = data["rot"]
+        if "CAN_average_speed" in data:
+            args["can_average_speed"] = data["CAN_average_speed"]
         if "CAN_TMPS_forvard_left" in data:
             args["can_tpms_front_left"] = data["CAN_TMPS_forvard_left"]
         if "CAN_TMPS_forvard_right" in data:
@@ -1000,6 +1033,8 @@ class PandoraOnlineAccount:
             args["can_tpms_back_left"] = data["CAN_TMPS_back_left"]
         if "CAN_TMPS_back_right" in data:
             args["can_tpms_back_right"] = data["CAN_TMPS_back_right"]
+        if "CAN_TMPS_reserve" in data:
+            args["can_tpms_reserve"] = data["CAN_TMPS_reserve"]
         if "CAN_driver_glass" in data:
             args["can_glass_front_left"] = data["CAN_driver_glass"]
         if "CAN_passenger_glass" in data:
@@ -1008,18 +1043,34 @@ class PandoraOnlineAccount:
             args["can_glass_back_left"] = data["CAN_back_left_glass"]
         if "CAN_back_right_glass" in data:
             args["can_glass_back_right"] = data["CAN_back_right_glass"]
+        if "CAN_driver_belt" in data:
+            args["can_belt_front_left"] = data["CAN_driver_belt"]
+        if "CAN_passenger_belt" in data:
+            args["can_belt_front_right"] = data["CAN_passenger_belt"]
+        if "CAN_back_left_belt" in data:
+            args["can_belt_back_left"] = data["CAN_back_left_belt"]
+        if "CAN_back_right_belt" in data:
+            args["can_belt_back_right"] = data["CAN_back_right_belt"]
         if "CAN_low_liquid" in data:
             args["can_low_liquid_warning"] = data["CAN_low_liquid"]
+        if "CAN_seat_taken" in data:
+            args["can_seat_taken"] = data["CAN_seat_taken"]
         if "CAN_mileage_by_battery" in data:
             args["can_mileage_by_battery"] = data["CAN_mileage_by_battery"]
         if "CAN_mileage_to_empty" in data:
             args["can_mileage_until_empty"] = data["CAN_mileage_to_empty"]
+        if "CAN_mileage_to_maintenance" in data:
+            args["can_mileage_to_maintenance"] = data["CAN_mileage_to_maintenance"]
         if "charging_connect" in data:
             args["ev_charging_connected"] = data["charging_connect"]
         if "charging_slow" in data:
             args["ev_charging_slow"] = data["charging_slow"]
         if "charging_fast" in data:
             args["ev_charging_fast"] = data["charging_fast"]
+        if "SOC" in data:
+            args["ev_state_of_charge"] = data["SOC"]
+        if "SOH" in data:
+            args["ev_state_of_health"] = data["SOH"]
         if "ev_status_ready" in data:
             args["ev_status_ready"] = data["ev_status_ready"]
         if "battery_temperature" in data:

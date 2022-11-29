@@ -215,6 +215,16 @@ ENTITY_TYPES = {
         ATTR_STATE_SENSITIVE: True,
         ATTR_DISABLED_BY_DEFAULT: True,
     },
+    "reserve_tire_pressure": {
+        ATTR_NAME: "Reserve Tire Pressure",
+        ATTR_ICON: "mdi:car-tire-alert",
+        ATTR_ATTRIBUTE: "can_tpms_reserve",
+        ATTR_UNIT_OF_MEASUREMENT: "kPa",
+        ATTR_DEVICE_CLASS: DEVICE_CLASS_PRESSURE,
+        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
+        ATTR_STATE_SENSITIVE: True,
+        ATTR_DISABLED_BY_DEFAULT: True,
+    },
     "track_distance": {
         ATTR_NAME: "Track Distance",
         ATTR_ICON: "mdi:road-variant",
