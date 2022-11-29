@@ -761,6 +761,22 @@ class PandoraOnlineAccount:
 
         return content, updated_device_ids
 
+    @staticmethod
+    def _get_device_id(data: Mapping[str, Any]) -> str:
+        # Fixes absense of identifier value on certain device responses.
+        try:
+            device_id = data["id"]
+        except KeyError:
+            device_id = data["dev_id"]
+
+        if not device_id:
+            raise ValueError("Device ID is empty!")
+
+        try:
+            return int(device_id)
+        except (TypeError, ValueError):
+            raise ValueError(f"Could not convert device ID '{device_id}' to integer")
+
     def _process_ws_initial_state(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
     ) -> Tuple[CurrentState, Dict[str, Any]]:
@@ -769,7 +785,7 @@ class PandoraOnlineAccount:
         )
 
         current_state_args = dict(
-            identifier=data["id"],
+            identifier=self._get_device_id(data),
             latitude=data["x"],
             longitude=data["y"],
             speed=data["speed"],
@@ -1020,7 +1036,7 @@ class PandoraOnlineAccount:
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
     ) -> TrackingEvent:
         return TrackingEvent(
-            identifier=data["id"],
+            identifier=self._get_device_id(data),
             bit_state=BitStatus(int(data["bit_state_1"])),
             cabin_temperature=data["cabin_temp"],
             engine_rpm=data["engine_rpm"],
