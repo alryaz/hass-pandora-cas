@@ -1658,7 +1658,7 @@ class PandoraOnlineDevice:
 
     @property
     def features(self) -> Optional[Features]:
-        if self._features is None:
+        if self._features is None and isinstance(self._attributes.get("features"), Mapping):
             self._features = Features.from_dict(self._attributes["features"])
         return self._features
 
