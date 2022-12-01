@@ -680,7 +680,7 @@ async def async_platform_setup_entry(
         for entity_type, entity_config in entity_configs.items():
             if (
                 ATTR_FEATURE in entity_config
-                and not entity_config[ATTR_FEATURE] & device.features
+                and (device.features is None or not entity_config[ATTR_FEATURE] & device.features)
             ):
                 logger.debug(
                     'Entity "%s" disabled because end device "%s" does not support it'
