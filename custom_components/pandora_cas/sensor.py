@@ -10,47 +10,33 @@ from homeassistant.components.sensor import (
     DOMAIN as PLATFORM_DOMAIN,
     ENTITY_ID_FORMAT,
 )
+from homeassistant.components.sensor.const import (
+    SensorDeviceClass,
+    SensorStateClass,
+)
 from homeassistant.const import (
     ATTR_DEVICE_CLASS,
     ATTR_ICON,
     ATTR_NAME,
     ATTR_UNIT_OF_MEASUREMENT,
-    DEVICE_CLASS_MONETARY,
-    DEVICE_CLASS_PRESSURE,
-    DEVICE_CLASS_TEMPERATURE,
-    DEVICE_CLASS_VOLTAGE,
+    SensorDeviceClass.MONETARY,
+    SensorDeviceClass.PRESSURE,
+    SensorDeviceClass.TEMPERATURE,
+    SensorDeviceClass.VOLTAGE,
     LENGTH_KILOMETERS,
     SPEED_KILOMETERS_PER_HOUR,
     STATE_UNAVAILABLE,
     TEMP_CELSIUS,
+    UnitOfElectricPotential,
+    UnitOfPressure,
+    UnitOfLength,
+    UnitOfTemperature,
+    PERCENTAGE,
 )
 from homeassistant.core import Event, callback
 
 from . import PandoraCASEntity, async_platform_setup_entry
 from .const import *
-
-try:
-    from homeassistant.components.sensor import STATE_CLASS_TOTAL
-except ImportError:
-    STATE_CLASS_TOTAL = "total"
-
-try:
-    from homeassistant.components.sensor import STATE_CLASS_MEASUREMENT
-except ImportError:
-    STATE_CLASS_MEASUREMENT = "measurement"
-
-try:
-    from homeassistant.components.sensor import STATE_CLASS_TOTAL_INCREASING
-except ImportError:
-    STATE_CLASS_TOTAL_INCREASING = "total_increasing"
-
-try:
-    from homeassistant.const import VOLT as ELECTRIC_POTENTIAL_VOLT
-except ImportError:
-    try:
-        from homeassistant.const import ELECTRIC_POTENTIAL_VOLT
-    except ImportError:
-        ELECTRIC_POTENTIAL_VOLT = "V"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -58,61 +44,61 @@ ENTITY_TYPES = {
     "mileage": {
         ATTR_NAME: "Mileage",
         ATTR_ICON: "mdi:map-marker-distance",
-        ATTR_UNIT_OF_MEASUREMENT: LENGTH_KILOMETERS,
+        ATTR_UNIT_OF_MEASUREMENT: UnitOfLength.KILOMETERS,
         ATTR_ATTRIBUTE: "mileage",
         ATTR_STATE_SENSITIVE: True,
-        ATTR_STATE_CLASS: STATE_CLASS_TOTAL,
+        ATTR_STATE_CLASS: SensorStateClass.TOTAL,
         ATTR_FORMATTER: lambda v: round(float(v), 2),
     },
     "can_mileage": {
         ATTR_NAME: "CAN Mileage",
         ATTR_ICON: "mdi:map-marker-distance",
-        ATTR_UNIT_OF_MEASUREMENT: LENGTH_KILOMETERS,
+        ATTR_UNIT_OF_MEASUREMENT: UnitOfLength.KILOMETERS,
         ATTR_ATTRIBUTE: "can_mileage",
         ATTR_STATE_SENSITIVE: True,
-        ATTR_STATE_CLASS: STATE_CLASS_TOTAL,
+        ATTR_STATE_CLASS: SensorStateClass.TOTAL,
         ATTR_FORMATTER: lambda v: round(float(v), 2),
     },
     "fuel": {
         ATTR_NAME: "Fuel Level",
         ATTR_ICON: "mdi:gauge",
-        ATTR_UNIT_OF_MEASUREMENT: "%",
+        ATTR_UNIT_OF_MEASUREMENT: PERCENTAGE,
         ATTR_ATTRIBUTE: "fuel",
         ATTR_STATE_SENSITIVE: False,
     },
     "interior_temperature": {
         ATTR_NAME: "Interior Temperature",
         ATTR_ICON: "mdi:thermometer",
-        ATTR_UNIT_OF_MEASUREMENT: TEMP_CELSIUS,
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_TEMPERATURE,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
+        ATTR_UNIT_OF_MEASUREMENT: UnitOfTemperature.CELCIUS,
+        ATTR_DEVICE_CLASS: SensorDeviceClass.TEMPERATURE,
+        ATTR_STATE_CLASS: SensorStateClass.MEASUREMENT,
         ATTR_ATTRIBUTE: "interior_temperature",
         ATTR_STATE_SENSITIVE: True,
     },
     "engine_temperature": {
         ATTR_NAME: "Engine Temperature",
         ATTR_ICON: "mdi:thermometer",
-        ATTR_UNIT_OF_MEASUREMENT: TEMP_CELSIUS,
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_TEMPERATURE,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
+        ATTR_UNIT_OF_MEASUREMENT: UnitOfTemperature.CELCIUS,
+        ATTR_DEVICE_CLASS: SensorDeviceClass.TEMPERATURE,
+        ATTR_STATE_CLASS: SensorStateClass.MEASUREMENT,
         ATTR_ATTRIBUTE: "engine_temperature",
         ATTR_STATE_SENSITIVE: True,
     },
     "exterior_temperature": {
         ATTR_NAME: "Exterior Temperature",
         ATTR_ICON: "mdi:thermometer",
-        ATTR_UNIT_OF_MEASUREMENT: TEMP_CELSIUS,
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_TEMPERATURE,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
+        ATTR_UNIT_OF_MEASUREMENT: UnitOfTemperature.CELCIUS,
+        ATTR_DEVICE_CLASS: SensorDeviceClass.TEMPERATURE,
+        ATTR_STATE_CLASS: SensorStateClass.MEASUREMENT,
         ATTR_ATTRIBUTE: "exterior_temperature",
         ATTR_STATE_SENSITIVE: True,
     },
     "battery_temperature": {
         ATTR_NAME: "Battery Temperature",
         ATTR_ICON: "mdi:thermometer",
-        ATTR_UNIT_OF_MEASUREMENT: TEMP_CELSIUS,
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_TEMPERATURE,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
+        ATTR_UNIT_OF_MEASUREMENT: UnitOfTemperature.CELCIUS,
+        ATTR_DEVICE_CLASS: SensorDeviceClass.TEMPERATURE,
+        ATTR_STATE_CLASS: SensorStateClass.MEASUREMENT,
         ATTR_ATTRIBUTE: "battery_temperature",
         ATTR_STATE_SENSITIVE: True,
         ATTR_DISABLED_BY_DEFAULT: True,
@@ -121,8 +107,8 @@ ENTITY_TYPES = {
         ATTR_NAME: "Balance",
         ATTR_ICON: "mdi:cash",
         ATTR_UNIT_OF_MEASUREMENT: None,
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_MONETARY,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
+        ATTR_DEVICE_CLASS: SensorDeviceClass.MONETARY,
+        ATTR_STATE_CLASS: SensorStateClass.MEASUREMENT,
         ATTR_ATTRIBUTE: "balance",
         ATTR_STATE_SENSITIVE: False,
     },
@@ -130,8 +116,8 @@ ENTITY_TYPES = {
         ATTR_NAME: "Balance Secondary",
         ATTR_ICON: "mdi:cash",
         ATTR_UNIT_OF_MEASUREMENT: None,
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_MONETARY,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
+        ATTR_DEVICE_CLASS: SensorDeviceClass.MONETARY,
+        ATTR_STATE_CLASS: SensorStateClass.MEASUREMENT,
         ATTR_ATTRIBUTE: "balance_other",
         ATTR_STATE_SENSITIVE: False,
         ATTR_DISABLED_BY_DEFAULT: True,
@@ -140,7 +126,7 @@ ENTITY_TYPES = {
         ATTR_NAME: "Speed",
         ATTR_ICON: "mdi:gauge",
         ATTR_UNIT_OF_MEASUREMENT: SPEED_KILOMETERS_PER_HOUR,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
+        ATTR_STATE_CLASS: SensorStateClass.MEASUREMENT,
         ATTR_ATTRIBUTE: "speed",
         ATTR_STATE_SENSITIVE: True,
     },
@@ -148,7 +134,7 @@ ENTITY_TYPES = {
         ATTR_NAME: "Tachometer",
         ATTR_ICON: "mdi:gauge",
         ATTR_UNIT_OF_MEASUREMENT: "rpm",
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
+        ATTR_STATE_CLASS: SensorStateClass.MEASUREMENT,
         ATTR_ATTRIBUTE: "engine_rpm",
         ATTR_STATE_SENSITIVE: True,
     },
@@ -162,16 +148,16 @@ ENTITY_TYPES = {
             3: "mdi:signal-cellular-3",
         },
         ATTR_DEVICE_CLASS: "gsm_level",
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
+        ATTR_STATE_CLASS: SensorStateClass.MEASUREMENT,
         ATTR_ATTRIBUTE: "gsm_level",
         ATTR_STATE_SENSITIVE: True,
     },
     "battery_voltage": {
         ATTR_NAME: "Battery voltage",
         ATTR_ICON: "mdi:car-battery",
-        ATTR_UNIT_OF_MEASUREMENT: ELECTRIC_POTENTIAL_VOLT,
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_VOLTAGE,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
+        ATTR_UNIT_OF_MEASUREMENT: UnitOfElectricPotential.VOLT,
+        ATTR_DEVICE_CLASS: SensorDeviceClass.VOLTAGE,
+        ATTR_STATE_CLASS: SensorStateClass.MEASUREMENT,
         ATTR_ATTRIBUTE: "voltage",
         ATTR_STATE_SENSITIVE: True,
     },
@@ -179,9 +165,9 @@ ENTITY_TYPES = {
         ATTR_NAME: "Left Front Tire Pressure",
         ATTR_ICON: "mdi:car-tire-alert",
         ATTR_ATTRIBUTE: "can_tpms_front_left",
-        ATTR_UNIT_OF_MEASUREMENT: "kPa",
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_PRESSURE,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
+        ATTR_UNIT_OF_MEASUREMENT: UnitOfPressure.KPA,
+        ATTR_DEVICE_CLASS: SensorDeviceClass.PRESSURE,
+        ATTR_STATE_CLASS: SensorStateClass.MEASUREMENT,
         ATTR_STATE_SENSITIVE: True,
         ATTR_DISABLED_BY_DEFAULT: True,
     },
@@ -189,9 +175,9 @@ ENTITY_TYPES = {
         ATTR_NAME: "Right Front Tire Pressure",
         ATTR_ICON: "mdi:car-tire-alert",
         ATTR_ATTRIBUTE: "can_tpms_front_right",
-        ATTR_UNIT_OF_MEASUREMENT: "kPa",
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_PRESSURE,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
+        ATTR_UNIT_OF_MEASUREMENT: UnitOfPressure.KPA,
+        ATTR_DEVICE_CLASS: SensorDeviceClass.PRESSURE,
+        ATTR_STATE_CLASS: SensorStateClass.MEASUREMENT,
         ATTR_STATE_SENSITIVE: True,
         ATTR_DISABLED_BY_DEFAULT: True,
     },
@@ -199,9 +185,9 @@ ENTITY_TYPES = {
         ATTR_NAME: "Left Back Tire Pressure",
         ATTR_ICON: "mdi:car-tire-alert",
         ATTR_ATTRIBUTE: "can_tpms_back_left",
-        ATTR_UNIT_OF_MEASUREMENT: "kPa",
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_PRESSURE,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
+        ATTR_UNIT_OF_MEASUREMENT: UnitOfPressure.KPA,
+        ATTR_DEVICE_CLASS: SensorDeviceClass.PRESSURE,
+        ATTR_STATE_CLASS: SensorStateClass.MEASUREMENT,
         ATTR_STATE_SENSITIVE: True,
         ATTR_DISABLED_BY_DEFAULT: True,
     },
@@ -209,9 +195,9 @@ ENTITY_TYPES = {
         ATTR_NAME: "Right Back Tire Pressure",
         ATTR_ICON: "mdi:car-tire-alert",
         ATTR_ATTRIBUTE: "can_tpms_back_right",
-        ATTR_UNIT_OF_MEASUREMENT: "kPa",
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_PRESSURE,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
+        ATTR_UNIT_OF_MEASUREMENT: UnitOfPressure.KPA,
+        ATTR_DEVICE_CLASS: SensorDeviceClass.PRESSURE,
+        ATTR_STATE_CLASS: SensorStateClass.MEASUREMENT,
         ATTR_STATE_SENSITIVE: True,
         ATTR_DISABLED_BY_DEFAULT: True,
     },
@@ -220,16 +206,16 @@ ENTITY_TYPES = {
         ATTR_ICON: "mdi:car-tire-alert",
         ATTR_ATTRIBUTE: "can_tpms_reserve",
         ATTR_UNIT_OF_MEASUREMENT: "kPa",
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_PRESSURE,
-        ATTR_STATE_CLASS: STATE_CLASS_MEASUREMENT,
+        ATTR_DEVICE_CLASS: SensorDeviceClass.PRESSURE,
+        ATTR_STATE_CLASS: SensorStateClass.MEASUREMENT,
         ATTR_STATE_SENSITIVE: True,
         ATTR_DISABLED_BY_DEFAULT: True,
     },
     "track_distance": {
         ATTR_NAME: "Track Distance",
         ATTR_ICON: "mdi:road-variant",
-        ATTR_UNIT_OF_MEASUREMENT: LENGTH_KILOMETERS,
-        ATTR_STATE_CLASS: STATE_CLASS_TOTAL_INCREASING,
+        ATTR_UNIT_OF_MEASUREMENT: UnitOfLength.KILOMETERS,
+        ATTR_STATE_CLASS: SensorStateClass.TOTAL_INCREASING,
         ATTR_STATE_SENSITIVE: True,
         ATTR_ATTRIBUTE_SOURCE: lambda d: d.last_point,
         ATTR_ATTRIBUTE: "length",
