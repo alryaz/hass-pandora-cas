@@ -409,7 +409,7 @@ pandora_cas:
 # Именованый способ вызова команд
 - action: call-service
   service: pandora_cas.start_engine
-  service_data:
+  data:
     device_id: 1231234123
 ```
 
@@ -418,7 +418,7 @@ pandora_cas:
 # Универсальный способ вызова команд
 - action: call-service
   service: pandora_cas.remote_command
-  service_data:
+  data:
     device_id: 1234141243
     command_id: 1
 ```
@@ -462,7 +462,7 @@ pandora_cas:
       - hold_action:
           action: call-service
           service: pandora_cas.start_engine
-          service_data:
+          data:
             id: 1234567890
         icon: 'mdi:fan'
         name: Запуск двигателя
