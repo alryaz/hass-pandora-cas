@@ -2,22 +2,23 @@
 
 # _Pandora Car Alarm System_ для _Home Assistant_
 > Автоматизация управления охранными системами Pandora™ и PanDECT<sup>®</sup> в Home Assistant.
->
-> &gt;= Home Assistant 2021.12.0
 > 
->[![hacs_badge](https://img.shields.io/badge/HACS-Default-green.svg)](https://github.com/custom-components/hacs)
->[![Лицензия](https://img.shields.io/badge/%D0%9B%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
->[![Поддержка](https://img.shields.io/badge/%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%B8%D0%B2%D0%B0%D0%B5%D1%82%D1%81%D1%8F%3F-%D0%B4%D0%B0-green.svg)](https://github.com/alryaz/hass-pandora-cas/graphs/commit-activity)  
->
->[![Пожертвование Yandex](https://img.shields.io/badge/%D0%9F%D0%BE%D0%B6%D0%B5%D1%80%D1%82%D0%B2%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-Yandex-red.svg)](https://money.yandex.ru/to/410012369233217)  
->[![Пожертвование PayPal](https://img.shields.io/badge/%D0%9F%D0%BE%D0%B6%D0%B5%D1%80%D1%82%D0%B2%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5-PayPal-blueviolet.svg)](https://www.paypal.me/alryaz)
+> [![hacs_badge](https://img.shields.io/badge/HACS-Default-green.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
+> [![Лицензия](https://img.shields.io/badge/%D0%9B%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+> [![Поддержка](https://img.shields.io/badge/%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%B8%D0%B2%D0%B0%D0%B5%D1%82%D1%81%D1%8F%3F-%D0%B4%D0%B0-green.svg?style=for-the-badge)](https://github.com/alryaz/hass-pandora-cas/graphs/commit-activity)  
 
-> **Техническая поддержка**  
-> [![Группа в Telegram](https://img.shields.io/endpoint?url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Falryaz_ha_addons)](https://telegram.dog/alryaz_ha_addons)
+> 💵 **Пожертвование на развитие проекта**  
+> [![Пожертвование YooMoney](https://img.shields.io/badge/YooMoney-8B3FFD.svg?style=for-the-badge)](https://yoomoney.ru/to/410012369233217)
+> [![Пожертвование Тинькофф](https://img.shields.io/badge/Tinkoff-F8D81C.svg?style=for-the-badge)](https://www.tinkoff.ru/cf/3g8f1RTkf5G)
+> [![Пожертвование PayPal](https://img.shields.io/badge/PayPal-159BD7.svg?style=for-the-badge)](https://www.paypal.me/alryaz)
+> [![Пожертвование Cбербанк](https://img.shields.io/badge/Сбербанк-green.svg?style=for-the-badge)](https://www.sberbank.com/ru/person/dl/jc?linkname=3pDgknI7FY3z7tJnN)
+>
+> 💬 **Техническая поддержка**  
+> [![Группа в Telegram](https://img.shields.io/endpoint?url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Falryaz_ha_addons&style=for-the-badge)](https://telegram.dog/alryaz_ha_addons)
 > 
-> **Вдохновитель, оригинальный разработчик**  
-> [![Репозиторий GitHub](https://img.shields.io/badge/GitHub-turbulator%2Fpandora--cas-blue)](https://github.com/turbulator/pandora-cas)
-> [![Donate](https://img.shields.io/badge/donate-Yandex-orange.svg)](https://money.yandex.ru/to/41001690673042)
+> 🥇 **Вдохновитель, оригинальный разработчик**  
+> [![Репозиторий GitHub](https://img.shields.io/badge/GitHub-turbulator%2Fpandora--cas-blue?style=for-the-badge)](https://github.com/turbulator/pandora-cas)
+> [![Donate](https://img.shields.io/badge/Donate-Yandex-orange.svg?style=for-the-badge)](https://money.yandex.ru/to/41001690673042)
 
 Автомобиль тоже может быть частью умного дома. С помощью этого компонента вы сможете отслеживать состояние, управлять
 и автоматизировать свой автомобиль, если он оборудован охранной системой Pandora. После настройки ваши
