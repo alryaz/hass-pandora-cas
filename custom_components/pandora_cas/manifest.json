@@ -9,6 +9,6 @@
     ],
     "requirements": [],
     "config_flow": true,
-    "version": "2023.6.0",
+    "version": "2023.6.1",
     "iot_class": "cloud_polling"
 }
