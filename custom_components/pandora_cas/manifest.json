@@ -1,8 +1,8 @@
 {
     "domain": "pandora_cas",
     "name": "Pandora Car Alarm System",
-    "documentation": "https://github.com/alryaz/pandora-cas",
-    "issue_tracker": "https://github.com/alryaz/pandora-cas/issues",
+    "documentation": "https://github.com/alryaz/hass-pandora-cas",
+    "issue_tracker": "https://github.com/alryaz/hass-pandora-cas/issues",
     "dependencies": [],
     "codeowners": [
         "@alryaz"
