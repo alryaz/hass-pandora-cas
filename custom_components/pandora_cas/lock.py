@@ -6,7 +6,7 @@ import logging
 from asyncio import run_coroutine_threadsafe
 from dataclasses import dataclass
 from functools import partial
-from typing import Any
+from typing import Any, Optional
 
 from homeassistant.components.lock import (
     LockEntity,
