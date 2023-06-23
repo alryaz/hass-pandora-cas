@@ -217,8 +217,8 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
         """Handle updated data from the coordinator."""
         ed = self.entity_description
         if (
-            ed.attribute == "state"
-            and ed.attribute_source is None
+            ed.attribute_source == "state"
+            and ed.attribute is not None
             and self.coordinator.data
             and ed.key not in self.coordinator.data
         ):
