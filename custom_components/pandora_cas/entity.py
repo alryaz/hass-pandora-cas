@@ -220,7 +220,7 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
             ed.attribute_source == "state"
             and ed.attribute is not None
             and self.coordinator.data
-            and ed.key not in self.coordinator.data
+            and ed.attribute not in self.coordinator.data
         ):
             return
         self.update_native_value()
@@ -244,8 +244,8 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
 class PandoraCASBooleanEntityDescription(PandoraCASEntityDescription):
     icon_on: Optional[str] = None
     icon_off: Optional[str] = None
-    icon_turning_on: Optional[str] = "mdi:progress-check"
-    icon_turning_off: Optional[str] = "mdi:progress-close"
+    icon_turning_on: Optional[str] = "mdi:progress-clock"
+    icon_turning_off: Optional[str] = None
     flag: Optional[Flag] = None
     inverse: bool = False
     command_on: Optional[Union[int, CommandID]] = None
