@@ -29,7 +29,8 @@ _LOGGER = logging.getLogger(__name__)
 class PandoraCASLockEntityDescription(
     PandoraCASBooleanEntityDescription, LockEntityDescription
 ):
-    pass
+    icon_turning_on: Optional[str] = None
+    icon_turning_off: Optional[str] = None
 
 
 ENTITY_TYPES = [
