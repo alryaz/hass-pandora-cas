@@ -1,37 +1,538 @@
 {
-    "config": {
-        "abort": {
-            "account_already_exists": "Аккаунт с таким именем пользователя уже добавлен"
-        },
-        "error": {
-            "invalid_credentials": "Неправильные имя пользователя и/или пароль",
-            "api_error": "Неизвестная ошибка API"
-        },
-        "step": {
-            "user": {
-                "data": {
-                    "username": "Имя пользователя",
-                    "password": "Пароль",
-                    "polling_interval": "Интервал опроса",
-                    "user_agent": "Заголовок User Agent (опционально)"
-                },
-                "title": "Авторизация Pandora",
-                "description": "Введите данные для входа в Вашу учётную запись Pandora Online."
-            }
-        },
-        "title": "Охранная система Pandora"
+  "config": {
+    "abort": {
+      "account_already_exists": "Аккаунт с таким именем пользователя уже добавлен"
     },
-    "options": {
-        "abort": {
-            "yaml_not_supported": "Изменение параметров производится через файловую конфигурацию (YAML)"
+    "error": {
+      "invalid_credentials": "Неправильные имя пользователя и/или пароль",
+      "api_error": "Неизвестная ошибка API"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "username": "Имя пользователя",
+          "password": "Пароль",
+          "polling_interval": "Интервал опроса",
+          "user_agent": "Заголовок User Agent (опционально)"
         },
-        "step": {
-            "init": {
-                "data": {
-                    "password": "Пароль"
-                },
-                "description": ""
-            }
-        }
+        "title": "Авторизация Pandora",
+        "description": "Введите данные для входа в Вашу учётную запись Pandora Online."
+      }
+    },
+    "title": "Охранная система Pandora"
+  },
+  "options": {
+    "abort": {
+      "yaml_not_supported": "Изменение параметров производится через файловую конфигурацию (YAML)"
+    },
+    "step": {
+      "init": {
+        "data": {
+          "password": "Пароль"
+        },
+        "description": ""
+      }
     }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connection_state": {
+        "name": "Соединение",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "moving": {
+        "name": "В движении",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "driver_door": {
+        "name": "Дверь водителя",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        },
+        "state": {
+          "on": "Открыта",
+          "off": "Закрыта"
+        }
+      },
+      "passenger_door": {
+        "name": "Дверь пассажира",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        },
+        "state": {
+          "on": "Открыта",
+          "off": "Закрыта"
+        }
+      },
+      "left_back_door": {
+        "name": "Левая задняя дверь",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        },
+        "state": {
+          "on": "Открыта",
+          "off": "Закрыта"
+        }
+      },
+      "right_back_door": {
+        "name": "Правая задняя дверь",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        },
+        "state": {
+          "on": "Открыта",
+          "off": "Закрыта"
+        }
+      },
+      "driver_glass": {
+        "name": "Стеклоподъёмник водителя",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "passenger_glass": {
+        "name": "Стеклоподъёмник пассажира",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "left_back_glass": {
+        "name": "Задний левый стеклоподъёмник",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "right_back_glass": {
+        "name": "Задний правый стеклоподъёмник",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "trunk": {
+        "name": "Багажник",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        },
+        "state": {
+          "on": "Открыт",
+          "off": "Закрыт"
+        }
+      },
+      "hood": {
+        "name": "Капот",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        },
+        "state": {
+          "on": "Открыт",
+          "off": "Закрыт"
+        }
+      },
+      "parking": {
+        "name": "Нейтраль",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "brakes": {
+        "name": "Тормоз",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "ignition": {
+        "name": "Зажигание",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "exterior_lights": {
+        "name": "Внешний свет",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "ev_charging_connected": {
+        "name": "Зарядка подключена",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "can_low_liquid": {
+        "name": "Низкий уровень жидкости",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "evacuation_mode": {
+        "name": "Evacuation Mode",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      }
+    },
+    "sensor": {
+      "mileage": {
+        "name": "Пробег системы",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "can_mileage": {
+        "name": "Пробег по CAN",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "fuel": {
+        "name": "Топливный бак",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "interior_temperature": {
+        "name": "Температура в салоне",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "engine_temperature": {
+        "name": "Температура двигателя",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "exterior_temperature": {
+        "name": "Температура за бортом",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "battery_temperature": {
+        "name": "Температура аккумулятора",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "balance": {
+        "name": "Баланс SIM",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "balance_secondary": {
+        "name": "Баланс дополнительной SIM",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "speed": {
+        "name": "Скорость",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "tachometer": {
+        "name": "Обороты",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "gsm_level": {
+        "name": "Уровень GSM",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        },
+        "state": {
+          "0": "Нет связи",
+          "1": "Слабый",
+          "2": "Средний",
+          "3": "Сильный"
+        }
+      },
+      "battery_voltage": {
+        "name": "Напряжение аккумулятора",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "left_front_tire_pressure": {
+        "name": "Давление передней левой шины",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "right_front_tire_pressure": {
+        "name": "Давление передней правой шины",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "left_back_tire_pressure": {
+        "name": "Давление задней левой шины",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "right_back_tire_pressure": {
+        "name": "Давление задней правой шины",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "reserve_tire_pressure": {
+        "name": "Давление запасной шины",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "track_distance": {
+        "name": "Дистанция трека",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "key_number": {
+        "name": "Номер ключа",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "tag_number": {
+        "name": "Номер метки",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "rotation": {
+        "name": "Поворот",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "direction": {
+        "name": "Направление",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "last_online": {
+        "name": "Последняя связь",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "last_state_update": {
+        "name": "Последнее изменение",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "last_settings_change": {
+        "name": "Поледняя настройка",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "last_command_execution": {
+        "name": "Посследняя команда",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "can_mileage_to_empty": {
+        "name": "Пробег на оставшемся топливе",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      }
+    },
+    "switch": {
+      "active_security": {
+        "name": "Активная охрана",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "tracking": {
+        "name": "Трекинг",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "block_heater": {
+        "name": "Предпусковой подогреватель",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "engine": {
+        "name": "Двигатель",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "service_mode": {
+        "name": "Сервисный режим",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "ext_channel": {
+        "name": "Дополнтельный канал",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "status_output": {
+        "name": "Статусный выход",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      }
+    },
+    "lock": {
+      "central_lock": {
+        "name": "Центральный замок",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      }
+    },
+    "device_tracker": {
+      "pandora": {
+        "name": "Pandora",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "system": {
+        "name": "Pandora",
+        "state_attributes": {
+          "gsm_level": {
+            "name": "Уровень GSM"
+          },
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      }
+    }
+  }
 }

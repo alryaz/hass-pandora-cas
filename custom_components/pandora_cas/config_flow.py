@@ -6,11 +6,12 @@ from typing import Any, Dict, Final, List, Optional
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, CONF_VERIFY_SSL
 from homeassistant.core import callback
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import ConfigType
 
-from .const import DOMAIN
+from .const import DOMAIN, CONF_DISABLE_WEBSOCKETS
 from .api import (
     AuthenticationException,
     PandoraOnlineAccount,
@@ -25,29 +26,16 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
     """Handle a config flow for Pandora Car Alarm System config entries."""
 
     CONNECTION_CLASS: Final[str] = config_entries.CONN_CLASS_CLOUD_PUSH
-    VERSION: Final[int] = 2
+    VERSION: Final[int] = 4
 
     def __init__(self) -> None:
         self._user_schema = vol.Schema(
             {
                 vol.Required(CONF_USERNAME): str,
                 vol.Required(CONF_PASSWORD): str,
+                vol.Optional(CONF_VERIFY_SSL, default=True): bool,
             }
         )
-
-    async def _check_entry_exists(self, username: str) -> bool:
-        """
-        Check whether entry for account with given username exists.
-        :param username: Account username
-        :return: Query result
-        """
-        current_entries = self._async_current_entries()
-
-        for config_entry in current_entries:
-            if config_entry.data[CONF_USERNAME] == username:
-                return True
-
-        return False
 
     async def _create_entry(self, config: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -57,16 +45,22 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
         """
         username = config[CONF_USERNAME]
 
-        if await self._check_entry_exists(username):
-            _LOGGER.warning(
-                f"Configuration for username '{username}' "
-                f"already exists, not adding"
-            )
-            return self.async_abort(reason="account_already_exists")
+        await self.async_set_unique_id(username)
+        self._abort_if_unique_id_configured()
 
         _LOGGER.debug(f"Creating entry for username {username}")
 
-        return self.async_create_entry(title=username, data=config)
+        return self.async_create_entry(
+            title=username,
+            data={
+                CONF_USERNAME: config[CONF_USERNAME],
+                CONF_PASSWORD: config[CONF_PASSWORD],
+            },
+            options={
+                CONF_VERIFY_SSL: config[CONF_VERIFY_SSL],
+                CONF_DISABLE_WEBSOCKETS: False,
+            },
+        )
 
     async def async_step_user(
         self, user_input: Optional[Dict[str, Any]] = None
@@ -85,6 +79,9 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
         account = PandoraOnlineAccount(
             username=user_input[CONF_USERNAME],
             password=user_input[CONF_PASSWORD],
+            session=async_get_clientsession(
+                self.hass, verify_ssl=user_input[CONF_VERIFY_SSL]
+            ),
         )
 
         try:

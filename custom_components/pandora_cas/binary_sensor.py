@@ -3,156 +3,206 @@ __all__ = ["ENTITY_TYPES", "async_setup_entry"]
 
 import logging
 from functools import partial
-from typing import Any, Dict
+from typing import Mapping, Any, Dict
 
 import attr
 from homeassistant.components.binary_sensor import (
-    DEVICE_CLASS_CONNECTIVITY,
-    DEVICE_CLASS_DOOR,
-    DEVICE_CLASS_MOTION,
-    DOMAIN as PLATFORM_DOMAIN,
     BinarySensorEntity,
     ENTITY_ID_FORMAT,
+    BinarySensorDeviceClass,
 )
-from homeassistant.const import ATTR_NAME, ATTR_ICON, ATTR_DEVICE_CLASS
+from homeassistant.const import Platform
+from homeassistant.core import callback
+from homeassistant.helpers.typing import StateType
 
-from . import PandoraCASBooleanEntity, async_platform_setup_entry
-from .api import BitStatus
-from .const import *
+from .api import BitStatus, CurrentState
+from .entity import (
+    async_platform_setup_entry,
+    PandoraCASBooleanEntity,
+    PandoraCASBooleanEntityDescription,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
-_car_door_icons = ("mdi:car-door-lock", "mdi:car-door")
-_car_glass_icons = ("mdi:car-windshield", "mdi:car-windshield-outline")
+_ICON_CAR_DOOR_ON = "mdi:car-door"
+_ICON_CAR_DOOR_OFF = "mdi:car-door-lock"
+_ICON_CAR_GLASS_ON = "mdi:car-windshield-outline"
+_ICON_CAR_GLASS_OFF = "mdi:car-windshield"
 
-ENTITY_TYPES = {
-    "connection_state": {
-        ATTR_NAME: "Connection state",
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_CONNECTIVITY,
-        ATTR_ATTRIBUTE: "is_online",
-        ATTR_ATTRIBUTE_SOURCE: True,
-    },
-    "moving": {
-        ATTR_NAME: "Moving",
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_MOTION,
-        ATTR_STATE_SENSITIVE: True,
-        ATTR_ATTRIBUTE: "is_moving",
-    },
+ENTITY_TYPES = [
+    PandoraCASBooleanEntityDescription(
+        key="connection_state",
+        name="Connection state",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        attribute="is_online",
+        attribute_source=None,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="moving",
+        name="Moving",
+        device_class=BinarySensorDeviceClass.MOTION,
+        online_sensitive=True,
+        attribute="is_moving",
+    ),
     # Status-related sensors
-    "left_front_door": {
-        ATTR_NAME: "Left Front Door",
-        ATTR_ICON: _car_door_icons,
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
-        ATTR_ATTRIBUTE: "bit_state",
-        ATTR_FLAG: BitStatus.DOOR_FRONT_LEFT_OPEN,
-        ATTR_STATE_SENSITIVE: True,
-    },
-    "right_front_door": {
-        ATTR_NAME: "Right Front Door",
-        ATTR_ICON: _car_door_icons,
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
-        ATTR_ATTRIBUTE: "bit_state",
-        ATTR_FLAG: BitStatus.DOOR_FRONT_RIGHT_OPEN,
-        ATTR_STATE_SENSITIVE: True,
-    },
-    "left_back_door": {
-        ATTR_NAME: "Left Back Door",
-        ATTR_ICON: _car_door_icons,
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
-        ATTR_ATTRIBUTE: "bit_state",
-        ATTR_FLAG: BitStatus.DOOR_BACK_LEFT_OPEN,
-        ATTR_STATE_SENSITIVE: True,
-    },
-    "right_back_door": {
-        ATTR_NAME: "Right Back Door",
-        ATTR_ICON: _car_door_icons,
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
-        ATTR_ATTRIBUTE: "bit_state",
-        ATTR_FLAG: BitStatus.DOOR_BACK_RIGHT_OPEN,
-        ATTR_STATE_SENSITIVE: True,
-    },
-    "left_front_glass": {
-        ATTR_NAME: "Left Front Glass",
-        ATTR_ICON: _car_glass_icons,
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
-        ATTR_ATTRIBUTE: "can_glass_front_left",
-        ATTR_STATE_SENSITIVE: True,
-        ATTR_DISABLED_BY_DEFAULT: True,
-    },
-    "right_front_glass": {
-        ATTR_NAME: "Right Front Glass",
-        ATTR_ICON: _car_glass_icons,
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
-        ATTR_ATTRIBUTE: "can_glass_front_right",
-        ATTR_STATE_SENSITIVE: True,
-        ATTR_DISABLED_BY_DEFAULT: True,
-    },
-    "left_back_glass": {
-        ATTR_NAME: "Left Back Glass",
-        ATTR_ICON: _car_glass_icons,
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
-        ATTR_ATTRIBUTE: "can_glass_back_left",
-        ATTR_STATE_SENSITIVE: True,
-        ATTR_DISABLED_BY_DEFAULT: True,
-    },
-    "right_back_glass": {
-        ATTR_NAME: "Right Back Glass",
-        ATTR_ICON: _car_glass_icons,
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
-        ATTR_ATTRIBUTE: "can_glass_back_right",
-        ATTR_STATE_SENSITIVE: True,
-        ATTR_DISABLED_BY_DEFAULT: True,
-    },
-    "trunk": {
-        ATTR_NAME: "Trunk",
-        ATTR_ICON: "mdi:car-back",
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
-        ATTR_ATTRIBUTE: "bit_state",
-        ATTR_FLAG: BitStatus.TRUNK_OPEN,
-        ATTR_STATE_SENSITIVE: True,
-    },
-    "hood": {
-        ATTR_NAME: "Hood",
-        ATTR_ICON: "mdi:car",
-        ATTR_DEVICE_CLASS: DEVICE_CLASS_DOOR,
-        ATTR_ATTRIBUTE: "bit_state",
-        ATTR_FLAG: BitStatus.HOOD_OPEN,
-        ATTR_STATE_SENSITIVE: True,
-    },
-    "parking": {
-        ATTR_NAME: "Parking Mode",
-        ATTR_ICON: "mdi:car-brake-parking",
-        ATTR_ATTRIBUTE: "bit_state",
-        ATTR_FLAG: BitStatus.HANDBRAKE_ENGAGED,
-        ATTR_STATE_SENSITIVE: True,
-    },
-    "brakes": {
-        ATTR_NAME: "Brakes",
-        ATTR_ICON: "mdi:car-brake-hold",
-        ATTR_ATTRIBUTE: "bit_state",
-        ATTR_FLAG: BitStatus.BRAKES_ENGAGED,
-        ATTR_STATE_SENSITIVE: True,
-    },
-    "ignition": {
-        ATTR_NAME: "Ignition",
-        ATTR_ICON: "mdi:key-variant",
-        ATTR_ATTRIBUTE: "bit_state",
-        ATTR_FLAG: BitStatus.IGNITION,
-    },
-    "exterior_lights": {
-        ATTR_NAME: "Exterior Lights",
-        ATTR_ICON: "mdi:car-light-high",
-        ATTR_ATTRIBUTE: "bit_state",
-        ATTR_FLAG: BitStatus.EXTERIOR_LIGHTS_ACTIVE,
-    },
-    "ev_charging_connected": {
-        ATTR_NAME: "EV Charging Connected",
-        ATTR_ICON: "mdi:ev-station",
-        ATTR_ATTRIBUTE: "ev_charging_connected",
-        ATTR_STATE_SENSITIVE: True,
-        ATTR_DISABLED_BY_DEFAULT: True,
-    },
-}
+    PandoraCASBooleanEntityDescription(
+        key="driver_door",
+        name="Driver Door",
+        icon=_ICON_CAR_DOOR_ON,
+        icon_off=_ICON_CAR_DOOR_OFF,
+        device_class=BinarySensorDeviceClass.DOOR,
+        attribute="bit_state",
+        flag=BitStatus.DOOR_DRIVER_OPEN,
+        online_sensitive=True,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="passenger_door",
+        name="Passenger Door",
+        icon=_ICON_CAR_DOOR_ON,
+        icon_off=_ICON_CAR_DOOR_OFF,
+        device_class=BinarySensorDeviceClass.DOOR,
+        attribute="bit_state",
+        flag=BitStatus.DOOR_PASSENGER_OPEN,
+        online_sensitive=True,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="left_back_door",
+        name="Left Back Door",
+        icon=_ICON_CAR_DOOR_ON,
+        icon_off=_ICON_CAR_DOOR_OFF,
+        device_class=BinarySensorDeviceClass.DOOR,
+        attribute="bit_state",
+        flag=BitStatus.DOOR_BACK_LEFT_OPEN,
+        online_sensitive=True,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="right_back_door",
+        name="Right Back Door",
+        icon=_ICON_CAR_DOOR_ON,
+        icon_off=_ICON_CAR_DOOR_OFF,
+        device_class=BinarySensorDeviceClass.DOOR,
+        attribute="bit_state",
+        flag=BitStatus.DOOR_BACK_RIGHT_OPEN,
+        online_sensitive=True,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="driver_glass",
+        name="Driver Glass",
+        icon=_ICON_CAR_GLASS_ON,
+        icon_off=_ICON_CAR_GLASS_OFF,
+        device_class=BinarySensorDeviceClass.DOOR,
+        attribute="can_glass_driver",
+        online_sensitive=True,
+        entity_registry_enabled_default=False,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="passenger_glass",
+        name="Passenger Glass",
+        icon=_ICON_CAR_GLASS_ON,
+        icon_off=_ICON_CAR_GLASS_OFF,
+        device_class=BinarySensorDeviceClass.DOOR,
+        attribute="can_glass_passenger",
+        online_sensitive=True,
+        entity_registry_enabled_default=False,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="left_back_glass",
+        name="Left Back Glass",
+        icon=_ICON_CAR_GLASS_ON,
+        icon_off=_ICON_CAR_GLASS_OFF,
+        device_class=BinarySensorDeviceClass.DOOR,
+        attribute="can_glass_back_left",
+        online_sensitive=True,
+        entity_registry_enabled_default=False,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="right_back_glass",
+        name="Right Back Glass",
+        icon=_ICON_CAR_GLASS_ON,
+        icon_off=_ICON_CAR_GLASS_OFF,
+        device_class=BinarySensorDeviceClass.DOOR,
+        attribute="can_glass_back_right",
+        online_sensitive=True,
+        entity_registry_enabled_default=False,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="trunk",
+        name="Trunk",
+        icon="mdi:car-back",
+        device_class=BinarySensorDeviceClass.DOOR,
+        attribute="bit_state",
+        flag=BitStatus.TRUNK_OPEN,
+        online_sensitive=True,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="hood",
+        name="Hood",
+        icon="mdi:car",
+        device_class=BinarySensorDeviceClass.DOOR,
+        attribute="bit_state",
+        flag=BitStatus.HOOD_OPEN,
+        online_sensitive=True,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="parking",
+        name="Parking Mode",
+        icon="mdi:car-brake-parking",
+        attribute="bit_state",
+        flag=BitStatus.HANDBRAKE_ENGAGED,
+        online_sensitive=True,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="brakes",
+        name="Brakes",
+        icon="mdi:car-brake-hold",
+        attribute="bit_state",
+        flag=BitStatus.BRAKES_ENGAGED,
+        online_sensitive=True,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="ignition",
+        name="Ignition",
+        icon="mdi:key-variant",
+        attribute="bit_state",
+        flag=BitStatus.IGNITION,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="exterior_lights",
+        name="Exterior Lights",
+        icon="mdi:car-light-high",
+        device_class=BinarySensorDeviceClass.LIGHT,
+        attribute="bit_state",
+        flag=BitStatus.EXTERIOR_LIGHTS_ACTIVE,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="evacuation_mode",
+        name="Evacuation Mode",
+        icon="mdi:train-car-flatbed-car",
+        icon_off="mdi:train-car-flatbed",
+        attribute="bit_state",
+        flag=BitStatus.EVACUATION_MODE_ACTIVE,
+        online_sensitive=True,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="ev_charging_connected",
+        name="EV Charging Connected",
+        icon="mdi:ev-station",
+        attribute="ev_charging_connected",
+        online_sensitive=True,
+        entity_registry_enabled_default=False,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="can_low_liquid",
+        name="CAN Low Liquid",
+        icon="mdi:wiper",
+        icon_on="mdi:wiper-wash-alert",
+        icon_off="mdi:wiper-wash",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        attribute="can_low_liquid",
+        online_sensitive=True,
+        entity_registry_enabled_default=False,
+    ),
+]
 
 
 class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
@@ -160,36 +210,44 @@ class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
     ENTITY_ID_FORMAT = ENTITY_ID_FORMAT
 
     @property
-    def is_on(self) -> bool:
-        """Return current state of"""
-        return bool(self._state)
+    def is_on(self) -> bool | None:
+        if self.available:
+            return self._attr_native_value
 
     @property
-    def extra_state_attributes(self) -> Dict[str, Any]:
-        existing_attributes = super().extra_state_attributes
-        entity_type = self._entity_type
+    def extra_state_attributes(self) -> Mapping[str, Any] | None:
+        attributes: Dict[str, StateType] = dict()
+        if super_attr := super().extra_state_attributes:
+            attributes.update(super_attr)
 
-        if entity_type == "connection_state":
-            state = self._device.state
-            if state is not None:
-                existing_attributes.update(attr.asdict(state, True))
+        key = self.entity_description.key
+        state = self.coordinator.device.state
 
-        elif entity_type == "ev_charging_connected":
-            if not self._device.is_online:
-                return existing_attributes
+        if key == "ev_charging_connected":
+            if self.available and state:
+                attributes["slow_charging"] = state.ev_charging_slow
+                attributes["fast_charging"] = state.ev_charging_fast
+                attributes["ready_status"] = state.ev_status_ready
+            else:
+                attributes.update(
+                    dict.fromkeys(
+                        ("slow_charging", "fast_charging", "ready_status")
+                    )
+                )
 
-            state = self._device.state
+        # # @TODO: fix for StateType typing
+        # elif key == "connection_state":
+        #     attributes.update(
+        #         attr.asdict(state, True)
+        #         if state
+        #         else dict.fromkeys(attr.fields_dict(CurrentState))
+        #     )
 
-            existing_attributes["slow_charging"] = state.ev_charging_slow
-            existing_attributes["fast_charging"] = state.ev_charging_fast
-            existing_attributes["ready_status"] = state.ev_status_ready
-
-        return existing_attributes
+        return attributes
 
 
 async_setup_entry = partial(
     async_platform_setup_entry,
-    PLATFORM_DOMAIN,
     PandoraCASBinarySensor,
     logger=_LOGGER,
 )

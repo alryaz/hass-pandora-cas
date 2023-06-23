@@ -1,87 +1,108 @@
 """Binary sensor platform for Pandora Car Alarm System."""
 __all__ = ("ENTITY_TYPES", "async_setup_entry")
 
+import asyncio
 import logging
-from asyncio import run_coroutine_threadsafe
 from functools import partial
 from typing import Any
 
-from homeassistant.components.switch import (
-    SwitchEntity,
-    DOMAIN as PLATFORM_DOMAIN,
-    ENTITY_ID_FORMAT,
-)
-from homeassistant.const import ATTR_NAME, ATTR_ICON, ATTR_COMMAND
+from homeassistant.components.switch import SwitchEntity, ENTITY_ID_FORMAT
 
-from . import PandoraCASBooleanEntity, async_platform_setup_entry
-from .api import BitStatus, CommandID, Features
-from .const import *
+from custom_components.pandora_cas.entity import (
+    async_platform_setup_entry,
+    PandoraCASBooleanEntityDescription,
+    PandoraCASBooleanEntity,
+)
+from custom_components.pandora_cas.api import BitStatus, CommandID, Features
 
 _LOGGER = logging.getLogger(__name__)
 
 
-ENTITY_TYPES = {
-    "active_security": {
-        ATTR_NAME: "Active Security",
-        ATTR_ICON: ("mdi:shield-off", "mdi:shield-car"),
-        ATTR_ATTRIBUTE: "bit_state",
-        ATTR_FLAG: BitStatus.ACTIVE_SECURITY,
-        ATTR_STATE_SENSITIVE: True,
-        ATTR_COMMAND: (
-            CommandID.DISABLE_ACTIVE_SECURITY,
-            CommandID.ENABLE_ACTIVE_SECURITY,
-        ),
-        ATTR_FEATURE: Features.ACTIVE_SECURITY,
-    },
-    "tracking": {
-        ATTR_NAME: "Tracking",
-        ATTR_ICON: ("mdi:map-marker-off", "mdi:map-marker-distance"),
-        ATTR_ATTRIBUTE: "bit_state",
-        ATTR_FLAG: BitStatus.TRACKING_ENABLED,
-        ATTR_STATE_SENSITIVE: True,
-        ATTR_COMMAND: (CommandID.DISABLE_TRACKING, CommandID.ENABLE_TRACKING),
-        ATTR_FEATURE: Features.TRACKING,
-    },
-    "coolant_heater": {
-        ATTR_NAME: "Coolant Heater",
-        ATTR_ICON: ("mdi:radiator-disabled", "mdi:radiator"),
-        ATTR_ATTRIBUTE: "bit_state",
-        ATTR_FLAG: BitStatus.BLOCK_HEATER_ACTIVE,
-        ATTR_STATE_SENSITIVE: True,
-        ATTR_COMMAND: (
-            CommandID.TURN_OFF_COOLANT_HEATER,
-            CommandID.TURN_ON_COOLANT_HEATER,
-        ),
-        ATTR_FEATURE: Features.COOLANT_HEATER,
-    },
-    "engine": {
-        ATTR_NAME: "Engine",
-        ATTR_ICON: ("mdi:fan-off", "mdi:fan"),
-        ATTR_ATTRIBUTE: "bit_state",
-        ATTR_FLAG: BitStatus.ENGINE_RUNNING,
-        ATTR_STATE_SENSITIVE: True,
-        ATTR_COMMAND: (CommandID.STOP_ENGINE, CommandID.START_ENGINE),
-    },
-    "service_mode": {
-        ATTR_NAME: "Service Mode",
-        ATTR_ICON: "mdi:wrench",
-        ATTR_ATTRIBUTE: "bit_state",
-        ATTR_FLAG: BitStatus.SERVICE_MODE_ACTIVE,
-        ATTR_STATE_SENSITIVE: True,
-        ATTR_COMMAND: (CommandID.DISABLE_SERVICE_MODE, CommandID.ENABLE_SERVICE_MODE),
-    },
-    "ext_channel": {
-        ATTR_NAME: "Extra Channel",
-        ATTR_ICON: "mdi:export",
-        ATTR_FEATURE: Features.EXT_CHANNEL,
-        ATTR_COMMAND: (CommandID.TURN_OFF_EXT_CHANNEL, CommandID.TURN_ON_EXT_CHANNEL),
-    },
-    "status_output": {
-        ATTR_NAME: "Status Output",
-        ATTR_ICON: ("mdi:engine-off", "mdi:engine-on"),
-        ATTR_COMMAND: (CommandID.DISABLE_STATUS_OUTPUT, CommandID.ENABLE_STATUS_OUTPUT),
-    },
-}
+ENTITY_TYPES = [
+    PandoraCASBooleanEntityDescription(
+        key="active_security",
+        name="Active Security",
+        icon="mdi:shield-car",
+        icon_off="mdi:shield-off",
+        icon_turning_on="mdi:shield-sync",
+        attribute="bit_state",
+        online_sensitive=True,
+        flag=BitStatus.ACTIVE_SECURITY_ENABLED,
+        command_on=CommandID.ENABLE_ACTIVE_SECURITY,
+        command_off=CommandID.DISABLE_ACTIVE_SECURITY,
+        features=Features.ACTIVE_SECURITY,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="tracking",
+        name="Tracking",
+        icon="mdi:map-marker-path",
+        icon_off="mdi:map-marker-off",
+        icon_turning_on="mdi:map-marker-plus",
+        icon_turning_off="mdi:map-marker-minus",
+        attribute="bit_state",
+        online_sensitive=True,
+        flag=BitStatus.TRACKING_ENABLED,
+        command_on=CommandID.ENABLE_TRACKING,
+        command_off=CommandID.DISABLE_TRACKING,
+        features=Features.TRACKING,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="block_heater",
+        name="Block Heater",
+        icon="mdi:radiator-disabled",
+        icon_on="mdi:radiator",
+        icon_off="mdi:radiator-off",
+        attribute="bit_state",
+        online_sensitive=True,
+        flag=BitStatus.BLOCK_HEATER_ACTIVE,
+        command_on=CommandID.TURN_ON_BLOCK_HEATER,
+        command_off=CommandID.TURN_OFF_BLOCK_HEATER,
+        features=Features.BLOCK_HEATER,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="engine",
+        name="Engine",
+        icon_off="mdi:engine-off",
+        icon="mdi:engine",
+        attribute="bit_state",
+        online_sensitive=True,
+        flag=BitStatus.ENGINE_RUNNING,
+        command_on=CommandID.START_ENGINE,
+        command_off=CommandID.STOP_ENGINE,
+        # features=Features.AUTO_START,  # @TODO: check whether true
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="service_mode",
+        name="Service Mode",
+        icon_off="mdi:wrench",
+        attribute="bit_state",
+        online_sensitive=True,
+        flag=BitStatus.SERVICE_MODE_ACTIVE,
+        command_on=CommandID.ENABLE_SERVICE_MODE,
+        command_off=CommandID.DISABLE_SERVICE_MODE,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="ext_channel",
+        name="Extra Channel",
+        icon="mdi:export",
+        attribute="bit_state",
+        online_sensitive=True,
+        command_on=CommandID.TURN_ON_EXT_CHANNEL,
+        command_off=CommandID.TURN_OFF_EXT_CHANNEL,
+        features=Features.EXT_CHANNEL,
+        assumed_state=True,
+    ),
+    PandoraCASBooleanEntityDescription(
+        key="status_output",
+        name="Status Output",
+        icon="mdi:led-off",
+        # icon_turning_on="",
+        # icon_turning_off="",
+        command_on=CommandID.ENABLE_STATUS_OUTPUT,
+        command_off=CommandID.DISABLE_STATUS_OUTPUT,
+        assumed_state=True,
+    ),
+]
 
 
 class PandoraCASSwitch(PandoraCASBooleanEntity, SwitchEntity):
@@ -89,32 +110,47 @@ class PandoraCASSwitch(PandoraCASBooleanEntity, SwitchEntity):
     ENTITY_ID_FORMAT = ENTITY_ID_FORMAT
 
     @property
-    def is_on(self) -> bool:
-        """Return current state of switch."""
-        return bool(self._state)
-
-    @property
-    def assumed_state(self) -> bool:
-        """Missing attribute implies unable to access exact state."""
-        return ATTR_ATTRIBUTE not in self.entity_type_config
+    def is_on(self) -> bool | None:
+        if not self.entity_description.assumed_state:
+            return self._attr_native_value
 
     async def async_turn_on(self, **kwargs) -> None:
         """Proxy method to run enable boolean command."""
-        await self._run_boolean_command(True)
+        self._is_turning_on = True
+        self.async_write_ha_state()
+        try:
+            await self.run_binary_command(True)
+        except BaseException:
+            self._is_turning_on = False
+            self.async_write_ha_state()
+            raise
 
     async def async_turn_off(self, **kwargs) -> None:
         """Proxy method to run disable boolean command."""
-        await self._run_boolean_command(False)
+        self._is_turning_off = True
+        self.async_write_ha_state()
+        try:
+            await self.run_binary_command(False)
+        except BaseException:
+            self._is_turning_off = False
+            self.async_write_ha_state()
+            raise
 
     def turn_on(self, **kwargs: Any) -> None:
         """Compatibility for synchronous turn on calls."""
-        run_coroutine_threadsafe(self.async_turn_on(), self.hass.loop).result()
+        asyncio.run_coroutine_threadsafe(
+            self.async_turn_on(), self.hass.loop
+        ).result()
 
     def turn_off(self, **kwargs: Any) -> None:
         """Compatibility for synchronous turn off calls."""
-        run_coroutine_threadsafe(self.async_turn_off(), self.hass.loop).result()
+        asyncio.run_coroutine_threadsafe(
+            self.async_turn_off(), self.hass.loop
+        ).result()
 
 
 async_setup_entry = partial(
-    async_platform_setup_entry, PLATFORM_DOMAIN, PandoraCASSwitch, logger=_LOGGER
+    async_platform_setup_entry,
+    PandoraCASSwitch,
+    logger=_LOGGER,
 )

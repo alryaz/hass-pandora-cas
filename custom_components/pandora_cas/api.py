@@ -84,8 +84,8 @@ class CommandID(IntEnum):
     DISABLE_ACTIVE_SECURITY = 18
 
     # Coolant heater toggle
-    TURN_ON_COOLANT_HEATER = 21
-    TURN_OFF_COOLANT_HEATER = 22
+    TURN_ON_BLOCK_HEATER = 21
+    TURN_OFF_BLOCK_HEATER = 22
 
     # External (timer) channel toggle
     TURN_ON_EXT_CHANNEL = 33
@@ -177,8 +177,8 @@ class BitStatus(IntFlag):
     EXTERIOR_LIGHTS_ACTIVE = pow(2, 18)  # Any exterior lights are active
     SIREN_WARNINGS_ENABLED = pow(2, 19)  # Siren warning signals disabled
     SIREN_SOUND_ENABLED = pow(2, 20)  # All siren signals disabled
-    DOOR_FRONT_LEFT_OPEN = pow(2, 21)  # Door open: front left
-    DOOR_FRONT_RIGHT_OPEN = pow(2, 22)  # Door open: front right
+    DOOR_DRIVER_OPEN = pow(2, 21)  # Door open: front left
+    DOOR_PASSENGER_OPEN = pow(2, 22)  # Door open: front right
     DOOR_BACK_LEFT_OPEN = pow(2, 23)  # Door open: back left
     DOOR_BACK_RIGHT_OPEN = pow(2, 24)  # Door open: back right
     TRUNK_OPEN = pow(2, 25)  # Trunk open
@@ -186,7 +186,7 @@ class BitStatus(IntFlag):
     HANDBRAKE_ENGAGED = pow(2, 27)  # Handbrake is engaged
     BRAKES_ENGAGED = pow(2, 28)  # Pedal brake is engaged
     BLOCK_HEATER_ACTIVE = pow(2, 29)  # Pre-start heater active
-    ACTIVE_SECURITY = pow(2, 30)  # Active security active
+    ACTIVE_SECURITY_ENABLED = pow(2, 30)  # Active security active
     BLOCK_HEATER_ENABLED = pow(2, 31)  # Pre-start heater function is available
     # ... = pow(2, 32) # ?
     EVACUATION_MODE_ACTIVE = pow(2, 33)  # Evacuation mode active
@@ -208,7 +208,7 @@ class Features(Flag):
     CUSTOM_PHONES = auto()
     EVENTS = auto()
     EXTENDED_PROPERTIES = auto()
-    COOLANT_HEATER = auto()
+    BLOCK_HEATER = auto()
     KEEP_ALIVE = auto()
     LIGHT_TOGGLE = auto()
     NOTIFICATIONS = auto()
@@ -233,7 +233,7 @@ class Features(Flag):
             "custom_phones": cls.CUSTOM_PHONES,
             "events": cls.EVENTS,
             "extend_props": cls.EXTENDED_PROPERTIES,
-            "heater": cls.COOLANT_HEATER,
+            "heater": cls.BLOCK_HEATER,
             "keep_alive": cls.KEEP_ALIVE,
             "light": cls.LIGHT_TOGGLE,
             "notification": cls.NOTIFICATIONS,
@@ -351,17 +351,17 @@ class CurrentState:
     can_tpms_back_left: Optional[float] = attr.ib(default=None)
     can_tpms_back_right: Optional[float] = attr.ib(default=None)
     can_tpms_reserve: Optional[float] = attr.ib(default=None)
-    can_glass_front_left: Optional[bool] = attr.ib(default=None)
-    can_glass_front_right: Optional[bool] = attr.ib(default=None)
+    can_glass_driver: Optional[bool] = attr.ib(default=None)
+    can_glass_passenger: Optional[bool] = attr.ib(default=None)
     can_glass_back_left: Optional[bool] = attr.ib(default=None)
     can_glass_back_right: Optional[bool] = attr.ib(default=None)
-    can_belt_front_left: Optional[bool] = attr.ib(default=None)
-    can_belt_front_right: Optional[bool] = attr.ib(default=None)
+    can_belt_driver: Optional[bool] = attr.ib(default=None)
+    can_belt_passenger: Optional[bool] = attr.ib(default=None)
     can_belt_back_left: Optional[bool] = attr.ib(default=None)
     can_belt_back_right: Optional[bool] = attr.ib(default=None)
-    can_low_liquid_warning: Optional[bool] = attr.ib(default=None)
+    can_low_liquid: Optional[bool] = attr.ib(default=None)
     can_mileage_by_battery: Optional[float] = attr.ib(default=None)
-    can_mileage_until_empty: Optional[float] = attr.ib(default=None)
+    can_mileage_to_empty: Optional[float] = attr.ib(default=None)
     can_mileage_to_maintenance: Optional[float] = attr.ib(default=None)
 
     ev_state_of_charge: Optional[float] = attr.ib(default=None)
@@ -497,6 +497,7 @@ class PandoraOnlineAccount:
         username: str,
         password: str,
         access_token: Optional[str] = None,
+        session: Optional[aiohttp.ClientSession] = None,
     ) -> None:
         """
         Instantiate Pandora Online account object.
@@ -504,10 +505,13 @@ class PandoraOnlineAccount:
         :param password: Account password
         :param access_token: Access token (optional)
         """
+        if session is None:
+            session = aiohttp.ClientSession()
+
         self._username = username
         self._password = password
         self._access_token = access_token
-        self._session = aiohttp.ClientSession()
+        self._session = session
 
         #: last update timestamp
         self._last_update = -1
@@ -714,7 +718,7 @@ class PandoraOnlineAccount:
 
     async def async_fetch_changes(self, timestamp: Optional[int] = None):
         """
-        Fetch latest changes from update server.
+        Fetch the latest changes from update server.
         :param timestamp:
         :return: (New data, Set of updated device IDs)
         """
@@ -772,7 +776,7 @@ class PandoraOnlineAccount:
         return content, updated_device_ids
 
     @staticmethod
-    def _get_device_id(data: Mapping[str, Any]) -> str:
+    def _get_device_id(data: Mapping[str, Any]) -> int:
         # Fixes absense of identifier value on certain device responses.
         try:
             device_id = data["id"]
@@ -785,7 +789,9 @@ class PandoraOnlineAccount:
         try:
             return int(device_id)
         except (TypeError, ValueError):
-            raise ValueError(f"Could not convert device ID '{device_id}' to integer")
+            raise ValueError(
+                f"Could not convert device ID '{device_id}' to integer"
+            )
 
     def _process_ws_initial_state(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
@@ -842,35 +848,29 @@ class PandoraOnlineAccount:
             lock_longitude=data["lock_y"] / 1000000,
             rotation=data["rot"],
             fuel_tanks=self.parse_fuel_tanks(data.get("tanks")),
-
             # CAN data about wheel pressure
             can_tpms_front_left=data.get("CAN_TMPS_forvard_left"),
             can_tpms_front_right=data.get("CAN_TMPS_forvard_right"),
             can_tpms_back_left=data.get("CAN_TMPS_back_left"),
             can_tpms_back_right=data.get("CAN_TMPS_back_right"),
             can_tpms_reserve=data.get("CAN_TPMS_reserve"),
-
             # CAN data about glass up/down
-            can_glass_front_left=data.get("CAN_driver_glass"),
-            can_glass_front_right=data.get("CAN_passenger_glass"),
+            can_glass_driver=data.get("CAN_driver_glass"),
+            can_glass_passenger=data.get("CAN_passenger_glass"),
             can_glass_back_left=data.get("CAN_back_left_glass"),
             can_glass_back_right=data.get("CAN_back_right_glass"),
-
             # CAN data about belt buckling
-            can_belt_front_left=data.get("CAN_driver_belt"),
-            can_belt_front_right=data.get("CAN_passenger_belt"),
+            can_belt_driver=data.get("CAN_driver_belt"),
+            can_belt_passenger=data.get("CAN_passenger_belt"),
             can_belt_back_left=data.get("CAN_back_left_belt"),
             can_belt_back_right=data.get("CAN_back_right_belt"),
-
             # Other CAN parameters
             can_average_speed=data.get("CAN_average_speed"),
-            can_low_liquid_warning=data.get("CAN_low_liquid"),
-
+            can_low_liquid=data.get("CAN_low_liquid"),
             # CAN mileage values
             can_mileage_by_battery=data.get("CAN_mileage_by_battery"),
-            can_mileage_until_empty=data.get("CAN_mileage_to_empty"),
+            can_mileage_to_empty=data.get("CAN_mileage_to_empty"),
             can_mileage_to_maintenance=data.get("CAN_mileage_to_maintenance"),
-
             # EV vehicle status
             ev_state_of_charge=data.get("SOC"),
             ev_state_of_health=data.get("SOH"),
@@ -1036,31 +1036,33 @@ class PandoraOnlineAccount:
         if "CAN_TMPS_reserve" in data:
             args["can_tpms_reserve"] = data["CAN_TMPS_reserve"]
         if "CAN_driver_glass" in data:
-            args["can_glass_front_left"] = data["CAN_driver_glass"]
+            args["can_glass_driver"] = data["CAN_driver_glass"]
         if "CAN_passenger_glass" in data:
-            args["can_glass_front_right"] = data["CAN_passenger_glass"]
+            args["can_glass_passenger"] = data["CAN_passenger_glass"]
         if "CAN_back_left_glass" in data:
             args["can_glass_back_left"] = data["CAN_back_left_glass"]
         if "CAN_back_right_glass" in data:
             args["can_glass_back_right"] = data["CAN_back_right_glass"]
         if "CAN_driver_belt" in data:
-            args["can_belt_front_left"] = data["CAN_driver_belt"]
+            args["can_belt_driver"] = data["CAN_driver_belt"]
         if "CAN_passenger_belt" in data:
-            args["can_belt_front_right"] = data["CAN_passenger_belt"]
+            args["can_belt_passenger"] = data["CAN_passenger_belt"]
         if "CAN_back_left_belt" in data:
             args["can_belt_back_left"] = data["CAN_back_left_belt"]
         if "CAN_back_right_belt" in data:
             args["can_belt_back_right"] = data["CAN_back_right_belt"]
         if "CAN_low_liquid" in data:
-            args["can_low_liquid_warning"] = data["CAN_low_liquid"]
+            args["can_low_liquid"] = data["CAN_low_liquid"]
         if "CAN_seat_taken" in data:
             args["can_seat_taken"] = data["CAN_seat_taken"]
         if "CAN_mileage_by_battery" in data:
             args["can_mileage_by_battery"] = data["CAN_mileage_by_battery"]
         if "CAN_mileage_to_empty" in data:
-            args["can_mileage_until_empty"] = data["CAN_mileage_to_empty"]
+            args["can_mileage_to_empty"] = data["CAN_mileage_to_empty"]
         if "CAN_mileage_to_maintenance" in data:
-            args["can_mileage_to_maintenance"] = data["CAN_mileage_to_maintenance"]
+            args["can_mileage_to_maintenance"] = data[
+                "CAN_mileage_to_maintenance"
+            ]
         if "charging_connect" in data:
             args["ev_charging_connected"] = data["charging_connect"]
         if "charging_slow" in data:
@@ -1548,14 +1550,14 @@ class PandoraOnlineDevice:
         self, ensure_complete: bool = True
     ):
         return await self.async_remote_command(
-            CommandID.TURN_ON_COOLANT_HEATER, ensure_complete
+            CommandID.TURN_ON_BLOCK_HEATER, ensure_complete
         )
 
     async def async_remote_turn_off_coolant_heater(
         self, ensure_complete: bool = True
     ):
         return await self.async_remote_command(
-            CommandID.TURN_OFF_COOLANT_HEATER, ensure_complete
+            CommandID.TURN_OFF_BLOCK_HEATER, ensure_complete
         )
 
     # External (timer_ channel toggle
@@ -1658,7 +1660,9 @@ class PandoraOnlineDevice:
 
     @property
     def features(self) -> Optional[Features]:
-        if self._features is None and isinstance(self._attributes.get("features"), Mapping):
+        if self._features is None and isinstance(
+            self._attributes.get("features"), Mapping
+        ):
             self._features = Features.from_dict(self._attributes["features"])
         return self._features
 
