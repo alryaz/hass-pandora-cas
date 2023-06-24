@@ -440,10 +440,7 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
         super().update_native_value()
 
         native_value = self._attr_native_value
-        if (ed := self.entity_description).key == "gsm_level":
-            if native_value is not None:
-                self._attr_native_value = list(ed.icon_states)[native_value]
-        elif self.device_class == SensorDeviceClass.TIMESTAMP:
+        if self.device_class == SensorDeviceClass.TIMESTAMP:
             if native_value is None:
                 native_value = last_value
             if isinstance(native_value, (int, float)):
