@@ -25,6 +25,7 @@ from homeassistant.const import (
     ATTR_ID,
     ATTR_LONGITUDE,
     ATTR_LATITUDE,
+    EntityCategory,
 )
 from homeassistant.core import Event, callback
 from homeassistant.helpers.typing import StateType
@@ -187,6 +188,7 @@ ENTITY_TYPES = [
         state_class=SensorStateClass.MEASUREMENT,
         attribute="gsm_level",
         online_sensitive=True,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     PandoraCASSensorEntityDescription(
         key="battery_voltage",
@@ -307,6 +309,7 @@ ENTITY_TYPES = [
         icon="mdi:cloud-clock",
         attribute="online_timestamp_utc",
         device_class=SensorDeviceClass.TIMESTAMP,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     PandoraCASSensorEntityDescription(
         key="last_state_update",
@@ -314,6 +317,7 @@ ENTITY_TYPES = [
         icon="mdi:message-text-clock",
         attribute="state_timestamp_utc",
         device_class=SensorDeviceClass.TIMESTAMP,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     PandoraCASSensorEntityDescription(
         key="last_settings_change",
@@ -321,13 +325,15 @@ ENTITY_TYPES = [
         icon="mdi:wrench-clock",
         attribute="settings_timestamp_utc",
         device_class=SensorDeviceClass.TIMESTAMP,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     PandoraCASSensorEntityDescription(
         key="last_command_execution",
         name="Last Command Execution",
-        icon="mdi:clock",
+        icon="mdi:send-variant-clock",
         attribute="command_timestamp_utc",
         device_class=SensorDeviceClass.TIMESTAMP,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
 ]
 
@@ -426,10 +432,7 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
             )
 
     async def async_will_remove_from_hass(self) -> None:
-        if (
-            self.entity_description.key == "track_distance"
-            and (points_listener := self._points_listener) is not None
-        ):
+        if (points_listener := self._points_listener) is not None:
             self._points_listener = None
             points_listener()
 
@@ -440,10 +443,7 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
         super().update_native_value()
 
         native_value = self._attr_native_value
-        if (ed := self.entity_description).key == "gsm_level":
-            if native_value is not None:
-                self._attr_native_value = list(ed.icon_states)[native_value]
-        elif self.device_class == SensorDeviceClass.TIMESTAMP:
+        if self.device_class == SensorDeviceClass.TIMESTAMP:
             if native_value is None:
                 native_value = last_value
             if isinstance(native_value, (int, float)):

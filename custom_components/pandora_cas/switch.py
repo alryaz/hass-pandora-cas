@@ -8,12 +8,17 @@ from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, ENTITY_ID_FORMAT
 
+from custom_components.pandora_cas.api import (
+    BitStatus,
+    CommandID,
+    Features,
+    PandoraDeviceTypes,
+)
 from custom_components.pandora_cas.entity import (
     async_platform_setup_entry,
     PandoraCASBooleanEntityDescription,
     PandoraCASBooleanEntity,
 )
-from custom_components.pandora_cas.api import BitStatus, CommandID, Features
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,8 +60,14 @@ ENTITY_TYPES = [
         attribute="bit_state",
         online_sensitive=True,
         flag=BitStatus.BLOCK_HEATER_ACTIVE,
-        command_on=CommandID.TURN_ON_BLOCK_HEATER,
-        command_off=CommandID.TURN_OFF_BLOCK_HEATER,
+        command_on={
+            None: CommandID.TURN_ON_BLOCK_HEATER,
+            PandoraDeviceTypes.NAV12: CommandID.NAV12_TURN_ON_BLOCK_HEATER,
+        },
+        command_off={
+            None: CommandID.TURN_OFF_BLOCK_HEATER,
+            PandoraDeviceTypes.NAV12: CommandID.NAV12_TURN_OFF_BLOCK_HEATER,
+        },
         features=Features.BLOCK_HEATER,
     ),
     PandoraCASBooleanEntityDescription(
@@ -78,8 +89,14 @@ ENTITY_TYPES = [
         attribute="bit_state",
         online_sensitive=True,
         flag=BitStatus.SERVICE_MODE_ACTIVE,
-        command_on=CommandID.ENABLE_SERVICE_MODE,
-        command_off=CommandID.DISABLE_SERVICE_MODE,
+        command_on={
+            None: CommandID.ENABLE_SERVICE_MODE,
+            PandoraDeviceTypes.NAV12: CommandID.NAV12_ENABLE_SERVICE_MODE,
+        },
+        command_off={
+            None: CommandID.DISABLE_SERVICE_MODE,
+            PandoraDeviceTypes.NAV12: CommandID.DISABLE_SERVICE_MODE,
+        },
     ),
     PandoraCASBooleanEntityDescription(
         key="ext_channel",
@@ -98,8 +115,14 @@ ENTITY_TYPES = [
         icon="mdi:led-off",
         # icon_turning_on="",
         # icon_turning_off="",
-        command_on=CommandID.ENABLE_STATUS_OUTPUT,
-        command_off=CommandID.DISABLE_STATUS_OUTPUT,
+        command_on={
+            None: CommandID.ENABLE_STATUS_OUTPUT,
+            PandoraDeviceTypes.NAV12: CommandID.NAV12_ENABLE_STATUS_OUTPUT,
+        },
+        command_off={
+            None: CommandID.DISABLE_STATUS_OUTPUT,
+            PandoraDeviceTypes.NAV12: CommandID.NAV12_DISABLE_STATUS_OUTPUT,
+        },
         assumed_state=True,
     ),
 ]

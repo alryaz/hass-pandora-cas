@@ -14,6 +14,7 @@ __all__ = [
     "TrackingEvent",
     "TrackingPoint",
     "FuelTank",
+    "PandoraDeviceTypes",
     # Exceptions
     "PandoraOnlineException",
     "AuthenticationException",
@@ -27,7 +28,7 @@ __all__ = [
 import asyncio
 import json
 import logging
-from enum import Flag, IntEnum, IntFlag, auto
+from enum import Flag, IntEnum, IntFlag, auto, StrEnum
 from json import JSONDecodeError
 from time import time
 from types import MappingProxyType
@@ -62,6 +63,12 @@ DEFAULT_USER_AGENT: Final = (
 
 #: timeout to consider command execution unsuccessful
 DEFAULT_CONTROL_TIMEOUT: Final = 30
+
+
+class PandoraDeviceTypes(StrEnum):
+    ALARM = "alarm"
+    NAV8 = "nav8"
+    NAV12 = "nav12"  # @TODO: never before seen
 
 
 class CommandID(IntEnum):
@@ -102,7 +109,7 @@ class CommandID(IntEnum):
     # Various commands
     TRIGGER_HORN = 23
     TRIGGER_LIGHT = 24
-    TRIGGER_TRUNK = 34
+    TRIGGER_TRUNK = 35
     CHECK = 255
 
     ERASE_DTC = 57856
@@ -115,6 +122,15 @@ class CommandID(IntEnum):
     # Connection toggle
     ENABLE_CONNECTION = 240
     DISABLE_CONNECTION = 15
+
+    # NAV12-specific commands
+    NAV12_DISABLE_SERVICE_MODE = 57374
+    NAV12_ENABLE_SERVICE_MODE = 57375
+    NAV12_TURN_OFF_BLOCK_HEATER = 57353
+    NAV12_TURN_ON_BLOCK_HEATER = 57354
+    NAV12_RESET_ERRORS = 57408
+    NAV12_ENABLE_STATUS_OUTPUT = 57372
+    NAV12_DISABLE_STATUS_OUTPUT = 57371
 
 
 class EventType(IntEnum):
@@ -171,7 +187,7 @@ class BitStatus(IntFlag):
     EXT_SENSOR_MAIN_ZONE = pow(2, 12)
     SENSOR_ALERT_ZONE = pow(2, 13)
     SENSOR_MAIN_ZONE = pow(2, 14)
-    AUTOSTART_ENABLED = pow(2, 15)  # AutoStart function is available
+    AUTOSTART_ENABLED = pow(2, 15)  # AutoStart function is enabled
     INCOMING_SMS_ENABLED = pow(2, 16)  # Incoming SMS messages are allowed
     INCOMING_CALLS_ENABLED = pow(2, 17)  # Incoming calls are allowed
     EXTERIOR_LIGHTS_ACTIVE = pow(2, 18)  # Any exterior lights are active
@@ -216,6 +232,7 @@ class Features(Flag):
     SENSORS = auto()
     TRACKING = auto()
     TRUNK_TRIGGER = auto()
+    NAV = auto()
 
     @classmethod
     def from_dict(
@@ -241,6 +258,7 @@ class Features(Flag):
             "sensors": cls.SENSORS,
             "tracking": cls.TRACKING,
             "trunk": cls.TRUNK_TRIGGER,
+            "nav": cls.NAV,
         }.items():
             if key in features_dict:
                 result = flag if result is None else result | flag
@@ -1665,6 +1683,10 @@ class PandoraOnlineDevice:
         ):
             self._features = Features.from_dict(self._attributes["features"])
         return self._features
+
+    @property
+    def type(self) -> Optional[str]:
+        return self._attributes.get("type")
 
     @property
     def name(self) -> str:

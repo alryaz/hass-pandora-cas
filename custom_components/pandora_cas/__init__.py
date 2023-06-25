@@ -61,10 +61,11 @@ DEFAULT_EXECUTION_DELAY = timedelta(seconds=15)
 
 PLATFORMS: Final = (
     Platform.BINARY_SENSOR,
+    Platform.BUTTON,
+    Platform.DEVICE_TRACKER,
+    Platform.LOCK,
     Platform.SENSOR,
     Platform.SWITCH,
-    Platform.LOCK,
-    Platform.DEVICE_TRACKER,
 )
 
 _LOGGER = logging.getLogger(__name__)

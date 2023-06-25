@@ -5,17 +5,15 @@ import logging
 from functools import partial
 from typing import Mapping, Any, Dict
 
-import attr
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     ENTITY_ID_FORMAT,
     BinarySensorDeviceClass,
 )
-from homeassistant.const import Platform
-from homeassistant.core import callback
+from homeassistant.const import EntityCategory
 from homeassistant.helpers.typing import StateType
 
-from .api import BitStatus, CurrentState
+from .api import BitStatus
 from .entity import (
     async_platform_setup_entry,
     PandoraCASBooleanEntity,
@@ -36,6 +34,7 @@ ENTITY_TYPES = [
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
         attribute="is_online",
         attribute_source=None,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
     PandoraCASBooleanEntityDescription(
         key="moving",

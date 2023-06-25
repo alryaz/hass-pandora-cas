@@ -15,6 +15,7 @@ from typing import (
     Mapping,
     Dict,
     final,
+    List,
 )
 
 from homeassistant.config_entries import ConfigEntry
@@ -37,10 +38,35 @@ from custom_components.pandora_cas.api import (
     PandoraOnlineDevice,
     Features,
     CommandID,
+    PandoraDeviceTypes,
 )
-from custom_components.pandora_cas.const import DOMAIN, ATTR_COMMAND_ID
+from custom_components.pandora_cas.const import (
+    DOMAIN,
+    ATTR_COMMAND_ID,
+)
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def parse_description_command_id(
+    value: Any, device_type: Optional[str] = None
+) -> int:
+    """Retrieve command from definition."""
+    if value is None:
+        raise NotImplementedError("command not defined")
+
+    if isinstance(value, Mapping):
+        try:
+            value = value[device_type]
+        except KeyError:
+            if device_type is None:
+                raise NotImplementedError("command not defined")
+            try:
+                value = value[None]
+            except KeyError:
+                raise NotImplementedError("command not defined")
+
+    return int(value)
 
 
 async def async_platform_setup_entry(
@@ -64,8 +90,10 @@ async def async_platform_setup_entry(
 
         # Apply filters
         for entity_description in entity_class.ENTITY_TYPES:
-            if (features := entity_description.features) is not None and (
-                device.features is None or not features & device.features
+            if (
+                (entity_description.entity_registry_enabled_default is True)
+                and (features := entity_description.features) is not None
+                and (device.features is None or not features & device.features)
             ):
                 entity_description = dataclasses.replace(
                     entity_description,
@@ -109,6 +137,19 @@ class PandoraCASEntityDescription(EntityDescription):
     online_sensitive: Optional[bool] = False
     features: Optional[Features] = None
     assumed_state: bool = False
+    compatible_types: Collection[Union[str, None]] = (
+        PandoraDeviceTypes.ALARM,
+        None,
+    )
+
+    def __post_init__(self):
+        """Set translation key to entity description."""
+        if not self.translation_key:
+            self.translation_key = self.key
+
+
+CommandIDType = Union[CommandID, int]
+CommandType = Union[CommandIDType, Mapping[str, CommandIDType]]
 
 
 class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
@@ -132,7 +173,6 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
     ) -> None:
         super().__init__(coordinator, context)
         self.entity_description = entity_description
-        self._attr_translation_key = entity_description.key
 
         # Set unique ID based on entity type
         device = self.coordinator.device
@@ -141,13 +181,22 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
             unique_id += f"_{extra_identifier}"
         self._attr_unique_id = unique_id
         self._extra_identifier = extra_identifier
-        self.entity_id = self.ENTITY_ID_FORMAT.format(
+
+        # Generate appropriate entity ID
+        entity_id = self.ENTITY_ID_FORMAT.format(
             f"{slugify(str(device.device_id))}_{slugify(entity_description.key)}"
         )
+        if extra_identifier is not None:
+            entity_id += "_" + slugify(str(extra_identifier))
+        self.entity_id = entity_id
 
         # First attributes update
         self._attr_native_value = None
         self.update_native_value()
+
+        self._last_command_failed = False
+        self._command_waiter: Optional[Callable[[], None]] = None
+        self._command_listeners: Optional[List[Callable[[], None]]] = None
 
     @property
     def device_info(self) -> DeviceInfo | None:
@@ -205,11 +254,11 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
             self._attr_available = False
             return
 
-        if value is not None:
+        if value is None:
+            self._attr_available = False
+        else:
             self._attr_available = True
             self._attr_native_value = value
-        else:
-            self._attr_available = False
 
     @final
     @callback
@@ -226,6 +275,36 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
         self.update_native_value()
         self.async_write_ha_state()
 
+    @callback
+    def reset_command_event(self, *_) -> None:
+        self._last_command_failed = False
+        if (waiter := self._command_waiter) is not None:
+            waiter()
+            self._command_waiter = None
+
+    @callback
+    def _process_command_response(self, event: Event) -> None:
+        _LOGGER.debug(f"[{self}] Resetting command event")
+        self.reset_command_event()
+
+    def _add_command_listener(self, command: Optional[CommandType]) -> None:
+        if command is None:
+            return None
+        command_id = parse_description_command_id(
+            command, self.coordinator.device.type
+        )
+        if (listeners := self._command_listeners) is None:
+            self._command_listeners = listeners = []
+        listeners.append(
+            self.hass.bus.async_listen(
+                event_type=f"{DOMAIN}_command",
+                listener=self._process_command_response,
+                event_filter=callback(
+                    lambda x: int(x.data[ATTR_COMMAND_ID]) == command_id
+                ),
+            )
+        )
+
     async def run_device_command(self, command: Union[str, int, CommandID]):
         d = self.coordinator.device
         if isinstance(command, str):
@@ -236,8 +315,31 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
                 result = self.hass.async_add_executor_job(command)
         else:
             result = d.async_remote_command(command, ensure_complete=False)
+        self.async_write_ha_state()
 
-        await result
+        # Set command waiter
+        if (waiter := self._command_waiter) is not None:
+            waiter()
+        self._command_waiter = async_call_later(
+            self.hass, 15.0, self.reset_command_event
+        )
+
+        try:
+            await result
+        except:
+            self._last_command_failed = True
+            self.reset_command_event()
+            self.async_write_ha_state()
+            raise
+
+    async def async_will_remove_from_hass(self) -> None:
+        if (waiter := self._command_waiter) is not None:
+            waiter()
+            self._command_waiter = None
+        if listeners := self._command_listeners:
+            for listener in listeners:
+                listener()
+            self._command_listeners = None
 
 
 @dataclass
@@ -248,8 +350,8 @@ class PandoraCASBooleanEntityDescription(PandoraCASEntityDescription):
     icon_turning_off: Optional[str] = None
     flag: Optional[Flag] = None
     inverse: bool = False
-    command_on: Optional[Union[int, CommandID]] = None
-    command_off: Optional[Union[int, CommandID]] = None
+    command_on: Optional[CommandType] = None
+    command_off: Optional[CommandType] = None
 
 
 class PandoraCASBooleanEntity(PandoraCASEntity):
@@ -262,54 +364,50 @@ class PandoraCASBooleanEntity(PandoraCASEntity):
 
         self._is_turning_on = False
         self._is_turning_off = False
-        self._last_command_failed = False
         self._command_waiter: Optional[Callable[[], ...]] = None
         self._command_on_listener: Optional[Callable[[], ...]] = None
         self._command_off_listener: Optional[Callable[[], ...]] = None
 
     @property
     def icon(self) -> str | None:
-        e = self.entity_description
-        if not self.available:
-            return e.icon
-        if (i := e.icon_turning_on) and self._is_turning_on:
-            return i
-        if (i := (e.icon_turning_off or i)) and self._is_turning_off:
-            return i
-        if e.icon_off and not self._attr_native_value:
-            return e.icon_off
-        if e.icon_on and self._attr_native_value:
-            return e.icon_on
-        return e.icon
+        if self.available:
+            e = self.entity_description
+            if (i := e.icon_turning_on) and self._is_turning_on:
+                return i
+            if (i := (e.icon_turning_off or i)) and self._is_turning_off:
+                return i
+            if e.icon_off and not self._attr_native_value:
+                return e.icon_off
+            if e.icon_on and self._attr_native_value:
+                return e.icon_on
+        return super().icon
+
+    def reset_command_event(self, *args) -> None:
+        self._is_turning_on = False
+        self._is_turning_off = False
+        super().reset_command_event(*args)
 
     async def run_binary_command(self, enable: bool) -> None:
-        command_id = (
-            self.entity_description.command_on
-            if enable or self.entity_description.command_off is None
-            else self.entity_description.command_off
-        )
-        if command_id is None:
-            raise RuntimeError("command not defined")
+        """
+        Execute binary command (turn on or off).
 
-        self.reset_command_event(command_id)
-        self._last_command_failed = False
-        if enable:
-            self._is_turning_on = True
-            self._is_turning_off = False
-        else:
-            self._is_turning_on = False
-            self._is_turning_off = True
-        self.async_write_ha_state()
-        self._command_waiter = async_call_later(
-            self.hass, 15.0, self.reset_command_event
+        :param enable: Whether to run 'on' or 'off'.
+        """
+        # Determine command to run
+        command_id = parse_description_command_id(
+            (
+                self.entity_description.command_on
+                if enable or self.entity_description.command_off is None
+                else self.entity_description.command_off
+            ),
+            self.coordinator.device.type,
         )
 
-        try:
-            await self.run_device_command(command_id)
-        except:
-            self._last_command_failed = True
-            self.reset_command_event()
-            raise
+        self.reset_command_event()
+        self._is_turning_on = enable
+        self._is_turning_off = not enable
+
+        await self.run_device_command(command_id)
 
     def get_native_value(self) -> Optional[Any]:
         value = super().get_native_value()
@@ -326,55 +424,7 @@ class PandoraCASBooleanEntity(PandoraCASEntity):
     def assumed_state(self) -> bool:
         return self.entity_description.assumed_state
 
-    @callback
-    def reset_command_event(self, *_) -> None:
-        self._is_turning_on = False
-        self._is_turning_off = False
-        if (waiter := self._command_waiter) is not None:
-            waiter()
-            self._command_waiter = None
-        _LOGGER.debug(f"[{self}] Resetting command event")
-        self.async_write_ha_state()
-
-    @callback
-    def _process_command_response(self, event: Event) -> None:
-        if event.event_type != f"{DOMAIN}_command":
-            return
-        try:
-            command_id = int(event.data[ATTR_COMMAND_ID])
-        except (AttributeError, LookupError, ValueError, TypeError):
-            return
-        if (
-            command_id != int(self.entity_description.command_on)
-            and self.entity_description.command_off is not None
-            and command_id != int(self.entity_description.command_off)
-        ):
-            return
-        _LOGGER.debug(f"[{self}] Resetting command event")
-        self.reset_command_event()
-
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
-        if (on := self.entity_description.command_on) is not None:
-            self._command_on_listener = self.hass.bus.async_listen(
-                event_type=f"{DOMAIN}_command",
-                listener=self._process_command_response,
-                # event_filter={"command_id": int(on)},
-            )
-        if (off := self.entity_description.command_off) is not None:
-            self._command_off_listener = self.hass.bus.async_listen(
-                event_type=f"{DOMAIN}_command",
-                listener=self._process_command_response,
-                # event_filter={"command_id": int(off)},
-            )
-
-    async def async_will_remove_from_hass(self) -> None:
-        if self._command_on_listener:
-            self._command_on_listener()
-            self._command_on_listener = None
-        if self._command_off_listener:
-            self._command_off_listener()
-            self._command_off_listener = None
-        if self._command_waiter:
-            self._command_waiter()
-            self._command_waiter = None
+        self._add_command_listener(self.entity_description.command_on)
+        self._add_command_listener(self.entity_description.command_off)

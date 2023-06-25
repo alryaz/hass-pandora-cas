@@ -106,6 +106,10 @@
           "device_id": {
             "name": "Идентификатор устройства"
           }
+        },
+        "state": {
+          "on": "Опущен",
+          "off": "Поднят"
         }
       },
       "passenger_glass": {
@@ -114,6 +118,10 @@
           "device_id": {
             "name": "Идентификатор устройства"
           }
+        },
+        "state": {
+          "on": "Опущен",
+          "off": "Поднят"
         }
       },
       "left_back_glass": {
@@ -122,6 +130,10 @@
           "device_id": {
             "name": "Идентификатор устройства"
           }
+        },
+        "state": {
+          "on": "Опущен",
+          "off": "Поднят"
         }
       },
       "right_back_glass": {
@@ -130,6 +142,10 @@
           "device_id": {
             "name": "Идентификатор устройства"
           }
+        },
+        "state": {
+          "on": "Опущен",
+          "off": "Поднят"
         }
       },
       "trunk": {
@@ -181,7 +197,7 @@
         }
       },
       "exterior_lights": {
-        "name": "Внешний свет",
+        "name": "Световые сигналы",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -205,7 +221,7 @@
         }
       },
       "evacuation_mode": {
-        "name": "Evacuation Mode",
+        "name": "Режим эвакуации",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -421,7 +437,7 @@
         }
       },
       "last_settings_change": {
-        "name": "Поледняя настройка",
+        "name": "Последняя настройка",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -429,7 +445,7 @@
         }
       },
       "last_command_execution": {
-        "name": "Посследняя команда",
+        "name": "Последняя команда",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -519,15 +535,73 @@
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
+          },
+          "gsm_level": {
+            "name": "Уровень GSM"
+          }
+        }
+      }
+    },
+    "button": {
+      "trigger_horn": {
+        "name": "Подать звуковой сигнал",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
           }
         }
       },
-      "system": {
-        "name": "Pandora",
+      "trigger_light": {
+        "name": "Моргнуть фарами",
         "state_attributes": {
-          "gsm_level": {
-            "name": "Уровень GSM"
-          },
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "trigger_trunk": {
+        "name": "Открыть багажник",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "check": {
+        "name": "Обновить",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "additional_command_1": {
+        "name": "Дополнительная команда 1",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "additional_command_2": {
+        "name": "Дополнительная команда 2",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "erase_errors": {
+        "name": "Очистить ошибки",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "read_errors": {
+        "name": "Считать ошибки",
+        "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
