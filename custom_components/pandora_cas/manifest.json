@@ -1,14 +1,12 @@
 {
     "domain": "pandora_cas",
     "name": "Pandora Car Alarm System",
-    "documentation": "https://github.com/alryaz/hass-pandora-cas",
-    "issue_tracker": "https://github.com/alryaz/hass-pandora-cas/issues",
-    "dependencies": [],
-    "codeowners": [
-        "@alryaz"
-    ],
-    "requirements": [],
+    "codeowners": ["@alryaz"],
     "config_flow": true,
-    "version": "2023.6.3",
-    "iot_class": "cloud_polling"
+    "dependencies": [],
+    "documentation": "https://github.com/alryaz/hass-pandora-cas",
+    "iot_class": "cloud_polling",
+    "issue_tracker": "https://github.com/alryaz/hass-pandora-cas/issues",
+    "requirements": [],
+    "version": "2023.6.3"
 }
