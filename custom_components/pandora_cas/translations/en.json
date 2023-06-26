@@ -1,11 +1,11 @@
 {
   "config": {
     "abort": {
-      "account_already_exists": "Account with given username already exists"
+      "already_configured": "[%key:common::config_flow::abort::already_configured_account%]"
     },
     "error": {
-      "invalid_credentials": "Invalid username/password provided",
-      "api_error": "Unknown API error occurred"
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]"
     },
     "step": {
       "user": {
@@ -16,17 +16,15 @@
         },
         "title": "Pandora Account Authentication",
         "description": "Enter your credentials for your Pandora Online account."
-      }
-    },
-    "title": "Pandora Car Alarm System"
-  },
-  "options": {
-    "step": {
-      "init": {
+      },
+      "reauth": {
         "data": {
-          "password": "Password"
+          "username": "[%key:common::config_flow::data::username%]",
+          "password": "[%key:common::config_flow::data::password%]",
+          "verify_ssl": "[%key:common::config_flow::data::verify_ssl%]"
         },
-        "description": ""
+        "title": "Pandora Account Reauthentication",
+        "description": "Enter your credentials for your Pandora Online account."
       }
     }
   }
