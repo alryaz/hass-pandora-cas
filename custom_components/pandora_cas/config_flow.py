@@ -6,19 +6,70 @@ from typing import Any, Dict, Final, List, Optional
 
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, CONF_VERIFY_SSL
+from homeassistant.const import (
+    CONF_PASSWORD,
+    CONF_USERNAME,
+    CONF_VERIFY_SSL,
+    CONF_ACCESS_TOKEN,
+)
 from homeassistant.core import callback
+from homeassistant.data_entry_flow import FlowResult, FlowResultType
+from homeassistant.exceptions import ConfigEntryNotReady, ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.typing import ConfigType
 
-from .const import DOMAIN, CONF_DISABLE_WEBSOCKETS
-from .api import (
-    AuthenticationException,
+from custom_components.pandora_cas.api import (
     PandoraOnlineAccount,
     PandoraOnlineException,
 )
+from custom_components.pandora_cas.const import DOMAIN, CONF_DISABLE_WEBSOCKETS
 
 _LOGGER = logging.getLogger(__name__)
+
+STEP_USER_DATA_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_USERNAME): str,
+        vol.Required(CONF_PASSWORD): str,
+        vol.Optional(CONF_VERIFY_SSL, default=True): bool,
+    }
+)
+
+
+async def async_authenticate_account(
+    account: PandoraOnlineAccount, no_device_update: bool = False
+) -> None:
+    successful_request = False
+    if account.access_token:
+        # Attempt devices fetching
+        try:
+            _LOGGER.debug(f"Fetching devices for account {account}")
+            await account.async_update_vehicles()
+        except PandoraOnlineException as e:
+            _LOGGER.warning(f"Error using token: {e}", exc_info=e)
+
+            try:
+                _LOGGER.debug(f"Authenticating {account} with token")
+                await account.async_authenticate(account.access_token)
+            except PandoraOnlineException as e:
+                _LOGGER.warning(f"Error authenticating token: {e}", exc_info=e)
+
+        else:
+            successful_request = True
+
+    if not successful_request:
+        try:
+            _LOGGER.debug(f"Authenticating {account} with new data")
+            await account.async_authenticate(None)
+        except PandoraOnlineException as e:
+            _LOGGER.error(f"Error performing new auth: {e}", exc_info=e)
+            raise ConfigEntryAuthFailed(str(e)) from e
+
+        if not no_device_update:
+            try:
+                _LOGGER.debug(f"Fetching devices for account {account}")
+                await account.async_update_vehicles()
+            except PandoraOnlineException as e:
+                _LOGGER.error(f"Error updating vehicles: {e}", exc_info=e)
+                raise ConfigEntryNotReady(str(e)) from e
 
 
 @config_entries.HANDLERS.register(DOMAIN)
@@ -26,16 +77,11 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
     """Handle a config flow for Pandora Car Alarm System config entries."""
 
     CONNECTION_CLASS: Final[str] = config_entries.CONN_CLASS_CLOUD_PUSH
-    VERSION: Final[int] = 4
+    VERSION: Final[int] = 5
 
     def __init__(self) -> None:
-        self._user_schema = vol.Schema(
-            {
-                vol.Required(CONF_USERNAME): str,
-                vol.Required(CONF_PASSWORD): str,
-                vol.Optional(CONF_VERIFY_SSL, default=True): bool,
-            }
-        )
+        """Init the config flow."""
+        self._reauth_entry: Optional[config_entries.ConfigEntry] = None
 
     async def _create_entry(self, config: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -43,15 +89,11 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
         :param config: Configuration for account
         :return: (internal) Entry creation command
         """
-        username = config[CONF_USERNAME]
 
-        await self.async_set_unique_id(username)
-        self._abort_if_unique_id_configured()
-
-        _LOGGER.debug(f"Creating entry for username {username}")
+        _LOGGER.debug(f"Creating entry for username {config[CONF_USERNAME]}")
 
         return self.async_create_entry(
-            title=username,
+            title=config[CONF_USERNAME],
             data={
                 CONF_USERNAME: config[CONF_USERNAME],
                 CONF_PASSWORD: config[CONF_PASSWORD],
@@ -64,46 +106,109 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
 
     async def async_step_user(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
-        @callback
-        def _show_form(error: Optional[str] = None):
-            return self.async_show_form(
-                step_id="user",
-                data_schema=self._user_schema,
-                errors={"base": error} if error else None,
+    ) -> FlowResult:
+        if user_input is not None:
+            account = PandoraOnlineAccount(
+                username=user_input[CONF_USERNAME],
+                password=user_input[CONF_PASSWORD],
+                access_token=user_input.get(CONF_ACCESS_TOKEN),
+                session=async_get_clientsession(
+                    self.hass, verify_ssl=user_input[CONF_VERIFY_SSL]
+                ),
             )
 
-        if not user_input:
-            return _show_form()
+            try:
+                await async_authenticate_account(
+                    account, no_device_update=True
+                )
+            except ConfigEntryAuthFailed:
+                error = "invalid_auth"
+            except ConfigEntryNotReady:
+                error = "cannot_connect"
+            else:
+                unique_id = str(account.user_id)
+                if entry := self._reauth_entry:
+                    # Handle reauthentication
+                    if unique_id != self._reauth_entry.unique_id:
+                        await self.async_set_unique_id(unique_id)
+                        self._abort_if_unique_id_configured()
 
-        account = PandoraOnlineAccount(
-            username=user_input[CONF_USERNAME],
-            password=user_input[CONF_PASSWORD],
-            session=async_get_clientsession(
-                self.hass, verify_ssl=user_input[CONF_VERIFY_SSL]
-            ),
+                    self.hass.config_entries.async_update_entry(
+                        entry,
+                        title=user_input[CONF_USERNAME],
+                        unique_id=unique_id,
+                        data={
+                            **entry.data,
+                            CONF_USERNAME: user_input[CONF_USERNAME],
+                            CONF_PASSWORD: user_input[CONF_PASSWORD],
+                            CONF_ACCESS_TOKEN: account.access_token,
+                        },
+                        options={
+                            **entry.options,
+                            CONF_VERIFY_SSL: user_input[CONF_VERIFY_SSL],
+                        },
+                    )
+                    await self.hass.config_entries.async_reload(entry.entry_id)
+                    return self.async_abort(reason="reauth_successful")
+                else:
+                    # Handle new config entry
+                    await self.async_set_unique_id(unique_id)
+                    self._abort_if_unique_id_configured()
+
+                    return self.async_create_entry(
+                        title=user_input[CONF_USERNAME],
+                        data={
+                            CONF_USERNAME: user_input[CONF_USERNAME],
+                            CONF_PASSWORD: user_input[CONF_PASSWORD],
+                            CONF_ACCESS_TOKEN: account.access_token,
+                        },
+                        options={
+                            CONF_VERIFY_SSL: user_input[CONF_VERIFY_SSL],
+                            CONF_DISABLE_WEBSOCKETS: False,
+                        },
+                    )
+
+            errors = {"base": error}
+            schema = self.add_suggested_values_to_schema(
+                STEP_USER_DATA_SCHEMA,
+                user_input,
+            )
+        elif entry := self._reauth_entry:
+            errors = {"base": "invalid_auth"}
+            schema = self.add_suggested_values_to_schema(
+                STEP_USER_DATA_SCHEMA,
+                {**entry.data, **entry.options, CONF_PASSWORD: ""},
+            )
+        else:
+            errors = None
+            schema = STEP_USER_DATA_SCHEMA
+
+        return self.async_show_form(
+            step_id="user",
+            data_schema=schema,
+            errors=errors,
         )
 
-        try:
-            await account.async_authenticate()
-            await account.async_update_vehicles()
-        except AuthenticationException:
-            return _show_form("invalid_credentials")
-        except PandoraOnlineException:
-            return _show_form("api_error")
-
-        return await self._create_entry(user_input)
+    async def async_step_reauth(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> FlowResult:
+        self._reauth_entry = self.hass.config_entries.async_get_entry(
+            self.context["entry_id"]
+        )
+        return await self.async_step_user()
 
     async def async_step_import(
         self, user_input: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+    ) -> FlowResult:
         if user_input is None:
             _LOGGER.error("Called import step without configuration")
             return self.async_abort("empty_configuration_import")
 
-        # Finalize with entry creation
-        return await self._create_entry(
-            {CONF_USERNAME: user_input[CONF_USERNAME]}
+        result = await self.async_step_user(user_input)
+        return (
+            result
+            if result["type"] == FlowResultType.CREATE_ENTRY
+            else self.async_abort("unknown")
         )
 
     @staticmethod

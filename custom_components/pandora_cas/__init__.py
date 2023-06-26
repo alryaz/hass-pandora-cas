@@ -29,6 +29,7 @@ from homeassistant.const import (
     CONF_USERNAME,
     Platform,
     CONF_VERIFY_SSL,
+    CONF_ACCESS_TOKEN,
 )
 from homeassistant.core import ServiceCall, HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady, ConfigEntryAuthFailed
@@ -48,6 +49,9 @@ from custom_components.pandora_cas.api import (
     TrackingEvent,
     TrackingPoint,
     Features,
+)
+from custom_components.pandora_cas.config_flow import (
+    async_authenticate_account,
 )
 from custom_components.pandora_cas.entity import (
     PandoraCASEntity,
@@ -262,30 +266,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # create account object
     account = PandoraOnlineAccount(
-        entry.data[CONF_USERNAME],
-        entry.data[CONF_PASSWORD],
+        username=entry.data[CONF_USERNAME],
+        password=entry.data[CONF_PASSWORD],
+        access_token=entry.data.get(CONF_ACCESS_TOKEN),
         session=async_get_clientsession(
             hass, verify_ssl=entry.options[CONF_VERIFY_SSL]
         ),
     )
 
-    # Attempt authentication
-    try:
-        _LOGGER.debug(f'Authenticating entry "{entry.entry_id}"')
-        await account.async_authenticate()
+    await async_authenticate_account(account)
 
-    except PandoraOnlineException as error:
-        _LOGGER.error(f"Error authenticating: {error}", exc_info=error)
-        raise ConfigEntryAuthFailed(str(error)) from error
-
-    # Attempt devices fetching
-    try:
-        _LOGGER.debug(f'Fetching devices for account "{entry.entry_id}"')
-        await account.async_update_vehicles()
-
-    except PandoraOnlineException as error:
-        _LOGGER.error(f"Error updating vehicles: {error}", exc_info=error)
-        raise ConfigEntryNotReady(str(error)) from error
+    if entry.data.get(CONF_ACCESS_TOKEN) != account.access_token:
+        hass.config_entries.async_update_entry(
+            entry, data={**entry.data, CONF_ACCESS_TOKEN: account.access_token}
+        )
 
     hass.data.setdefault(DOMAIN, {})[
         entry.entry_id
@@ -430,8 +424,25 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if entry.version < 4:
         new_options.setdefault(CONF_VERIFY_SSL, True)
         new_options.setdefault(CONF_DISABLE_WEBSOCKETS, False)
-        new_unique_id = entry.unique_id or entry.data[CONF_USERNAME]
+        # new_unique_id = entry.unique_id or entry.data[CONF_USERNAME]
         entry.version = 4
+
+    if entry.version < 5:
+        account = PandoraOnlineAccount(
+            username=new_data[CONF_USERNAME],
+            password=new_data[CONF_PASSWORD],
+            access_token=new_data.get(CONF_ACCESS_TOKEN),
+            session=async_get_clientsession(
+                hass, verify_ssl=new_options[CONF_VERIFY_SSL]
+            ),
+        )
+
+        await async_authenticate_account(account, no_device_update=True)
+
+        new_data[CONF_ACCESS_TOKEN] = account.access_token
+        new_unique_id = str(account.user_id)
+
+        entry.version = 5
 
     hass.config_entries.async_update_entry(
         entry,

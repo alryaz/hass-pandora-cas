@@ -551,15 +551,12 @@ class PandoraOnlineAccount:
 
         self._username = username
         self._password = password
-        self._access_token = access_token
+        self.access_token = access_token
+        self._user_id: Optional[int] = None
         self._session = session
 
         #: last update timestamp
         self._last_update = -1
-
-        #: properties generated upon authentication
-        self._session_id = None
-        self._user_id = None
 
         #: list of vehicles associated with this account.
         self._devices: List[PandoraOnlineDevice] = list()
@@ -575,15 +572,24 @@ class PandoraOnlineAccount:
 
     def __repr__(self):
         """Retrieve representation of account object"""
-        return "<" + str(self) + ">"
+        return f"<{self}>"
 
     def __str__(self):
-        return '%s[username="%s"]' % (self.__class__.__name__, self._username)
+        return (
+            f"{self.__class__.__name__}["
+            f'username="{self.username}", '
+            f"user_id={self.user_id}"
+            f"]"
+        )
 
     # Basic properties
     @property
     def utc_offset(self) -> int:
         return self._utc_offset
+
+    @property
+    def user_id(self) -> Optional[int]:
+        return self._user_id
 
     @property
     def username(self) -> str:
@@ -671,14 +677,12 @@ class PandoraOnlineAccount:
     async def async_authenticate(self, access_token: Optional[str] = None):
         _LOGGER.debug('Authenticating with username "%s"' % (self._username,))
 
-        self._session.cookie_jar.clear()
-
         if access_token is None:
             access_token = await self.async_fetch_access_token()
 
         url = self.BASE_URL + "/api/users/login"
         request_data = {
-            "login": self._username,
+            "login": (username := self._username),
             "password": self._password,
             "lang": "ru",
             "v": "3",
@@ -688,19 +692,19 @@ class PandoraOnlineAccount:
 
         async with self._session.post(url, data=request_data) as response:
             try:
-                await self._handle_response(response)
+                resp = await self._handle_response(response)
             except RequestException as e:
                 raise AuthenticationException(*e.args) from None
+            self._user_id = user_id = int(resp["user_id"])
+            self.access_token = access_token
 
             _LOGGER.info(
-                'Authentication successful for username "%s"!'
-                % (self._username,)
+                f'Authentication successful for username "{username}" (user ID: {user_id})!'
             )
-            self._access_token = access_token
 
     async def async_update_vehicles(self):
         """Retrieve and cache list of vehicles for the account."""
-        access_token = self._access_token
+        access_token = self.access_token
         if access_token is None:
             raise PandoraOnlineException("Account is not authenticated")
 
@@ -710,7 +714,7 @@ class PandoraOnlineAccount:
 
         async with self._session.get(
             self.BASE_URL + "/api/devices",
-            params={"access_token": self._access_token},
+            params={"access_token": self.access_token},
         ) as response:
             devices_data = await self._handle_response(response)
             _LOGGER.debug("retrieved devices: %s", devices_data)
@@ -734,7 +738,7 @@ class PandoraOnlineAccount:
     async def async_remote_command(
         self, device_id: int, command_id: Union[int, "CommandID"]
     ):
-        access_token = self._access_token
+        access_token = self.access_token
         if access_token is None:
             raise PandoraOnlineException("Account is not authenticated")
 
@@ -745,7 +749,7 @@ class PandoraOnlineAccount:
         async with self._session.post(
             self.BASE_URL + "/api/devices/command",
             data={"id": device_id, "command": int(command_id)},
-            params={"access_token": self._access_token},
+            params={"access_token": self.access_token},
         ) as response:
             command_result = await self._handle_response(response)
             status = command_result.get("action_result", {}).get(
@@ -766,13 +770,15 @@ class PandoraOnlineAccount:
     ) -> Dict[int, Dict[str, Any]]:
         """
         Fetch the latest changes from update server.
-        :param timestamp:
-        :return: (New data, Set of updated device IDs)
+        :param timestamp: Timestamp to fetch updates since (optional, uses
+                          last update timestamp internally if not provided).
+        :return: Dictionary of (device_id => (state_attribute => new_value))
         """
-        access_token = self._access_token
+        access_token = self.access_token
         if access_token is None:
             raise PandoraOnlineException("Account is not authenticated")
 
+        # Select last timestamp if none provided
         _timestamp = self._last_update if timestamp is None else timestamp
 
         _LOGGER.debug(f"Fetching changes since {_timestamp} on account {self}")
@@ -793,15 +799,19 @@ class PandoraOnlineAccount:
             ("stats", self._process_http_stats),
             ("time", self._process_http_times),
         ):
+            # Check if response contains necessary data
             if not (mapping := content.get(key)):
                 continue
+
+            # Iterate over device responses
             for device_id, data in mapping.items():
                 if device := self.get_device(device_id):
+                    # Process attributes and merge into final dict
                     _, new_attrs = meth(device, data)
                     try:
-                        device_new_attrs[int(device_id)].update(new_attrs)
+                        device_new_attrs[device.device_id].update(new_attrs)
                     except KeyError:
-                        device_new_attrs[int(device_id)] = new_attrs
+                        device_new_attrs[device.device_id] = new_attrs
                 else:
                     _LOGGER.debug(
                         f'Device with ID "{device_id}" {key} data '
@@ -1287,7 +1297,7 @@ class PandoraOnlineAccount:
                 try:
                     async with self._session.ws_connect(
                         self.BASE_URL
-                        + f"/api/v4/updates/ws?access_token={self._access_token}"
+                        + f"/api/v4/updates/ws?access_token={self.access_token}"
                     ) as ws:
                         _LOGGER.debug(f"[{self}] WebSockets connected")
 
