@@ -1,30 +1,550 @@
 {
   "config": {
     "abort": {
-      "already_configured": "[%key:common::config_flow::abort::already_configured_account%]"
+      "already_configured": "This account had already been configured!"
     },
     "error": {
-      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
-      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]"
+      "invalid_auth": "Invalid authentication information",
+      "cannot_connect": "Cannot retrieve data from remote server"
     },
     "step": {
       "user": {
         "data": {
-          "username": "[%key:common::config_flow::data::username%]",
-          "password": "[%key:common::config_flow::data::password%]",
-          "verify_ssl": "[%key:common::config_flow::data::verify_ssl%]"
+          "username": "Username",
+          "password": "Password",
+          "verify_ssl": "Verify SSL certificates"
         },
-        "title": "Account Authentication",
+        "title": "Authentication",
         "description": "Enter your credentials for your Pandora Online account."
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "connection_state": {
+        "name": "Connection state",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
       },
-      "reauth": {
-        "data": {
-          "username": "[%key:common::config_flow::data::username%]",
-          "password": "[%key:common::config_flow::data::password%]",
-          "verify_ssl": "[%key:common::config_flow::data::verify_ssl%]"
-        },
-        "description": "Enter your credentials for your Pandora Online account.",
-        "title": "Account Reauthentication"
+      "moving": {
+        "name": "Moving",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "driver_door": {
+        "name": "Driver Door",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "passenger_door": {
+        "name": "Passenger Door",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "left_back_door": {
+        "name": "Left Back Door",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "right_back_door": {
+        "name": "Right Back Door",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "driver_glass": {
+        "name": "Driver Glass",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "passenger_glass": {
+        "name": "Passenger Glass",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "left_back_glass": {
+        "name": "Left Back Glass",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "right_back_glass": {
+        "name": "Right Back Glass",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "trunk": {
+        "name": "Trunk",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "hood": {
+        "name": "Hood",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "parking": {
+        "name": "Parking Mode",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "brakes": {
+        "name": "Brakes",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "ignition": {
+        "name": "Ignition",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "exterior_lights": {
+        "name": "Exterior Lights",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "evacuation_mode": {
+        "name": "Evacuation Mode",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "ev_charging_connected": {
+        "name": "EV Charging Connected",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "can_low_liquid": {
+        "name": "CAN Low Liquid",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      }
+    },
+    "button": {
+      "erase_errors": {
+        "name": "Erase Errors",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "read_errors": {
+        "name": "Read Errors",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "trigger_horn": {
+        "name": "Trigger Horn",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "trigger_light": {
+        "name": "Trigger Light",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "trigger_trunk": {
+        "name": "Trigger Trunk",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "check": {
+        "name": "Check",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "additional_command_1": {
+        "name": "Additional Command 1",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "additional_command_2": {
+        "name": "Additional Command 2",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      }
+    },
+    "device_tracker": {
+      "pandora": {
+        "name": "Pandora",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          },
+          "gsm_level": {
+            "name": "GSM Level"
+          }
+        }
+      }
+    },
+    "lock": {
+      "central_lock": {
+        "name": null,
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      }
+    },
+    "sensor": {
+      "mileage": {
+        "name": "Mileage",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "can_mileage": {
+        "name": "CAN Mileage",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "can_mileage_to_empty": {
+        "name": "CAN Mileage to empty",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "fuel": {
+        "name": "Fuel Level",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "interior_temperature": {
+        "name": "Interior Temperature",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "engine_temperature": {
+        "name": "Engine Temperature",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "exterior_temperature": {
+        "name": "Exterior Temperature",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "battery_temperature": {
+        "name": "Battery Temperature",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "balance": {
+        "name": "Balance",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "balance_secondary": {
+        "name": "Balance Secondary",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "speed": {
+        "name": "Speed",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "tachometer": {
+        "name": "Tachometer",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "gsm_level": {
+        "name": "GSM Level",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "battery_voltage": {
+        "name": "Battery voltage",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "left_front_tire_pressure": {
+        "name": "Left Front Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "right_front_tire_pressure": {
+        "name": "Right Front Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "left_back_tire_pressure": {
+        "name": "Left Back Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "right_back_tire_pressure": {
+        "name": "Right Back Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "reserve_tire_pressure": {
+        "name": "Reserve Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "track_distance": {
+        "name": "Track Distance",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "key_number": {
+        "name": "Key Number",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "tag_number": {
+        "name": "Tag Number",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "rotation": {
+        "name": "Rotation",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "direction": {
+        "name": "Direction",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "last_online": {
+        "name": "Last Online",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "last_state_update": {
+        "name": "Last State Update",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "last_settings_change": {
+        "name": "Last Settings Change",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "last_command_execution": {
+        "name": "Last Command Execution",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      }
+    },
+    "switch": {
+      "active_security": {
+        "name": "Active Security",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "tracking": {
+        "name": "Tracking",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "block_heater": {
+        "name": "Block Heater",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "engine": {
+        "name": "Engine",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "service_mode": {
+        "name": "Service Mode",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "ext_channel": {
+        "name": "Extra Channel",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
+      },
+      "status_output": {
+        "name": "Status Output",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device identifier"
+          }
+        }
       }
     }
   }
