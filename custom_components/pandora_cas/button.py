@@ -12,10 +12,8 @@ from homeassistant.components.button import (
     ButtonEntityDescription,
 )
 from homeassistant.const import EntityCategory
-from homeassistant.core import callback, Event
 
 from custom_components.pandora_cas.api import CommandID, PandoraDeviceTypes
-from custom_components.pandora_cas.const import DOMAIN, ATTR_COMMAND_ID
 from custom_components.pandora_cas.entity import (
     async_platform_setup_entry,
     PandoraCASEntity,
@@ -131,7 +129,7 @@ class PandoraCASButton(PandoraCASEntity, ButtonEntity):
         self._is_pressing = True
         await self.run_device_command(
             parse_description_command_id(
-                self.entity_description.command, self.coordinator.device.type
+                self.entity_description.command, self.pandora_device.type
             )
         )
 

@@ -220,7 +220,7 @@ class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
             attributes.update(super_attr)
 
         key = self.entity_description.key
-        state = self.coordinator.device.state
+        state = self.pandora_device.state
 
         if key == "ev_charging_connected":
             if self.available and state:

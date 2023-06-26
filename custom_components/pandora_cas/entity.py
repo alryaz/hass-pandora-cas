@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from enum import Flag
 from typing import (
     Type,
-    Set,
     Optional,
     Callable,
     ClassVar,
@@ -39,6 +38,7 @@ from custom_components.pandora_cas.api import (
     Features,
     CommandID,
     PandoraDeviceTypes,
+    PandoraOnlineAccount,
 )
 from custom_components.pandora_cas.const import (
     DOMAIN,
@@ -84,10 +84,10 @@ async def async_platform_setup_entry(
     )
 
     new_entities = []
-    coordinator: PandoraCASUpdateCoordinator
-    for coordinator in hass.data[DOMAIN][entry.entry_id].values():
-        device = coordinator.device
-
+    coordinator: PandoraCASUpdateCoordinator = hass.data[DOMAIN][
+        entry.entry_id
+    ]
+    for device in coordinator.account.devices:
         # Apply filters
         for entity_description in entity_class.ENTITY_TYPES:
             if (
@@ -100,7 +100,9 @@ async def async_platform_setup_entry(
                     entity_registry_enabled_default=False,
                 )
 
-            new_entities.append(entity_class(coordinator, entity_description))
+            new_entities.append(
+                entity_class(coordinator, device, entity_description)
+            )
 
     if new_entities:
         async_add_entities(new_entities)
@@ -112,22 +114,24 @@ async def async_platform_setup_entry(
     return True
 
 
-class PandoraCASUpdateCoordinator(DataUpdateCoordinator[Mapping[str, Any]]):
+class PandoraCASUpdateCoordinator(
+    DataUpdateCoordinator[Mapping[int, Mapping[str, Any]]]
+):
     def __init__(
         self,
         hass: HomeAssistant,
         *,
-        device: PandoraOnlineDevice,
+        account: PandoraOnlineAccount,
         **kwargs,
     ) -> None:
-        self.device = device
+        self.account = account
 
         super().__init__(hass, _LOGGER, name=DOMAIN, **kwargs)
 
-    async def _async_update_data(self) -> Set[str]:
+    async def _async_update_data(self) -> Mapping[int, Mapping[str, Any]]:
         """Fetch data for sub-entities."""
         # @TODO: manual polling updates!
-        raise NotImplementedError
+        return await self.account.async_request_updates()
 
 
 @dataclass
@@ -158,25 +162,27 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
     ] = NotImplemented
     ENTITY_ID_FORMAT: ClassVar[str] = NotImplemented
 
-    _attr_native_value: Any
     entity_description: PandoraCASEntityDescription
+    _attr_native_value: Any
 
     _attr_has_entity_name = True
-    """Do not poll entities (handled by central account updaters)."""
 
     def __init__(
         self,
         coordinator: PandoraCASUpdateCoordinator,
+        pandora_device: PandoraOnlineDevice,
         entity_description: "PandoraCASEntityDescription",
         extra_identifier: Any = None,
         context: Any = None,
     ) -> None:
         super().__init__(coordinator, context)
+        self.pandora_device = pandora_device
         self.entity_description = entity_description
 
         # Set unique ID based on entity type
-        device = self.coordinator.device
-        unique_id = f"{DOMAIN}_{device.device_id}_{entity_description.key}"
+        unique_id = (
+            f"{DOMAIN}_{pandora_device.device_id}_{entity_description.key}"
+        )
         if extra_identifier is not None:
             unique_id += f"_{extra_identifier}"
         self._attr_unique_id = unique_id
@@ -184,23 +190,24 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
 
         # Generate appropriate entity ID
         entity_id = self.ENTITY_ID_FORMAT.format(
-            f"{slugify(str(device.device_id))}_{slugify(entity_description.key)}"
+            f"{slugify(str(pandora_device.device_id))}_{slugify(entity_description.key)}"
         )
         if extra_identifier is not None:
             entity_id += "_" + slugify(str(extra_identifier))
         self.entity_id = entity_id
 
-        # First attributes update
-        self._attr_native_value = None
-        self.update_native_value()
-
+        # Command execution management
         self._last_command_failed = False
         self._command_waiter: Optional[Callable[[], None]] = None
         self._command_listeners: Optional[List[Callable[[], None]]] = None
 
+        # First attributes update
+        self._attr_native_value = None
+        self.update_native_value()
+
     @property
     def device_info(self) -> DeviceInfo | None:
-        d = self.coordinator.device
+        d = self.pandora_device
         return DeviceInfo(
             identifiers={(DOMAIN, str(d.device_id))},
             default_name=d.name,
@@ -215,7 +222,7 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
         if super_attr := super().extra_state_attributes:
             attr.update(super_attr)
 
-        attr[ATTR_DEVICE_ID] = self.coordinator.device.device_id
+        attr[ATTR_DEVICE_ID] = self.pandora_device.device_id
 
         return attr
 
@@ -223,12 +230,12 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
     def available(self) -> bool:
         return self._attr_available is not False and (
             not self.entity_description.online_sensitive
-            or self.coordinator.device.is_online
+            or self.pandora_device.is_online
         )
 
     def get_native_value(self) -> Optional[Any]:
         """Update entity from upstream device data."""
-        source = self.coordinator.device
+        source = self.pandora_device
         if (asg := self.entity_description.attribute_source) is not None:
             source = getattr(source, asg)
 
@@ -264,14 +271,27 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
+
+        # Do not issue update if coordinator data is empty
+        if not (data := self.coordinator.data):
+            return
+
+        # Do not issue update if device id within list of data
+        try:
+            device_data = data[self.pandora_device.device_id]
+        except KeyError:
+            return
+
+        # Do not issue update if state attribute is involved and not set
         ed = self.entity_description
         if (
             ed.attribute_source == "state"
             and ed.attribute is not None
-            and self.coordinator.data
-            and ed.attribute not in self.coordinator.data
+            and ed.attribute not in device_data
         ):
             return
+
+        # Update native value and write state
         self.update_native_value()
         self.async_write_ha_state()
 
@@ -286,12 +306,13 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
     def _process_command_response(self, event: Event) -> None:
         _LOGGER.debug(f"[{self}] Resetting command event")
         self.reset_command_event()
+        self.async_write_ha_state()
 
     def _add_command_listener(self, command: Optional[CommandType]) -> None:
         if command is None:
             return None
         command_id = parse_description_command_id(
-            command, self.coordinator.device.type
+            command, self.pandora_device.type
         )
         if (listeners := self._command_listeners) is None:
             self._command_listeners = listeners = []
@@ -306,7 +327,7 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
         )
 
     async def run_device_command(self, command: Union[str, int, CommandID]):
-        d = self.coordinator.device
+        d = self.pandora_device
         if isinstance(command, str):
             command = getattr(d, command)
             if asyncio.iscoroutinefunction(command):
@@ -400,7 +421,7 @@ class PandoraCASBooleanEntity(PandoraCASEntity):
                 if enable or self.entity_description.command_off is None
                 else self.entity_description.command_off
             ),
-            self.coordinator.device.type,
+            self.pandora_device.type,
         )
 
         self.reset_command_event()

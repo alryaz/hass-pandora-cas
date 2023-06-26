@@ -12,7 +12,6 @@ from homeassistant.components.device_tracker import (
 )
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import ATTR_VOLTAGE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
@@ -36,12 +35,14 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
     new_entities = []
-    coordinator: PandoraCASUpdateCoordinator
-    for coordinator in hass.data[DOMAIN][entry.entry_id].values():
+    coordinator: PandoraCASUpdateCoordinator = hass.data[DOMAIN][
+        entry.entry_id
+    ]
+    for device in coordinator.account.devices:
         # Add device tracker
         for entity_type in ENTITY_TYPES:
             new_entities.append(
-                PandoraCASTrackerEntity(coordinator, entity_type, None)
+                PandoraCASTrackerEntity(coordinator, device, entity_type, None)
             )
 
     if new_entities:
@@ -78,7 +79,7 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
 
     @property
     def name(self) -> str | None:
-        return self.coordinator.device.name
+        return self.pandora_device.name
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
@@ -110,20 +111,20 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
     @property
     def latitude(self) -> float:
         """Return latitude value of the device."""
-        if (device_state := self.coordinator.device.state) is None:
+        if (device_state := self.pandora_device.state) is None:
             return 0.0
         return device_state.latitude
 
     @property
     def longitude(self) -> float:
         """Return longitude value of the device."""
-        if (device_state := self.coordinator.device.state) is None:
+        if (device_state := self.pandora_device.state) is None:
             return 0.0
         return device_state.longitude
 
     @property
     def entity_picture(self) -> str:
-        device = self.coordinator.device
+        device = self.pandora_device
 
         return (
             "data:image/svg+xml;base64,"

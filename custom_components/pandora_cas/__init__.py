@@ -287,10 +287,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.error(f"Error updating vehicles: {error}", exc_info=error)
         raise ConfigEntryNotReady(str(error)) from error
 
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinators = {
-        device.device_id: PandoraCASUpdateCoordinator(hass, device=device)
-        for device in account.devices
-    }
+    hass.data.setdefault(DOMAIN, {})[
+        entry.entry_id
+    ] = coordinator = PandoraCASUpdateCoordinator(hass, account=account)
 
     # create account updater
     async def _state_changes_listener(
@@ -298,16 +297,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _: CurrentState,
         new_state_values: Mapping[str, Any],
     ):
-        try:
-            coordinator: PandoraCASUpdateCoordinator = coordinators[
-                device.device_id
-            ]
-        except KeyError:
-            _LOGGER.warning(
-                f"Received update for an unknown device {device.device_id}"
-            )
-        else:
-            coordinator.async_set_updated_data(new_state_values)
+        _LOGGER.debug(
+            f"Received WebSockets state update for "
+            f"device {device.device_id}: {new_state_values}"
+        )
+
+        coordinator.async_set_updated_data(
+            {device.device_id: new_state_values}
+        )
 
     async def _command_execution_listener(
         device: PandoraOnlineDevice,

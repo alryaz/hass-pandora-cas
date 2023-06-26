@@ -280,6 +280,17 @@ class BalanceState:
     def __round__(self, n=None):
         return round(self.value, n)
 
+    @classmethod
+    def state_value_from_dict(cls, data: Optional[Mapping[str, Any]]):
+        try:
+            if data:
+                return cls(
+                    value=data["value"],
+                    currency=data["cur"],
+                )
+        except (LookupError, TypeError, ValueError):
+            pass
+
 
 @attr.s(kw_only=True, frozen=True, slots=True)
 class FuelTank:
@@ -342,6 +353,7 @@ class CurrentState:
     voltage: float = attr.ib(converter=float)
     gsm_level: int = attr.ib()
     balance: Optional[BalanceState] = attr.ib(default=None)
+    balance_other: Optional[BalanceState] = attr.ib(default=None)
     mileage: float = attr.ib(converter=float)
     can_mileage: float = attr.ib(converter=float)
     tag_number: int = attr.ib()
@@ -391,13 +403,12 @@ class CurrentState:
     battery_temperature: Optional[int] = attr.ib(default=None)
 
     # undecoded parameters
-    smeter: int = attr.ib(default=None)
-    tconsum: int = attr.ib(default=None)
+    smeter: Optional[int] = attr.ib(default=None)
+    tconsum: Optional[int] = attr.ib(default=None)
     loadaxis: Any = attr.ib(default=None)
-    land: int = attr.ib(default=None)
-    bunker: int = attr.ib(default=None)
-    ex_status: int = attr.ib(default=None)
-    balance_other: Any = attr.ib(default=None)
+    land: Optional[int] = attr.ib(default=None)
+    bunker: Optional[int] = attr.ib(default=None)
+    ex_status: Optional[int] = attr.ib(default=None)
     fuel_tanks: Collection[FuelTank] = attr.ib(default=None)
 
     state_timestamp: int = attr.ib()
@@ -516,6 +527,7 @@ class PandoraOnlineAccount:
         password: str,
         access_token: Optional[str] = None,
         session: Optional[aiohttp.ClientSession] = None,
+        utc_offset: Optional[int] = None,
     ) -> None:
         """
         Instantiate Pandora Online account object.
@@ -523,6 +535,17 @@ class PandoraOnlineAccount:
         :param password: Account password
         :param access_token: Access token (optional)
         """
+        if utc_offset is None:
+            from calendar import timegm
+            from time import mktime, localtime, gmtime
+
+            utc_offset = timegm(t := localtime()) - timegm(gmtime(mktime(t)))
+
+        if not (-86400 < utc_offset < 86400):
+            raise ValueError("utc offset cannot be greater than 24 hours")
+
+        self._utc_offset = utc_offset
+
         if session is None:
             session = aiohttp.ClientSession()
 
@@ -558,6 +581,10 @@ class PandoraOnlineAccount:
         return '%s[username="%s"]' % (self.__class__.__name__, self._username)
 
     # Basic properties
+    @property
+    def utc_offset(self) -> int:
+        return self._utc_offset
+
     @property
     def username(self) -> str:
         """Username accessor."""
@@ -655,7 +682,7 @@ class PandoraOnlineAccount:
             "password": self._password,
             "lang": "ru",
             "v": "3",
-            "utc_offset": 180,
+            "utc_offset": self._utc_offset // 60,
             "access_token": access_token,
         }
 
@@ -734,7 +761,9 @@ class PandoraOnlineAccount:
                 'Command "%d" sent to device "%d"' % (command_id, device_id)
             )
 
-    async def async_fetch_changes(self, timestamp: Optional[int] = None):
+    async def async_request_updates(
+        self, timestamp: Optional[int] = None
+    ) -> Dict[int, Dict[str, Any]]:
         """
         Fetch the latest changes from update server.
         :param timestamp:
@@ -750,48 +779,40 @@ class PandoraOnlineAccount:
 
         async with self._session.get(
             self.BASE_URL + "/api/updates",
-            params={"ts": _timestamp, "access_token": access_token},
+            params={
+                "ts": _timestamp,
+                "access_token": access_token,
+            },
         ) as response:
             content: Dict[str, Any] = await self._handle_response(response)
 
-        updated_device_ids = set()
+        device_new_attrs: Dict[int, Dict[str, Any]] = {}
 
         # Time updates
-        if content.get("time"):
-            for device_id, times_data in content["time"].items():
-                device_object = self.get_device(device_id)
-                if device_object:
-                    _LOGGER.debug(
-                        "Updating times data for device %s" % (device_object,)
-                    )
-                    device_object.times = times_data
-                    updated_device_ids.add(device_object.device_id)
+        for key, meth in (
+            ("stats", self._process_http_stats),
+            ("time", self._process_http_times),
+        ):
+            if not (mapping := content.get(key)):
+                continue
+            for device_id, data in mapping.items():
+                if device := self.get_device(device_id):
+                    _, new_attrs = meth(device, data)
+                    try:
+                        device_new_attrs[int(device_id)].update(new_attrs)
+                    except KeyError:
+                        device_new_attrs[int(device_id)] = new_attrs
                 else:
-                    _LOGGER.warning(
-                        'Device with ID "%s" times data retrieved, '
-                        "but no object created yet. Skipping..."
+                    _LOGGER.debug(
+                        f'Device with ID "{device_id}" {key} data '
+                        "retrieved, but no object created yet"
                     )
 
-        # Stats updates
-        if content.get("stats"):
-            for device_id, stats_data in content["stats"].items():
-                device_object = self.get_device(device_id)
-                if device_object:
-                    _LOGGER.debug(
-                        "Updating stats data for device %s" % (device_object,)
-                    )
-                    device_object.state = stats_data
-                    updated_device_ids.add(device_object.device_id)
-
-                else:
-                    _LOGGER.warning(
-                        'Device with ID "%s" stats data retrieved, '
-                        "but no object created yet. Skipping..." % (device_id,)
-                    )
+        _LOGGER.debug(f"Received updates from HTTP: {device_new_attrs}")
 
         self._last_update = int(content["ts"])
 
-        return content, updated_device_ids
+        return device_new_attrs
 
     @staticmethod
     def _get_device_id(data: Mapping[str, Any]) -> int:
@@ -811,6 +832,140 @@ class PandoraOnlineAccount:
                 f"Could not convert device ID '{device_id}' to integer"
             )
 
+    @classmethod
+    def _extract_common_state_args(
+        cls, data: Mapping[str, Any], **kwargs
+    ) -> Dict[str, Any]:
+        if "identifier" not in kwargs:
+            kwargs["identifier"] = cls._get_device_id(data)
+        if "active_sim" in data:
+            kwargs.setdefault("active_sim", data["active_sim"])
+        if "balance" in data:
+            kwargs.setdefault(
+                "balance",
+                BalanceState.state_value_from_dict(data.get("balance")),
+            )
+        if "balance1" in data:
+            kwargs.setdefault(
+                "balance_other",
+                BalanceState.state_value_from_dict(data.get("balance")),
+            )
+        if "bit_state_1" in data:
+            kwargs.setdefault("bit_state", BitStatus(int(data["bit_state_1"])))
+        if "brelok" in data:
+            kwargs.setdefault("key_number", data["brelok"])
+        if "bunker" in data:
+            kwargs.setdefault("bunker", data["bunker"])
+        if "cabin_temp" in data:
+            kwargs.setdefault("interior_temperature", data["cabin_temp"])
+        # dtime
+        # dtime_rec
+        if "engine_rpm" in data:
+            kwargs.setdefault("engine_rpm", data["engine_rpm"])
+        if "engine_temp" in data:
+            kwargs.setdefault("engine_temperature", data["engine_temp"])
+        if "evaq" in data:
+            kwargs.setdefault("is_evacuating", data["evaq"])
+        if "ex_status" in data:
+            kwargs.setdefault("ex_status", data["ex_status"])
+        if "fuel" in data:
+            kwargs.setdefault("fuel", data["fuel"])
+        # land
+        # liquid_sensor
+        if "gsm_level" in data:
+            kwargs.setdefault("gsm_level", data["gsm_level"])
+        if "metka" in data:
+            kwargs.setdefault("tag_number", data["metka"])
+        if "mileage" in data:
+            kwargs.setdefault("mileage", data["mileage"])
+        if "mileage_CAN" in data:
+            kwargs.setdefault("can_mileage", data["mileage_CAN"])
+        if "move" in data:
+            kwargs.setdefault("is_moving", data["move"])
+        # online -- different on HTTP, value not timestamp
+        if "out_temp" in data:
+            kwargs.setdefault("exterior_temperature", data["out_temp"])
+        if "relay" in data:
+            kwargs.setdefault("relay", data["relay"])
+        if "rot" in data:
+            kwargs.setdefault("rotation", data["rot"])
+        # smeter
+        if "speed" in data:
+            kwargs.setdefault("speed", data["speed"])
+        # tanks -- unknown for http
+        if "voltage" in data:
+            kwargs.setdefault("voltage", data["voltage"])
+        if "x" in data:
+            kwargs.setdefault("latitude", data["x"])
+        if "y" in data:
+            kwargs.setdefault("longitude", data["y"])
+        return kwargs
+
+    @staticmethod
+    def _update_device_current_state(
+        device: "PandoraOnlineDevice", **state_args
+    ) -> Tuple[CurrentState, Dict[str, Any]]:
+        # Extract UTC offset
+        if (utc_offset := device._utc_offset) is None:
+            for prefix in ("online", "state"):
+                utc = (non_utc := prefix + "_timestamp") + "_utc"
+                if utc in state_args and non_utc in state_args:
+                    device._utc_offset = utc_offset = (
+                        round((state_args[non_utc] - state_args[utc]) / 60)
+                        * 60
+                    )
+                    break
+
+        # Adjust for two timestamps
+        for prefix in ("online", "state"):
+            utc = (non_utc := prefix + "_timestamp") + "_utc"
+            if utc in state_args:
+                if non_utc not in state_args:
+                    state_args[non_utc] = state_args[utc] + utc_offset
+            elif non_utc in state_args:
+                state_args[utc] = state_args[non_utc] - utc_offset
+
+        # Create new state or evolve existing
+        if (state := device.state) is None:
+            device.state = state = CurrentState(**state_args)
+        else:
+            attr.evolve(state, **state_args)
+
+        # noinspection PyTypeChecker
+        return state, state_args
+
+    def _process_http_stats(
+        self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
+    ) -> Tuple[CurrentState, Dict[str, Any]]:
+        _LOGGER.debug(
+            f"Processing stats updates for device with ID '{device.device_id}'"
+        )
+
+        return self._update_device_current_state(
+            device,
+            **self._extract_common_state_args(
+                data,
+                identifier=device.device_id,
+            ),
+        )
+
+    def _process_http_times(
+        self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
+    ) -> Tuple[CurrentState, Dict[str, Any]]:
+        _LOGGER.debug(
+            f"Processing times updates for device with ID '{device.device_id}'"
+        )
+
+        # @TODO: unknown timestamp format
+
+        return self._update_device_current_state(
+            device,
+            online_timestamp=data["onlined"],
+            online_timestamp_utc=data["online"],
+            command_timestamp_utc=data["command"],
+            settings_timestamp_utc=data["setting"],
+        )
+
     def _process_ws_initial_state(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
     ) -> Tuple[CurrentState, Dict[str, Any]]:
@@ -818,53 +973,21 @@ class PandoraOnlineAccount:
             f"Initializing stats data for device with ID '{device.device_id}'"
         )
 
-        current_state_args = dict(
-            identifier=self._get_device_id(data),
-            latitude=data["x"],
-            longitude=data["y"],
-            speed=data["speed"],
-            bit_state=BitStatus(int(data["bit_state_1"])),
-            engine_rpm=data["engine_rpm"],
-            engine_temperature=data["engine_temp"],
-            interior_temperature=data["cabin_temp"],
-            exterior_temperature=data["out_temp"],
-            balance=(
-                BalanceState(
-                    value=data["balance"]["value"],
-                    currency=data["balance"]["cur"],
-                )
-                if data["balance"]
-                else None
+        return self._update_device_current_state(
+            device,
+            **self._extract_common_state_args(
+                data,
+                identifier=device.device_id,
             ),
-            balance_other=(
-                BalanceState(
-                    value=data["balance1"]["value"],
-                    currency=data["balance1"]["cur"],
-                )
-                if data["balance1"]
-                else None
-            ),
-            mileage=data["mileage"],
-            can_mileage=data["mileage_CAN"],
-            tag_number=data["metka"],
-            key_number=data["brelok"],
-            is_moving=data["move"],
-            is_evacuating=data["evaq"],
-            fuel=data["fuel"],
-            gsm_level=data["gsm_level"],
-            relay=data["relay"],
-            voltage=data["voltage"],
             state_timestamp=data["state"],
             state_timestamp_utc=data["state_utc"],
             online_timestamp=data["online"],
             online_timestamp_utc=data["online_utc"],
             settings_timestamp_utc=data["setting_utc"],
             command_timestamp_utc=data["command_utc"],
-            active_sim=data["active_sim"],
             tracking_remaining=data["track_remains"],
             lock_latitude=data["lock_x"] / 1000000,
             lock_longitude=data["lock_y"] / 1000000,
-            rotation=data["rot"],
             fuel_tanks=self.parse_fuel_tanks(data.get("tanks")),
             # CAN data about wheel pressure
             can_tpms_front_left=data.get("CAN_TMPS_forvard_left"),
@@ -898,11 +1021,6 @@ class PandoraOnlineAccount:
             ev_status_ready=data.get("ev_status_ready"),
             battery_temperature=data.get("battery_temperature"),
         )
-
-        current_state = CurrentState(**current_state_args)
-        device.state = current_state
-
-        return current_state, current_state_args
 
     @staticmethod
     def parse_fuel_tanks(
@@ -951,74 +1069,22 @@ class PandoraOnlineAccount:
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
     ) -> Optional[Tuple[CurrentState, Dict[str, Any]]]:
         device_state = device.state
-        if device_state is None:
-            _LOGGER.warning(
-                f"Device with ID '{device.device_id}' partial state data retrieved, "
-                f"but no initial data has yet been received. Skipping...",
-            )
-
-            return None
+        # if device_state is None:
+        #     _LOGGER.warning(
+        #         f"Device with ID '{device.device_id}' partial state data retrieved, "
+        #         f"but no initial data has yet been received. Skipping...",
+        #     )
+        #
+        #     return None
 
         _LOGGER.debug(
             f"Appending stats data for device with ID '{device.device_id}'"
         )
 
-        args = {}
+        args = self._extract_common_state_args(
+            data, identifier=device.device_id
+        )
 
-        if "x" in data:
-            args["latitude"] = data["x"]
-        if "y" in data:
-            args["longitude"] = data["y"]
-        if "speed" in data:
-            args["speed"] = data["speed"]
-        if "bit_state_1" in data:
-            args["bit_state"] = BitStatus(int(data["bit_state_1"]))
-        if "engine_rpm" in data:
-            args["engine_rpm"] = data["engine_rpm"]
-        if "engine_temp" in data:
-            args["engine_temperature"] = data["engine_temp"]
-        if "cabin_temp" in data:
-            args["interior_temperature"] = data["cabin_temp"]
-        if "out_temp" in data:
-            args["exterior_temperature"] = data["out_temp"]
-        if "balance" in data:
-            args["balance"] = (
-                BalanceState(
-                    value=data["balance"]["value"],
-                    currency=data["balance"]["cur"],
-                )
-                if data["balance"]
-                else None
-            )
-        if "balance1" in data:
-            args["balance_other"] = (
-                BalanceState(
-                    value=data["balance1"]["value"],
-                    currency=data["balance1"]["cur"],
-                )
-                if data["balance1"]
-                else None
-            )
-        if "mileage" in data:
-            args["mileage"] = data["mileage"]
-        if "mileage_CAN" in data:
-            args["can_mileage"] = data["mileage_CAN"]
-        if "metka" in data:
-            args["tag_number"] = data["metka"]
-        if "brelok" in data:
-            args["key_number"] = data["brelok"]
-        if "move" in data:
-            args["is_moving"] = data["move"]
-        if "evaq" in data:
-            args["is_evacuating"] = data["evaq"]
-        if "fuel" in data:
-            args["fuel"] = data["fuel"]
-        if "gsm_level" in data:
-            args["gsm_level"] = data["gsm_level"]
-        if "relay" in data:
-            args["relay"] = data["relay"]
-        if "voltage" in data:
-            args["voltage"] = data["voltage"]
         if "state" in data:
             args["state_timestamp"] = data["state"]
         if "state_utc" in data:
@@ -1039,8 +1105,6 @@ class PandoraOnlineAccount:
             args["lock_latitude"] = data["lock_x"] / 1000000
         if "lock_y" in data:
             args["lock_longitude"] = data["lock_y"] / 1000000
-        if "rot" in data:
-            args["rotation"] = data["rot"]
         if "CAN_average_speed" in data:
             args["can_average_speed"] = data["CAN_average_speed"]
         if "CAN_TMPS_forvard_left" in data:
@@ -1397,17 +1461,22 @@ class PandoraOnlineDevice:
         attributes: Mapping[str, Any],
         current_state: Optional[CurrentState] = None,
         control_timeout: float = DEFAULT_CONTROL_TIMEOUT,
+        utc_offset: Optional[int] = None,
     ) -> None:
         """
         Instantiate vehicle object.
         :param account:
         """
+        if not (utc_offset is None or (-86400 < utc_offset < 86400)):
+            raise ValueError("utc offset cannot be greater than 24 hours")
+
         self._account = account
         self._control_future: Optional[asyncio.Future] = None
         self._features = None
         self._attributes = attributes
         self._current_state = current_state
         self._last_point: Optional[TrackingPoint] = None
+        self._utc_offset = utc_offset
 
         # Control timeout setting
         self.control_timeout = control_timeout
@@ -1427,6 +1496,14 @@ class PandoraOnlineDevice:
         )
 
     # State management
+    @property
+    def utc_offset(self) -> int:
+        return (
+            self.account.utc_offset
+            if self._utc_offset is None
+            else self._utc_offset
+        )
+
     @property
     def state(self) -> Optional[CurrentState]:
         return self._current_state

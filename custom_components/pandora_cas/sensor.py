@@ -370,7 +370,7 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
         key = self.entity_description.key
         if key == "fuel":
             target_fuel_tank = None
-            if state := self.coordinator.device.state:
+            if state := self.pandora_device.state:
                 for fuel_tank in state.fuel_tanks:
                     if fuel_tank.id == self._extra_identifier:
                         target_fuel_tank = fuel_tank
@@ -385,7 +385,7 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
                 attributes.update(dict.fromkeys((ATTR_ID, "capacity")))
 
         elif key == "track_distance":
-            if last_point := self.coordinator.device.last_point:
+            if last_point := self.pandora_device.last_point:
                 attributes[ATTR_ID] = last_point.identifier
                 attributes["timestamp"] = last_point.timestamp
                 attributes["track_id"] = last_point.track_id
@@ -419,7 +419,7 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
             def _event_filter(event: Event):
                 return (
                     event.data.get("device_id")
-                    == self.coordinator.device.device_id
+                    == self.pandora_device.device_id
                 )
 
             async def _schedule_update(*_):

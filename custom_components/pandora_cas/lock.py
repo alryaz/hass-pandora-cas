@@ -1,7 +1,6 @@
 """Switch entity for Pandora Car Alarm System."""
 __all__ = ("ENTITY_TYPES", "async_setup_entry")
 
-import asyncio
 import logging
 from asyncio import run_coroutine_threadsafe
 from dataclasses import dataclass
@@ -13,14 +12,13 @@ from homeassistant.components.lock import (
     ENTITY_ID_FORMAT,
     LockEntityDescription,
 )
-from homeassistant.exceptions import HomeAssistantError
 
+from custom_components.pandora_cas.api import BitStatus, CommandID
 from custom_components.pandora_cas.entity import (
     async_platform_setup_entry,
     PandoraCASBooleanEntityDescription,
     PandoraCASBooleanEntity,
 )
-from custom_components.pandora_cas.api import BitStatus, CommandID
 
 _LOGGER = logging.getLogger(__name__)
 

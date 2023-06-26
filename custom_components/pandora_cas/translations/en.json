@@ -10,10 +10,9 @@
     "step": {
       "user": {
         "data": {
-          "username": "Username",
-          "password": "Password",
-          "polling_interval": "Polling interval",
-          "user_agent": "User Agent header (optional)"
+          "username": "[%key:common::config_flow::data::username%]",
+          "password": "[%key:common::config_flow::data::password%]",
+          "verify_ssl": "[%key:common::config_flow::data::verify_ssl%]"
         },
         "title": "Pandora Account Authentication",
         "description": "Enter your credentials for your Pandora Online account."
@@ -22,27 +21,12 @@
     "title": "Pandora Car Alarm System"
   },
   "options": {
-    "abort": {
-      "yaml_not_supported": "Changing parameters is done inside YAML configuration file"
-    },
     "step": {
       "init": {
         "data": {
           "password": "Password"
         },
         "description": ""
-      }
-    }
-  },
-  "entity": {
-    "sensor": {
-      "gsm_level": {
-        "state": {
-          "0": "Offline",
-          "1": "Weak",
-          "2": "Medium",
-          "3": "Strong"
-        }
       }
     }
   }

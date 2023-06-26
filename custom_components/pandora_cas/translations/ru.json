@@ -1,7 +1,7 @@
 {
   "config": {
     "abort": {
-      "account_already_exists": "Аккаунт с таким именем пользователя уже добавлен"
+      "account_already_exists": "Учётная запись с таким именем пользователя уже существует"
     },
     "error": {
       "invalid_credentials": "Неправильные имя пользователя и/или пароль",
@@ -10,10 +10,9 @@
     "step": {
       "user": {
         "data": {
-          "username": "Имя пользователя",
-          "password": "Пароль",
-          "polling_interval": "Интервал опроса",
-          "user_agent": "Заголовок User Agent (опционально)"
+          "username": "[%key:common::config_flow::data::username%]",
+          "password": "[%key:common::config_flow::data::password%]",
+          "verify_ssl": "[%key:common::config_flow::data::verify_ssl%]"
         },
         "title": "Авторизация Pandora",
         "description": "Введите данные для входа в Вашу учётную запись Pandora Online."
@@ -22,9 +21,6 @@
     "title": "Охранная система Pandora"
   },
   "options": {
-    "abort": {
-      "yaml_not_supported": "Изменение параметров производится через файловую конфигурацию (YAML)"
-    },
     "step": {
       "init": {
         "data": {
