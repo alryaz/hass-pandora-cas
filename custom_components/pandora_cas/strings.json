@@ -14,7 +14,7 @@
           "password": "[%key:common::config_flow::data::password%]",
           "verify_ssl": "[%key:common::config_flow::data::verify_ssl%]"
         },
-        "title": "Pandora Account Authentication",
+        "title": "Account Authentication",
         "description": "Enter your credentials for your Pandora Online account."
       },
       "reauth": {
@@ -23,8 +23,8 @@
           "password": "[%key:common::config_flow::data::password%]",
           "verify_ssl": "[%key:common::config_flow::data::verify_ssl%]"
         },
-        "title": "Pandora Account Reauthentication",
-        "description": "Enter your credentials for your Pandora Online account."
+        "description": "Enter your credentials for your Pandora Online account.",
+        "title": "Account Reauthentication"
       }
     }
   },
