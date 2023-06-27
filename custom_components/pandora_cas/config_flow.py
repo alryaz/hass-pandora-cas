@@ -2,7 +2,7 @@
 __all__ = ("PandoraCASConfigFlow", "PandoraCASOptionsFlow")
 
 import logging
-from typing import Any, Dict, Final, List, Optional, TypeVar
+from typing import Any, Dict, Final, List, Optional, TypeVar, Collection, Mapping, Callable, Iterable
 
 import voluptuous as vol
 from homeassistant import config_entries
@@ -16,6 +16,7 @@ from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult, FlowResultType
 from homeassistant.exceptions import ConfigEntryNotReady, ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers import config_validation as cv
 
 from custom_components.pandora_cas import async_run_pandora_coro
 from custom_components.pandora_cas.api import (
@@ -172,44 +173,64 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
         )
 
 
-#
-#     @staticmethod
-#     @callback
-#     def async_get_options_flow(
-#         config_entry: config_entries.ConfigEntry,
-#     ) -> config_entries.OptionsFlow:
-#         return PandoraCASOptionsFlow(config_entry)
-#
-#
-# class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
-#     async def async_step_init(
-#         self, user_input: Optional[Dict[str, Any]] = None
-#     ) -> Dict[str, Any]:
-#         errors: dict[str, str] | None = None
-#
-#         errors = {}
-#         if user_input:
-#             new_password = user_input.get(CONF_PASSWORD)
-#             if new_password:
-#                 _LOGGER.debug("Password is getting updated")
-#                 config_entry = self.config_entry
-#
-#                 self.hass.config_entries.async_update_entry(
-#                     config_entry,
-#                     data={
-#                         **config_entry.data,
-#                         CONF_PASSWORD: new_password,
-#                     },
-#                 )
-#
-#                 # Setting data to None cancels double update
-#                 return self.async_create_entry(title="", data=None)
-#
-#             # Stub update
-#             return self.async_create_entry(title="", data=None)
-#
-#         return self.async_show_form(
-#             step_id="init",
-#             data_schema=vol.Schema,
-#             errors=errors,
-#         )
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> config_entries.OptionsFlow:
+        return PandoraCASOptionsFlow(config_entry)
+
+
+_T = TypeVar("_T")
+
+
+class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
+    @staticmethod
+    def _value_to_list(
+        data: Union[str, Iterable[_T]],
+        validator: Callable[[str], _T],
+    ) -> List[_T]:
+        if isinstance(data, str):
+            data = map(str.strip, ",".split(data))
+
+        return list(map(validator, data))
+
+    @staticmethod
+    def _list_to_validator(
+        current_values: Collection[_T],
+        existing_values: Optional[Mapping[_T], str] = None,
+    ) -> Callable:
+        if existing_values is None:
+            if not current_values:
+                return cv.string
+            return cv.multi_select(sorted(current_values))
+        return cv.multi_select(
+            {
+                value: (existing_values.get(value) or value)
+                for value in sorted({*existing_values, *current_values})
+            }
+        )
+        
+    async def async_step_init(
+        self, user_input: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        errors: dict[str, str] | None = None
+
+        errors = {}
+        if user_input:
+            # Save booleans
+            self._options[CONF_VERIFY_SSL] = bool(
+                user_input.get(CONF_VERIFY_SSL)
+            )
+            self._options[CONF_DISABLE_WEBSOCKETS] = bool(
+                user_input.get(CONF_DISABLE_WEBSOCKETS)
+            )
+            
+            return self.async_create_entry(title="", data=None)
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema,
+            errors=errors,
+        )
