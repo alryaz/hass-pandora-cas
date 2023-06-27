@@ -139,25 +139,11 @@ class PandoraCASSwitch(PandoraCASBooleanEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Proxy method to run enable boolean command."""
-        self._is_turning_on = True
-        self.async_write_ha_state()
-        try:
-            await self.run_binary_command(True)
-        except BaseException:
-            self._is_turning_on = False
-            self.async_write_ha_state()
-            raise
+        await self.run_binary_command(True)
 
     async def async_turn_off(self, **kwargs) -> None:
         """Proxy method to run disable boolean command."""
-        self._is_turning_off = True
-        self.async_write_ha_state()
-        try:
-            await self.run_binary_command(False)
-        except BaseException:
-            self._is_turning_off = False
-            self.async_write_ha_state()
-            raise
+        await self.run_binary_command(False)
 
     def turn_on(self, **kwargs: Any) -> None:
         """Compatibility for synchronous turn on calls."""
