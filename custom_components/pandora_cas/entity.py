@@ -372,12 +372,8 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
             # Failed call
             self.reset_command_event()
             self._last_command_failed = True
-            raise
-        else:
-            # Successful call
-            self.reset_command_event()
-        finally:
             self.async_write_ha_state()
+            raise
             
 
     async def async_will_remove_from_hass(self) -> None:
