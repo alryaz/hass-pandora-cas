@@ -112,26 +112,25 @@ class PandoraCASButton(PandoraCASEntity, ButtonEntity):
             return i
         return e.icon
 
-    def press(self) -> None:
-        """Compatibility for synchronous turn on calls."""
-        asyncio.run_coroutine_threadsafe(
-            self.async_press(), self.hass.loop
-        ).result()
-
-    def reset_command_event(self, *args) -> None:
-        super().reset_command_event(*args)
+    @callback
+    def reset_command_event(self) -> None:
         self._is_pressing = False
+        super().reset_command_event()
 
     async def async_press(self) -> None:
         """Proxy method to run disable boolean command."""
-
-        self.reset_command_event()
         self._is_pressing = True
         await self.run_device_command(
             parse_description_command_id(
                 self.entity_description.command, self.pandora_device.type
             )
         )
+
+    def press(self) -> None:
+        """Compatibility for synchronous turn on calls."""
+        asyncio.run_coroutine_threadsafe(
+            self.async_press(), self.hass.loop
+        ).result()
 
     def update_native_value(self) -> bool:
         """Native value for this entity type does not get updated.
