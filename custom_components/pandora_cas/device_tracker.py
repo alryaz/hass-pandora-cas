@@ -3,8 +3,8 @@ __all__ = ("async_setup_entry", "PLATFORM_DOMAIN")
 
 import base64
 import logging
-import math
 from typing import Mapping, Any, Dict
+from haversine import haversine, Unit
 
 from homeassistant.components.device_tracker import (
     DOMAIN as PLATFORM_DOMAIN,
@@ -96,7 +96,7 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
             return True
 
         new_ll = (state.latitude, state.longitude)
-        if math.dist(old_ll, new_ll) > 0.0001:
+        if harvesine(old_ll, new_ll, unit=Unit.METERS) >= 10.0:
             self._last_latitude, self._last_longitude = new_ll
             return True
         return False
