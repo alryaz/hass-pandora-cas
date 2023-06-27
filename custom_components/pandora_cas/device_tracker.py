@@ -96,7 +96,7 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
             return True
 
         new_ll = (state.latitude, state.longitude)
-        if harvesine(old_ll, new_ll, unit=Unit.METERS) >= 10.0:
+        if haversine(old_ll, new_ll, unit=Unit.METERS) >= 10.0:
             self._last_latitude, self._last_longitude = new_ll
             return True
         return False
