@@ -73,10 +73,10 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
     _attr_has_entity_name = False
 
     def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
         self._last_latitude = None
         self._last_longitude = None
+
+        super().__init__(*args, **kwargs)
 
     @property
     def name(self) -> str | None:
