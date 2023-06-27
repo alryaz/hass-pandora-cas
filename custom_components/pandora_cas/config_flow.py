@@ -81,7 +81,7 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
             )
 
             try:
-                await async_run_pandora_coro(account.authenticate())
+                await async_run_pandora_coro(account.async_authenticate())
             except ConfigEntryAuthFailed:
                 error = "invalid_auth"
             except ConfigEntryNotReady:
