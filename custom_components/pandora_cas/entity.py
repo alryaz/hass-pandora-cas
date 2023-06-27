@@ -2,6 +2,7 @@ import asyncio
 import dataclasses
 import logging
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Flag
 from typing import (
     Type,
@@ -313,14 +314,14 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
             super()._handle_coordinator_update()
 
     @callback
-    def reset_command_event(self, *_) -> None:
+    def reset_command_event(self) -> None:
         self._last_command_failed = False
         if (waiter := self._command_waiter) is not None:
             waiter()
             self._command_waiter = None
 
     @callback
-    def _process_command_response(self, event: Event) -> None:
+    def _process_command_response(self, event: Union[Event, datetime]) -> None:
         _LOGGER.debug(f"[{self}] Resetting command event")
         self.reset_command_event()
         self.async_write_ha_state()
@@ -353,22 +354,31 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
                 result = self.hass.async_add_executor_job(command)
         else:
             result = d.async_remote_command(command, ensure_complete=False)
-        self.async_write_ha_state()
 
         # Set command waiter
         if (waiter := self._command_waiter) is not None:
             waiter()
         self._command_waiter = async_call_later(
-            self.hass, 15.0, self.reset_command_event
+            self.hass, 15.0, self._process_command_response
         )
 
+        # Commit current state
+        self.async_write_ha_state()
+
         try:
+            # Await command execution
             await result
         except:
-            self._last_command_failed = True
+            # Failed call
             self.reset_command_event()
-            self.async_write_ha_state()
+            self._last_command_failed = True
             raise
+        else:
+            # Successful call
+            self.reset_command_event()
+        finally:
+            self.async_write_ha_state()
+            
 
     async def async_will_remove_from_hass(self) -> None:
         if (waiter := self._command_waiter) is not None:
@@ -420,10 +430,11 @@ class PandoraCASBooleanEntity(PandoraCASEntity):
                 return e.icon_on
         return super().icon
 
-    def reset_command_event(self, *args) -> None:
+    @callback
+    def reset_command_event(self) -> None:
         self._is_turning_on = False
         self._is_turning_off = False
-        super().reset_command_event(*args)
+        super().reset_command_event()
 
     async def run_binary_command(self, enable: bool) -> None:
         """
@@ -440,8 +451,7 @@ class PandoraCASBooleanEntity(PandoraCASEntity):
             ),
             self.pandora_device.type,
         )
-
-        self.reset_command_event()
+        
         self._is_turning_on = enable
         self._is_turning_off = not enable
 
