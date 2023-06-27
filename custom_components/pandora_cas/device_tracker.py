@@ -3,6 +3,7 @@ __all__ = ("async_setup_entry", "PLATFORM_DOMAIN")
 
 import base64
 import logging
+import math
 from typing import Mapping, Any, Dict
 
 from homeassistant.components.device_tracker import (
@@ -38,7 +39,7 @@ async def async_setup_entry(
     coordinator: PandoraCASUpdateCoordinator = hass.data[DOMAIN][
         entry.entry_id
     ]
-    for device in coordinator.account.devices:
+    for device in coordinator.account.devices.values():
         # Add device tracker
         for entity_type in ENTITY_TYPES:
             new_entities.append(
@@ -71,15 +72,34 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
 
     _attr_has_entity_name = False
 
-    # def __init__(self, *args, **kwargs) -> None:
-    #     super().__init__(*args, **kwargs)
-    #
-    #     self._latitude_updated = False
-    #     self._longitude_updated = False
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self._last_latitude = None
+        self._last_longitude = None
 
     @property
     def name(self) -> str | None:
         return self.pandora_device.name
+
+    def update_native_value(self) -> bool:
+        super().update_native_value()
+
+        if not self.available:
+            return True
+
+        state = self.pandora_device.state
+        old_ll = (self._last_latitude, self._last_longitude)
+        if not all(old_ll):
+            self._last_latitude = state.latitude
+            self._last_longitude = state.longitude
+            return True
+
+        new_ll = (state.latitude, state.longitude)
+        if math.dist(old_ll, new_ll) > 0.0001:
+            self._last_latitude, self._last_longitude = new_ll
+            return True
+        return False
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
@@ -91,36 +111,26 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
             attr.update(
                 dict.fromkeys(
                     (
-                        ATTR_GSM_LEVEL,
-                        ATTR_DIRECTION,
+                        ATTR_ROTATION,
                         ATTR_CARDINAL,
-                        ATTR_KEY_NUMBER,
-                        ATTR_TAG_NUMBER,
                     )
                 )
             )
         else:
-            attr[ATTR_GSM_LEVEL] = value.gsm_level
-            attr[ATTR_DIRECTION] = value.rotation
+            attr[ATTR_ROTATION] = value.rotation
             attr[ATTR_CARDINAL] = value.direction
-            attr[ATTR_KEY_NUMBER] = value.key_number
-            attr[ATTR_TAG_NUMBER] = value.tag_number
 
         return attr
 
     @property
-    def latitude(self) -> float:
+    def latitude(self) -> float | None:
         """Return latitude value of the device."""
-        if (device_state := self.pandora_device.state) is None:
-            return 0.0
-        return device_state.latitude
+        return self._last_latitude
 
     @property
-    def longitude(self) -> float:
+    def longitude(self) -> float | None:
         """Return longitude value of the device."""
-        if (device_state := self.pandora_device.state) is None:
-            return 0.0
-        return device_state.longitude
+        return self._last_longitude
 
     @property
     def entity_picture(self) -> str:

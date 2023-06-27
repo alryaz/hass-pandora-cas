@@ -25,7 +25,7 @@
         "name": "Connection state",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -33,7 +33,7 @@
         "name": "Moving",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -41,7 +41,7 @@
         "name": "Driver Door",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -49,7 +49,7 @@
         "name": "Passenger Door",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -57,7 +57,7 @@
         "name": "Left Back Door",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -65,7 +65,7 @@
         "name": "Right Back Door",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -73,7 +73,7 @@
         "name": "Driver Glass",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -81,7 +81,7 @@
         "name": "Passenger Glass",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -89,7 +89,7 @@
         "name": "Left Back Glass",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -97,7 +97,7 @@
         "name": "Right Back Glass",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -105,7 +105,7 @@
         "name": "Trunk",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -113,7 +113,7 @@
         "name": "Hood",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -121,7 +121,7 @@
         "name": "Parking Mode",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -129,7 +129,7 @@
         "name": "Brakes",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -137,7 +137,7 @@
         "name": "Ignition",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -145,7 +145,7 @@
         "name": "Exterior Lights",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -153,7 +153,7 @@
         "name": "Evacuation Mode",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -161,7 +161,7 @@
         "name": "EV Charging Connected",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -169,7 +169,7 @@
         "name": "CAN Low Liquid",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       }
@@ -179,7 +179,7 @@
         "name": "Erase Errors",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -187,7 +187,7 @@
         "name": "Read Errors",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -195,7 +195,7 @@
         "name": "Trigger Horn",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -203,7 +203,7 @@
         "name": "Trigger Light",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -211,7 +211,7 @@
         "name": "Trigger Trunk",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -219,7 +219,7 @@
         "name": "Check",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -227,7 +227,7 @@
         "name": "Additional Command 1",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -235,7 +235,7 @@
         "name": "Additional Command 2",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       }
@@ -245,7 +245,7 @@
         "name": "Pandora",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           },
           "gsm_level": {
             "name": "GSM Level"
@@ -255,10 +255,10 @@
     },
     "lock": {
       "central_lock": {
-        "name": null,
+        "name": "Central Lock",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       }
@@ -268,7 +268,7 @@
         "name": "Mileage",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -276,7 +276,7 @@
         "name": "CAN Mileage",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -284,7 +284,7 @@
         "name": "CAN Mileage to empty",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -292,7 +292,7 @@
         "name": "Fuel Level",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -300,7 +300,7 @@
         "name": "Interior Temperature",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -308,7 +308,7 @@
         "name": "Engine Temperature",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -316,7 +316,7 @@
         "name": "Exterior Temperature",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -324,7 +324,7 @@
         "name": "Battery Temperature",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -332,7 +332,7 @@
         "name": "Balance",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -340,7 +340,7 @@
         "name": "Balance Secondary",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -348,7 +348,7 @@
         "name": "Speed",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -356,7 +356,7 @@
         "name": "Tachometer",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -364,7 +364,7 @@
         "name": "GSM Level",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -372,7 +372,7 @@
         "name": "Battery voltage",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -380,7 +380,7 @@
         "name": "Left Front Tire Pressure",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -388,7 +388,7 @@
         "name": "Right Front Tire Pressure",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -396,7 +396,7 @@
         "name": "Left Back Tire Pressure",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -404,7 +404,7 @@
         "name": "Right Back Tire Pressure",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -412,7 +412,7 @@
         "name": "Reserve Tire Pressure",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -420,7 +420,7 @@
         "name": "Track Distance",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -428,7 +428,7 @@
         "name": "Key Number",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -436,7 +436,7 @@
         "name": "Tag Number",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -444,7 +444,7 @@
         "name": "Rotation",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -452,7 +452,7 @@
         "name": "Direction",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -460,7 +460,7 @@
         "name": "Last Online",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -468,7 +468,7 @@
         "name": "Last State Update",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -476,7 +476,7 @@
         "name": "Last Settings Change",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -484,7 +484,7 @@
         "name": "Last Command Execution",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       }
@@ -494,7 +494,7 @@
         "name": "Active Security",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -502,7 +502,7 @@
         "name": "Tracking",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -510,7 +510,7 @@
         "name": "Block Heater",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -518,7 +518,7 @@
         "name": "Engine",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -526,7 +526,7 @@
         "name": "Service Mode",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -534,7 +534,7 @@
         "name": "Extra Channel",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       },
@@ -542,7 +542,7 @@
         "name": "Status Output",
         "state_attributes": {
           "device_id": {
-            "name": "Device identifier"
+            "name": "Device Identifier"
           }
         }
       }

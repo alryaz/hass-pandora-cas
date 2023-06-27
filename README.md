@@ -57,7 +57,9 @@ Connect_, и реализует
 - Pandora DXL-4970
 - Pandora DXL-5570
 - Pandora NAV-08 _(маячок)_
-- _[Сообщите о Вашем успехе!](mailto:alryaz@xavux.com?subject=Pandora%20Car%20Alarm%20System%20%D0%B4%D0%BB%D1%8F%20Home%20Assistant%20-%20%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%BA%D0%B0%20%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%B0&body=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5!%0D%0A%0D%0A%D0%9F%D0%BE%D0%B4%D1%82%D0%B2%D0%B5%D1%80%D0%B6%D0%B4%D0%B0%D1%8E%2C%20%D1%87%D1%82%D0%BE%20%D0%B8%D0%BD%D1%82%D0%B5%D0%B3%D1%80%D0%B0%D1%86%D0%B8%D1%8F%20%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0%D0%B5%D1%82%20%D1%81%20%D0%BC%D0%BE%D0%B8%D0%BC%20%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%BE%D0%BC%20...!%0D%0A%0D%0A(%D0%95%D1%81%D0%BB%D0%B8%20%D1%8D%D1%82%D0%BE%20%D0%BD%D0%B5%20%D1%82%D0%B0%D0%BA%2C%20%D0%BE%D0%BF%D0%B8%D1%88%D0%B8%D1%82%D0%B5%2C%20%D0%BF%D0%BE%D0%B6%D0%B0%D0%BB%D1%83%D0%B9%D1%81%D1%82%D0%B0%2C%20%D0%92%D0%B0%D1%88%D0%B8%20%D0%BD%D0%B0%D0%B1%D0%BB%D1%8E%D0%B4%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BE%20%D0%BD%D0%B5%D0%BF%D0%BE%D0%BB%D0%B0%D0%B4%D0%BA%D0%B0%D1%85))_
+-
+
+_[Сообщите о Вашем успехе!](mailto:alryaz@xavux.com?subject=Pandora%20Car%20Alarm%20System%20%D0%B4%D0%BB%D1%8F%20Home%20Assistant%20-%20%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%BA%D0%B0%20%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%B0&body=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5!%0D%0A%0D%0A%D0%9F%D0%BE%D0%B4%D1%82%D0%B2%D0%B5%D1%80%D0%B6%D0%B4%D0%B0%D1%8E%2C%20%D1%87%D1%82%D0%BE%20%D0%B8%D0%BD%D1%82%D0%B5%D0%B3%D1%80%D0%B0%D1%86%D0%B8%D1%8F%20%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0%D0%B5%D1%82%20%D1%81%20%D0%BC%D0%BE%D0%B8%D0%BC%20%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%BE%D0%BC%20...!%0D%0A%0D%0A(%D0%95%D1%81%D0%BB%D0%B8%20%D1%8D%D1%82%D0%BE%20%D0%BD%D0%B5%20%D1%82%D0%B0%D0%BA%2C%20%D0%BE%D0%BF%D0%B8%D1%88%D0%B8%D1%82%D0%B5%2C%20%D0%BF%D0%BE%D0%B6%D0%B0%D0%BB%D1%83%D0%B9%D1%81%D1%82%D0%B0%2C%20%D0%92%D0%B0%D1%88%D0%B8%20%D0%BD%D0%B0%D0%B1%D0%BB%D1%8E%D0%B4%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BE%20%D0%BD%D0%B5%D0%BF%D0%BE%D0%BB%D0%B0%D0%B4%D0%BA%D0%B0%D1%85))_
 
 ## Панель со всеми поддерживаемыми элементами
 
@@ -80,7 +82,10 @@ Connect_, и реализует
 
 Чтобы подготовить собственную конфигурацию, выполните следующие действия:
 
-1. Открыть [папку с подготовленными конфигурациями](https://github.com/alryaz/hass-pandora-cas/tree/master/interface)
+1.
+
+Открыть [папку с подготовленными конфигурациями](https://github.com/alryaz/hass-pandora-cas/tree/master/interface)
+
 2. Выбрать файл с желаемым типом конфигурации
 3. Скопировать содержимое файла в текстовый редактор
 4. Заменить все вхождения `REPLACE_WITH_PANDORA_ID` на идентификатор
@@ -232,33 +237,31 @@ lovelace UI и автоматизации.
 
 <a id="platform_sensor"></a>
 
-| Объект                                                     | Назначение                             | Примечание                                                                                                                                     |
-|------------------------------------------------------------|----------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------|
-| sensor.`PANDORA_ID`_mileage                                | Пробег сигнализации (по GPS)           | км                                                                                                                                             |
-| sensor.`PANDORA_ID`_can_mileage                            | Пробег штатного одометра (по шине CAN) | км                                                                                                                                             |
-| sensor.`PANDORA_ID`_fuel                                   | Наполненность топливом <sup>1</sup>    | %                                                                                                                                              |
-| sensor.`PANDORA_ID`_interior_temperature                   | Температура салона                     | °C                                                                                                                                             |
-| sensor.`PANDORA_ID`_engine_temperature                     | Температура двигателя                  | °C                                                                                                                                             |
-| sensor.`PANDORA_ID`_exterior_temperature                   | Уличная температура                    | °C                                                                                                                                             |
-| sensor.`PANDORA_ID`_battery_temperature                    | Температура аккумулятора               | °C                                                                                                                                             |
-| sensor.`PANDORA_ID`_balance                                | Баланс СИМ-карты                       | Валюта баланса                                                                                                                                 |
-| sensor.`PANDORA_ID`_speed                                  | Скорость                               | км/ч                                                                                                                                           |
-| sensor.`PANDORA_ID`_tachometer                             | Тахометр (обороты двигателя)           | rpm                                                                                                                                            |
-| sensor.`PANDORA_ID`_gsm_level                              | Уровень сигнала GSM                    | 0 ... 3                                                                                                                                        |
-| sensor.`PANDORA_ID`_battery_voltage                        | Напряжение аккумулятора                | V                                                                                                                                              |
-| sensor.`PANDORA_ID`_last_online                            | Последний выход на связь               | Метка времени                                                                                                                                  |
-| sensor.`PANDORA_ID`_last_state_update                      | Последнее получение обновления         | Метка времени                                                                                                                                  |
-| sensor.`PANDORA_ID`_last_settings_change                   | Последнее изменение настроек системы   | Метка времени                                                                                                                                  |
-| sensor.`PANDORA_ID`_last_command_execution                 | Последнее выполнение команды           | Метка времени                                                                                                                                  |
-| sensor.`PANDORA_ID`_direction                              | Направление (как на компасе)           | [16-конечная роза](https://en.wikipedia.org/wiki/Points_of_the_compass#:~:text=basic%20level%20today.-,16%2Dwind%20compass%20rose,-%5Bedit%5D) |
-| sensor.`PANDORA_ID`_rotation                               | Поворот относительно севера            | °                                                                                                                                              |
-| &#9888;&nbsp;sensor.`PANDORA_ID`_balance_secondary         | _Баланс дополнительной СИМ-карты_      | Валюта баланса                                                                                                                                 |
-| &#9888;&nbsp;sensor.`PANDORA_ID`_can_mileage_to_empty      | _Пробег до пустого бака (по шине CAN)_ | км                                                                                                                                             |
-| &#9888;&nbsp;sensor.`PANDORA_ID`_left_front_tire_pressure  | _Давление левой передней шины_         | кПа _(?)_                                                                                                                                      |
-| &#9888;&nbsp;sensor.`PANDORA_ID`_right_front_tire_pressure | _Давление правой передней шины_        | кПа _(?)_                                                                                                                                      |
-| &#9888;&nbsp;sensor.`PANDORA_ID`_left_back_tire_pressure   | _Давление левой задней шины_           | кПа _(?)_                                                                                                                                      |
-| &#9888;&nbsp;sensor.`PANDORA_ID`_right_back_tire_pressure  | _Давление правой задней шины_          | кПа _(?)_                                                                                                                                      |
-| &#9888;&nbsp;sensor.`PANDORA_ID`_reserve_tire_pressure     | _Давление правой задней шины_          | кПа _(?)_                                                                                                                                      |
+| Объект                                                     | Назначение                             | Примечание     |
+|------------------------------------------------------------|----------------------------------------|----------------|
+| sensor.`PANDORA_ID`_mileage                                | Пробег сигнализации (по GPS)           | км             |
+| sensor.`PANDORA_ID`_can_mileage                            | Пробег штатного одометра (по шине CAN) | км             |
+| sensor.`PANDORA_ID`_fuel                                   | Наполненность топливом <sup>1</sup>    | %              |
+| sensor.`PANDORA_ID`_interior_temperature                   | Температура салона                     | °C             |
+| sensor.`PANDORA_ID`_engine_temperature                     | Температура двигателя                  | °C             |
+| sensor.`PANDORA_ID`_exterior_temperature                   | Уличная температура                    | °C             |
+| sensor.`PANDORA_ID`_battery_temperature                    | Температура аккумулятора               | °C             |
+| sensor.`PANDORA_ID`_balance                                | Баланс СИМ-карты                       | Валюта баланса |
+| sensor.`PANDORA_ID`_speed                                  | Скорость                               | км/ч           |
+| sensor.`PANDORA_ID`_tachometer                             | Тахометр (обороты двигателя)           | rpm            |
+| sensor.`PANDORA_ID`_gsm_level                              | Уровень сигнала GSM                    | 0 ... 3        |
+| sensor.`PANDORA_ID`_battery_voltage                        | Напряжение аккумулятора                | V              |
+| sensor.`PANDORA_ID`_last_online                            | Последний выход на связь               | Метка времени  |
+| sensor.`PANDORA_ID`_last_state_update                      | Последнее получение обновления         | Метка времени  |
+| sensor.`PANDORA_ID`_last_settings_change                   | Последнее изменение настроек системы   | Метка времени  |
+| sensor.`PANDORA_ID`_last_command_execution                 | Последнее выполнение команды           | Метка времени  |
+| &#9888;&nbsp;sensor.`PANDORA_ID`_balance_secondary         | _Баланс дополнительной СИМ-карты_      | Валюта баланса |
+| &#9888;&nbsp;sensor.`PANDORA_ID`_can_mileage_to_empty      | _Пробег до пустого бака (по шине CAN)_ | км             |
+| &#9888;&nbsp;sensor.`PANDORA_ID`_left_front_tire_pressure  | _Давление левой передней шины_         | кПа _(?)_      |
+| &#9888;&nbsp;sensor.`PANDORA_ID`_right_front_tire_pressure | _Давление правой передней шины_        | кПа _(?)_      |
+| &#9888;&nbsp;sensor.`PANDORA_ID`_left_back_tire_pressure   | _Давление левой задней шины_           | кПа _(?)_      |
+| &#9888;&nbsp;sensor.`PANDORA_ID`_right_back_tire_pressure  | _Давление правой задней шины_          | кПа _(?)_      |
+| &#9888;&nbsp;sensor.`PANDORA_ID`_reserve_tire_pressure     | _Давление правой задней шины_          | кПа _(?)_      |
 
 ### Платформа `binary_sensor`
 
@@ -294,11 +297,6 @@ lovelace UI и автоматизации.
 <a id="platform_lock"/>
 <a id="platform_switch"/>
 
-> Внимание! Через 10с после изменения состояния переключателя производится
-> принудительное автоматическое обновление
-> состояния автомобиля. Данный функционал вскоре будет возможно отключить
-> вручную.
-
 | Объект                              | Назначение                                     | Примечание                   |
 |-------------------------------------|------------------------------------------------|------------------------------|
 | lock.`PANDORA_ID`_central_lock      | Статус блокировки замка                        | разблокирован / заблокирован |
@@ -312,9 +310,24 @@ lovelace UI и автоматизации.
 
 <sup>3</sup> Состояние не остслеживается
 
+### Платформа `button`
+
+<a id="platform_button"></a>
+
+| Объект                                   | Назначение                        | Примечание |
+|------------------------------------------|-----------------------------------|------------|
+| switch.`PANDORA_ID`_erase_errors         | Очистка кодов ошибок              |            |
+| switch.`PANDORA_ID`_read_errors          | Считывание кодов ошибок           |            |
+| switch.`PANDORA_ID`_trigger_horn         | Статус двигателя                  |            |
+| switch.`PANDORA_ID`_trigger_light        | Статус отслеживания (GPS-трек)    |            |
+| switch.`PANDORA_ID`_trigger_trunk        | Режим сервиса (обслуживания)      |            |
+| switch.`PANDORA_ID`_check                | Дополнительный канал <sup>3</sup> |            |
+| switch.`PANDORA_ID`_additional_command_1 | Дополнительная команда №1         |            |
+| switch.`PANDORA_ID`_additional_command_2 | Дополнительная команда №2         |            |
+
 ### Платформа `device_tracker`
 
-<a id="platform_device_tracker"/>
+<a id="platform_device_tracker"></a>
 
 Для каждого автомобиля будет создан объект device_tracker.pandora_`PANDORA_ID`,
 где
@@ -332,21 +345,18 @@ lovelace UI и автоматизации.
 
 Объект обладает следующими атрибутами:
 
-| Параметр   |   Тип   | Описание                       |
-|------------|:-------:|--------------------------------|
-| latitude   | `float` | Широта                         |
-| longitude  | `float` | Долгота                        |
-| device_id  |  `int`  | Идентификатор устройства       |
-| voltage    | `float` | Бортовое напряжение            |
-| gsm_level  |  `int`  | Уровень связи                  |
-| direction  |  `int`  | Направление (в градусах)       |
-| cardinal   |  `str`  | Направление (в сторонах света) |
-| key_number |  `int`  | Номер используемого ключа      |
-| tag_number |  `int`  | Номер используемой метки       |
+| Параметр  |   Тип   | Описание                       |
+|-----------|:-------:|--------------------------------|
+| latitude  | `float` | Широта                         |
+| longitude | `float` | Долгота                        |
+| device_id |  `int`  | Идентификатор устройства       |
+| direction |  `int`  | Направление (в градусах)       |
+| cardinal  |  `str`  | Направление (в сторонах света) 
 
 ## События
 
-<a id="events_supported"/>
+<a id="events_supported"></a>
+
 За период наблюдения компонентом за автомобилем могут происходить некоторые события, чьи
 свойства не позволяют сделать из них удобные к использованию объекты платформ `sensor`,
 `binary_sensor` и пр. Ввиду этого, для поддержки дополнительных событий введены два новых
@@ -390,7 +400,7 @@ Assistant. Следующие данные
 
 ## Команды / Службы
 
-<a id="services_provided"/>
+<a id="services_provided"></a>
 
 Ключевые команды включения/выключения определённых функций вынесены в отдельные
 переключаемые объекты
@@ -452,7 +462,7 @@ Assistant. Следующие данные
 
 ### Примеры использования команд
 
-<a id="service_examples"/>
+<a id="service_examples"></a>
 
 Вкладка с кнопкой запуска двигателя
 

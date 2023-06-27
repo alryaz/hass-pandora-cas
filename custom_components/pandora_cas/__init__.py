@@ -18,8 +18,11 @@ from typing import (
     Mapping,
     Optional,
     Union,
+    Awaitable,
+    TypeVar,
 )
 
+import aiohttp
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
@@ -32,14 +35,14 @@ from homeassistant.const import (
     CONF_ACCESS_TOKEN,
 )
 from homeassistant.core import ServiceCall, HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady, ConfigEntryAuthFailed
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.typing import ConfigType, UNDEFINED
 from homeassistant.loader import bind_hass
 from homeassistant.util import slugify
 
 from custom_components.pandora_cas.api import (
-    AuthenticationException,
+    AuthenticationError,
     CommandID,
     CurrentState,
     DEFAULT_USER_AGENT,
@@ -49,15 +52,13 @@ from custom_components.pandora_cas.api import (
     TrackingEvent,
     TrackingPoint,
     Features,
+    MalformedResponseError,
 )
-from custom_components.pandora_cas.config_flow import (
-    async_authenticate_account,
-)
+from custom_components.pandora_cas.const import *
 from custom_components.pandora_cas.entity import (
     PandoraCASEntity,
     PandoraCASUpdateCoordinator,
 )
-from custom_components.pandora_cas.const import *
 
 MIN_POLLING_INTERVAL = timedelta(seconds=10)
 DEFAULT_POLLING_INTERVAL = timedelta(minutes=1)
@@ -218,6 +219,20 @@ async def _async_register_services(hass: HomeAssistant) -> None:
         )
 
 
+_T = TypeVar("_T")
+
+
+async def async_run_pandora_coro(coro: Awaitable[_T]) -> _T:
+    try:
+        return await coro
+    except AuthenticationError as exc:
+        raise ConfigEntryAuthFailed("Authentication failed") from exc
+    except MalformedResponseError as exc:
+        raise ConfigEntryNotReady("Server responds erroneously") from exc
+    except (OSError, aiohttp.ClientError, TimeoutError) as exc:
+        raise ConfigEntryNotReady("Timed out while authenticating") from exc
+
+
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Activate Pandora Car Alarm System component"""
     # Register services
@@ -264,7 +279,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Setup configuration entry for Pandora Car Alarm System."""
     _LOGGER.debug(f'Setting up entry "{entry.entry_id}"')
 
-    # create account object
+    # Instantiate account object
     account = PandoraOnlineAccount(
         username=entry.data[CONF_USERNAME],
         password=entry.data[CONF_PASSWORD],
@@ -274,13 +289,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         ),
     )
 
-    await async_authenticate_account(account)
+    # Perform authentication
+    await async_run_pandora_coro(account.async_authenticate())
 
+    # Update access token if necessary
     if entry.data.get(CONF_ACCESS_TOKEN) != account.access_token:
         hass.config_entries.async_update_entry(
             entry, data={**entry.data, CONF_ACCESS_TOKEN: account.access_token}
         )
 
+    # Fetch devices
+    await async_run_pandora_coro(account.async_refresh_devices())
+
+    # Create update coordinator
     hass.data.setdefault(DOMAIN, {})[
         entry.entry_id
     ] = coordinator = PandoraCASUpdateCoordinator(hass, account=account)
@@ -437,7 +458,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             ),
         )
 
-        await async_authenticate_account(account, no_device_update=True)
+        await async_run_pandora_coro(account.async_authenticate())
 
         new_data[CONF_ACCESS_TOKEN] = account.access_token
         new_unique_id = str(account.user_id)

@@ -84,7 +84,7 @@ ENTITY_TYPES = [
     PandoraCASSensorEntityDescription(
         key="fuel",
         name="Fuel Level",
-        icon="mdi:gauge",
+        icon="mdi:fuel",
         native_unit_of_measurement=PERCENTAGE,
         attribute="fuel",
         online_sensitive=False,
@@ -287,23 +287,6 @@ ENTITY_TYPES = [
         entity_registry_enabled_default=False,
     ),
     PandoraCASSensorEntityDescription(
-        key="rotation",
-        name="Rotation",
-        icon="mdi:format-rotate-90",
-        online_sensitive=True,
-        attribute="rotation",
-        native_unit_of_measurement="°",
-        entity_registry_enabled_default=False,
-    ),
-    PandoraCASSensorEntityDescription(
-        key="direction",
-        name="Direction",
-        icon="mdi:compass",
-        online_sensitive=True,
-        attribute="direction",
-        entity_registry_enabled_default=False,
-    ),
-    PandoraCASSensorEntityDescription(
         key="last_online",
         name="Last Online",
         icon="mdi:cloud-clock",
@@ -408,6 +391,11 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
                     )
                 )
 
+        elif key.startswith("balance"):
+            attributes[ATTR_PHONE_NUMBER] = getattr(
+                self.pandora_device, "phone" + key[7:], None
+            )
+
         return attributes
 
     async def async_added_to_hass(self) -> None:
@@ -438,7 +426,7 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
 
         await super().async_will_remove_from_hass()
 
-    def update_native_value(self) -> None:
+    def update_native_value(self) -> bool:
         last_value = self._attr_native_value
         super().update_native_value()
 
@@ -454,6 +442,8 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
         elif isinstance(native_value, BalanceState):
             self._attr_native_value = native_value.value
             self._attr_native_unit_of_measurement = native_value.currency
+
+        return True
 
 
 async_setup_entry = partial(

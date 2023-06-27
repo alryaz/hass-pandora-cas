@@ -30,13 +30,17 @@ SAVE_FORMAT = "webp"
 
 
 class ForProcessing:
-    def __init__(self, *, base_style: Optional[Mapping[str, Any]] = None) -> None:
+    def __init__(
+        self, *, base_style: Optional[Mapping[str, Any]] = None
+    ) -> None:
         self._base_style = _BASE_STYLE
         if base_style:
             self._base_style.update(base_style)
 
     @classmethod
-    def image_as_data_uri(cls, image: Union[bytes, BytesIO, Image.Image]) -> str:
+    def image_as_data_uri(
+        cls, image: Union[bytes, BytesIO, Image.Image]
+    ) -> str:
         if isinstance(image, Image.Image):
             buffered = BytesIO()
             image.save(buffered, format=SAVE_FORMAT)
@@ -60,9 +64,13 @@ class ForProcessing:
             **kwargs,
         }
 
-    def get_style(self, style: Optional[Mapping[str, Any]] = None) -> Dict[str, Any]:
+    def get_style(
+        self, style: Optional[Mapping[str, Any]] = None
+    ) -> Dict[str, Any]:
         return (
-            dict(self._base_style) if style is None else {**self._base_style, **style}
+            dict(self._base_style)
+            if style is None
+            else {**self._base_style, **style}
         )
 
     def _merge_style_kwarg(
@@ -184,7 +192,9 @@ class ForAnimation(ForProcessing):
             append_images=list(cropped_frames_iter),
             format=SAVE_FORMAT,
             save_all=True,
-            duration=len(cropped_frames) if duration_coef is None else duration_coef,
+            duration=len(cropped_frames)
+            if duration_coef is None
+            else duration_coef,
         )
 
         return self.make_image_dict(bytes_io, **kwargs)
@@ -202,8 +212,8 @@ _TBinary = Tuple[_TImage, _TImage]
 @attr.s(slots=True)
 class CarType:
     body: str = attr.ib()
-    left_front_door: Optional[_TBinary] = attr.ib(default=None)
-    right_front_door: Optional[_TBinary] = attr.ib(default=None)
+    driver_door: Optional[_TBinary] = attr.ib(default=None)
+    passenger_door: Optional[_TBinary] = attr.ib(default=None)
     left_back_door: Optional[_TBinary] = attr.ib(default=None)
     right_back_door: Optional[_TBinary] = attr.ib(default=None)
     trunk: Optional[_TBinary] = attr.ib(default=None)
@@ -258,16 +268,14 @@ class CarType:
         }
 
     def as_dict_picture(self, src_path: str, pandora_id: str, **kwargs):
-        body_image = PIL.Image.open(os.path.join(src_path, self.body + ".png")).convert(
-            "RGBA"
-        )
+        body_image = PIL.Image.open(
+            os.path.join(src_path, self.body + ".png")
+        ).convert("RGBA")
 
         elements = []
         yaml_dict = {
             "type": "picture-elements",
-            "image": ForProcessing.image_as_data_uri(
-                body_image
-            ),
+            "image": ForProcessing.image_as_data_uri(body_image),
             "elements": elements,
             **kwargs,
         }
@@ -277,7 +285,9 @@ class CarType:
                 pic_val = ForSimple(pic_val)
 
             if isinstance(pic_val, ForProcessing):
-                return pic_val.as_dict(src_path, pandora_id, body_image, **kwargs_)
+                return pic_val.as_dict(
+                    src_path, pandora_id, body_image, **kwargs_
+                )
 
             raise TypeError
 
@@ -285,8 +295,8 @@ class CarType:
         #
         #
         for bin_sens_key in (
-            "left_front_door",
-            "right_front_door",
+            "driver_door",
+            "passenger_door",
             "left_back_door",
             "right_back_door",
             "trunk",
@@ -418,7 +428,9 @@ class CarType:
 
             if alarm_elements:
                 if pic_off:
-                    alarm_elements.append(_pic_to_dict(pic_off, entity=as_entity_id))
+                    alarm_elements.append(
+                        _pic_to_dict(pic_off, entity=as_entity_id)
+                    )
                 as_elements.append(
                     self.condition_elements(
                         alarm_elements, self.entity_is_not(as_entity_id, "on")
@@ -600,7 +612,7 @@ class CarType:
                 for x, y in {
                     f"sensor.{pandora_id}_balance": "Баланс",
                     f"sensor.{pandora_id}_mileage": "Пробег",
-                    f"device_tracker.pandora_{pandora_id}": "Локация",
+                    f"device_tracker.{pandora_id}_pandora": "Локация",
                     f"sensor.{pandora_id}_engine_temperature": "Двигатель",
                     f"sensor.{pandora_id}_interior_temperature": "Салон",
                     f"sensor.{pandora_id}_battery_voltage": "Напряжение",
@@ -642,11 +654,11 @@ CAR_TYPES = {
             ForTrimming("door_back_right_closed"),
             ForTrimming("door_back_right_opened"),
         ),
-        left_front_door=(
+        driver_door=(
             ForTrimming("door_front_left_closed"),
             ForTrimming("door_front_left_opened"),
         ),
-        right_front_door=(
+        passenger_door=(
             ForTrimming("door_front_right_closed"),
             ForTrimming("door_front_right_opened"),
         ),
@@ -662,10 +674,12 @@ CAR_TYPES = {
         engine_hood_open=(
             None,
             ForTrimming(
-                "engine_start_inverse", "engine_start_inverse_rotated", duration=200
+                "engine_start_inverse",
+                "engine_start_inverse_rotated",
+                duration=200,
             ),
         ),
-        alarm=(ForTrimming("alarm_off"), ForTrimming("alarm_on")),
+        alarm=(ForTrimming("alarm_on"), ForTrimming("alarm_off")),
         active_security=(None, ForTrimming("alarm_active_mode")),
         service_mode=(None, ForTrimming("alarm_service_mode")),
     ),
@@ -679,11 +693,11 @@ CAR_TYPES = {
             ForTrimming("door_back_right_closed_dark"),
             ForTrimming("door_back_right_opened_dark"),
         ),
-        left_front_door=(
+        driver_door=(
             ForTrimming("door_front_left_closed_dark"),
             ForTrimming("door_front_left_opened_dark"),
         ),
-        right_front_door=(
+        passenger_door=(
             ForTrimming("door_front_right_closed_dark"),
             ForTrimming("door_front_right_opened_dark"),
         ),
@@ -694,12 +708,16 @@ CAR_TYPES = {
         ignition=(None, ForTrimming("ignition_dark")),
         engine=(
             None,
-            ForTrimming("engine_start_dark", "engine_start_rotated_dark", duration=200),
+            ForTrimming(
+                "engine_start_dark", "engine_start_rotated_dark", duration=200
+            ),
         ),
         engine_hood_open=(
             None,
             ForTrimming(
-                "engine_start_inverse", "engine_start_inverse_rotated", duration=200
+                "engine_start_inverse",
+                "engine_start_inverse_rotated",
+                duration=200,
             ),
         ),
         alarm=(ForTrimming("alarm_on"), ForTrimming("alarm_off_dark")),
@@ -716,11 +734,11 @@ CAR_TYPES = {
     #         ForTrimming("hatchback_door_back_right_closed"),
     #         None,
     #     ),
-    #     left_front_door=(
+    #     driver_door=(
     #         ForTrimming("hatchback_door_front_left_closed"),
     #         None,
     #     ),
-    #     right_front_door=(
+    #     passenger_door=(
     #         ForTrimming("hatchback_door_front_right_closed"),
     #         None,
     #     ),
@@ -787,11 +805,17 @@ def main():
                         {
                             "type": "map",
                             "view_layout": {"position": "main"},
+                            "hours_to_show": 24,
                             "entities": [
-                                {"entity": f"device_tracker.pandora_{pandora_id}"}
+                                {
+                                    "entity": f"device_tracker.{pandora_id}_pandora"
+                                }
                             ],
                         },
-                        {**stack_config, "view_layout": {"position": "sidebar"}},
+                        {
+                            **stack_config,
+                            "view_layout": {"position": "sidebar"},
+                        },
                     ],
                 }
             ],
@@ -812,9 +836,16 @@ def main():
 
     if to_copy:
         import pyperclip
+
         pyperclip.copy(to_copy)
         copy_key = args.copy_card or args.copy_dashboard or args.copy_stack
-        copy_type = 'card' if args.copy_card else 'stack' if args.copy_stack else 'dashboard'
+        copy_type = (
+            "card"
+            if args.copy_card
+            else "stack"
+            if args.copy_stack
+            else "dashboard"
+        )
         print(f"Copied '{copy_key}' {copy_type} configuration to clipboard")
 
     exit(0)

@@ -20,6 +20,7 @@ from typing import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_USERNAME, ATTR_DEVICE_ID
 from homeassistant.core import HomeAssistant, callback, Event
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.entity import EntityDescription, DeviceInfo
 from homeassistant.helpers.entity_platform import (
     AddEntitiesCallback,
@@ -30,6 +31,7 @@ from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     CoordinatorEntity,
+    UpdateFailed,
 )
 from homeassistant.util import slugify
 
@@ -39,6 +41,8 @@ from custom_components.pandora_cas.api import (
     CommandID,
     PandoraDeviceTypes,
     PandoraOnlineAccount,
+    AuthenticationError,
+    MalformedResponseError,
 )
 from custom_components.pandora_cas.const import (
     DOMAIN,
@@ -87,7 +91,7 @@ async def async_platform_setup_entry(
     coordinator: PandoraCASUpdateCoordinator = hass.data[DOMAIN][
         entry.entry_id
     ]
-    for device in coordinator.account.devices:
+    for device in coordinator.account.devices.values():
         # Apply filters
         for entity_description in entity_class.ENTITY_TYPES:
             if (
@@ -131,7 +135,18 @@ class PandoraCASUpdateCoordinator(
     async def _async_update_data(self) -> Mapping[int, Mapping[str, Any]]:
         """Fetch data for sub-entities."""
         # @TODO: manual polling updates!
-        return await self.account.async_request_updates()
+        try:
+            try:
+                return await self.account.async_request_updates()
+            except AuthenticationError:
+                try:
+                    await self.account.async_authenticate()
+                except AuthenticationError as exc:
+                    raise ConfigEntryAuthFailed(
+                        "Authentication failed during fetching"
+                    ) from exc
+        except MalformedResponseError as exc:
+            raise UpdateFailed("Malformed response retrieved") from exc
 
 
 @dataclass
@@ -247,7 +262,7 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
 
         return getattr(source, attr)
 
-    def update_native_value(self) -> None:
+    def update_native_value(self) -> bool:
         """Update entity from upstream device data."""
         try:
             value = self.get_native_value()
@@ -259,13 +274,15 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
                 exc_info=exc,
             )
             self._attr_available = False
-            return
+            return True
 
         if value is None:
             self._attr_available = False
         else:
             self._attr_available = True
             self._attr_native_value = value
+
+        return True
 
     @final
     @callback
@@ -292,8 +309,8 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
             return
 
         # Update native value and write state
-        self.update_native_value()
-        self.async_write_ha_state()
+        if self.update_native_value():
+            super()._handle_coordinator_update()
 
     @callback
     def reset_command_event(self, *_) -> None:

@@ -2,7 +2,7 @@
 __all__ = ("PandoraCASConfigFlow", "PandoraCASOptionsFlow")
 
 import logging
-from typing import Any, Dict, Final, List, Optional
+from typing import Any, Dict, Final, List, Optional, TypeVar
 
 import voluptuous as vol
 from homeassistant import config_entries
@@ -17,9 +17,9 @@ from homeassistant.data_entry_flow import FlowResult, FlowResultType
 from homeassistant.exceptions import ConfigEntryNotReady, ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
+from custom_components.pandora_cas import async_run_pandora_coro
 from custom_components.pandora_cas.api import (
     PandoraOnlineAccount,
-    PandoraOnlineException,
 )
 from custom_components.pandora_cas.const import DOMAIN, CONF_DISABLE_WEBSOCKETS
 
@@ -32,44 +32,6 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
         vol.Optional(CONF_VERIFY_SSL, default=True): bool,
     }
 )
-
-
-async def async_authenticate_account(
-    account: PandoraOnlineAccount, no_device_update: bool = False
-) -> None:
-    successful_request = False
-    if account.access_token:
-        # Attempt devices fetching
-        try:
-            _LOGGER.debug(f"Fetching devices for account {account}")
-            await account.async_update_vehicles()
-        except PandoraOnlineException as e:
-            _LOGGER.warning(f"Error using token: {e}", exc_info=e)
-
-            try:
-                _LOGGER.debug(f"Authenticating {account} with token")
-                await account.async_authenticate(account.access_token)
-            except PandoraOnlineException as e:
-                _LOGGER.warning(f"Error authenticating token: {e}", exc_info=e)
-
-        else:
-            successful_request = True
-
-    if not successful_request:
-        try:
-            _LOGGER.debug(f"Authenticating {account} with new data")
-            await account.async_authenticate(None)
-        except PandoraOnlineException as e:
-            _LOGGER.error(f"Error performing new auth: {e}", exc_info=e)
-            raise ConfigEntryAuthFailed(str(e)) from e
-
-        if not no_device_update:
-            try:
-                _LOGGER.debug(f"Fetching devices for account {account}")
-                await account.async_update_vehicles()
-            except PandoraOnlineException as e:
-                _LOGGER.error(f"Error updating vehicles: {e}", exc_info=e)
-                raise ConfigEntryNotReady(str(e)) from e
 
 
 @config_entries.HANDLERS.register(DOMAIN)
@@ -118,9 +80,7 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
             )
 
             try:
-                await async_authenticate_account(
-                    account, no_device_update=True
-                )
+                await async_run_pandora_coro(account)
             except ConfigEntryAuthFailed:
                 error = "invalid_auth"
             except ConfigEntryNotReady:

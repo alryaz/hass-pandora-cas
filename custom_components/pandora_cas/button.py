@@ -133,12 +133,13 @@ class PandoraCASButton(PandoraCASEntity, ButtonEntity):
             )
         )
 
-    def update_native_value(self) -> None:
+    def update_native_value(self) -> bool:
         """Native value for this entity type does not get updated.
 
         Therefore, an overriding placeholder is required to
         not do anything at all and not to trigger availability
         issues."""
+        return True
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()

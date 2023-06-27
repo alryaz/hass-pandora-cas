@@ -201,6 +201,16 @@ ENTITY_TYPES = [
         online_sensitive=True,
         entity_registry_enabled_default=False,
     ),
+    PandoraCASBooleanEntityDescription(
+        key="engine_locked",
+        name="Engine Locked",
+        icon_off="mdi:check-circle",
+        icon_on="mdi:alert-octagon",
+        icon="mdi:cancel",
+        attribute="bit_state",
+        flag=BitStatus.ENGINE_LOCKED,
+        online_sensitive=True,
+    ),
 ]
 
 
