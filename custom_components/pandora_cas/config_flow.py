@@ -172,7 +172,7 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
             else self.async_abort("unknown")
         )
 
-
+"""
 
     @staticmethod
     @callback
@@ -234,3 +234,4 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
             data_schema=vol.Schema,
             errors=errors,
         )
+"""
