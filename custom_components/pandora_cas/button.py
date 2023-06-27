@@ -12,6 +12,7 @@ from homeassistant.components.button import (
     ButtonEntityDescription,
 )
 from homeassistant.const import EntityCategory
+from homeassistant.core import callback
 
 from custom_components.pandora_cas.api import CommandID, PandoraDeviceTypes
 from custom_components.pandora_cas.entity import (
