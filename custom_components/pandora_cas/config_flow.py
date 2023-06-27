@@ -171,67 +171,45 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
             else self.async_abort("unknown")
         )
 
-    @staticmethod
-    @callback
-    def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> config_entries.OptionsFlow:
-        return PandoraCASOptionsFlow(config_entry)
 
-
-class PandoraCASOptionsFlow(config_entries.OptionsFlow):
-    def __init__(self, config_entry: config_entries.ConfigEntry):
-        self.config_entry = config_entry
-        self.use_text_fields = False
-        self.config_codes: Optional[Dict[str, List[str]]] = None
-
-    async def async_generate_schema_dict(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> Dict[vol.Marker, Any]:
-        config_entry = self.config_entry
-
-        # @TODO: reserved for future use
-        final_config = {**config_entry.data, **config_entry.options}
-        if user_input:
-            final_config.update(user_input)
-
-        schema_dict = {
-            vol.Optional(CONF_PASSWORD): str,
-        }
-
-        return schema_dict
-
-    async def async_step_init(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
-        if self.config_entry.source == config_entries.SOURCE_IMPORT:
-            return self.async_abort(reason="yaml_not_supported")
-
-        errors = {}
-        if user_input:
-            new_password = user_input.get(CONF_PASSWORD)
-            if new_password:
-                _LOGGER.debug("Password is getting updated")
-                config_entry = self.config_entry
-
-                self.hass.config_entries.async_update_entry(
-                    config_entry,
-                    data={
-                        **config_entry.data,
-                        CONF_PASSWORD: new_password,
-                    },
-                )
-
-                # Setting data to None cancels double update
-                return self.async_create_entry(title="", data=None)
-
-            # Stub update
-            return self.async_create_entry(title="", data=None)
-
-        schema_dict = await self.async_generate_schema_dict(user_input)
-
-        return self.async_show_form(
-            step_id="init",
-            data_schema=vol.Schema(schema_dict),
-            errors=errors,
-        )
+#
+#     @staticmethod
+#     @callback
+#     def async_get_options_flow(
+#         config_entry: config_entries.ConfigEntry,
+#     ) -> config_entries.OptionsFlow:
+#         return PandoraCASOptionsFlow(config_entry)
+#
+#
+# class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
+#     async def async_step_init(
+#         self, user_input: Optional[Dict[str, Any]] = None
+#     ) -> Dict[str, Any]:
+#         errors: dict[str, str] | None = None
+#
+#         errors = {}
+#         if user_input:
+#             new_password = user_input.get(CONF_PASSWORD)
+#             if new_password:
+#                 _LOGGER.debug("Password is getting updated")
+#                 config_entry = self.config_entry
+#
+#                 self.hass.config_entries.async_update_entry(
+#                     config_entry,
+#                     data={
+#                         **config_entry.data,
+#                         CONF_PASSWORD: new_password,
+#                     },
+#                 )
+#
+#                 # Setting data to None cancels double update
+#                 return self.async_create_entry(title="", data=None)
+#
+#             # Stub update
+#             return self.async_create_entry(title="", data=None)
+#
+#         return self.async_show_form(
+#             step_id="init",
+#             data_schema=vol.Schema,
+#             errors=errors,
+#         )

@@ -8,5 +8,5 @@
     "iot_class": "cloud_polling",
     "issue_tracker": "https://github.com/alryaz/hass-pandora-cas/issues",
     "requirements": [],
-    "version": "2023.6.5"
+    "version": "2023.6.6"
 }
