@@ -5,6 +5,7 @@ __all__ = [
     "async_setup_entry",
     "async_unload_entry",
     "async_migrate_entry",
+    "async_run_pandora_coro",
     "CONFIG_SCHEMA",
     "SERVICE_REMOTE_COMMAND",
 ]
@@ -20,6 +21,8 @@ from typing import (
     Union,
     Awaitable,
     TypeVar,
+    Set,
+    Dict,
 )
 
 import aiohttp
@@ -39,8 +42,9 @@ from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import (
     async_get as async_get_device_registry,
+    DeviceEntry,
 )
-from homeassistant.helpers.typing import ConfigType, UNDEFINED
+from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import bind_hass
 from homeassistant.util import slugify
 
@@ -304,32 +308,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Fetch devices
     await async_run_pandora_coro(account.async_refresh_devices())
 
-    # Cleanup / merge old devices
-    dev_reg = async_get_device_registry(hass)
-    for device_id in account.devices:
-        if old_device := dev_reg.async_get_device({(DOMAIN, device_id)}):
-            if dev_reg.async_get_device(
-                new_identifiers := {(DOMAIN, str(device_id))},
-            ):
-                # Remove old device
-                _LOGGER.info(
-                    f"[{entry.entry_id}] Old device instance removed for {device_id}"
-                )
-                dev_reg.async_remove_device(old_device.id)
-            else:
-                # Change device identifier
-                _LOGGER.info(
-                    f"[{entry.entry_id}] Device identifier merged for {device_id}"
-                )
-                dev_reg.async_update_device(
-                    old_device.id,
-                    new_identifiers=new_identifiers,
-                )
-
     # Create update coordinator
     hass.data.setdefault(DOMAIN, {})[
         entry.entry_id
-    ] = coordinator = PandoraCASUpdateCoordinator(hass, account=account)
+    ] = coordinator = PandoraCASUpdateCoordinator(hass, account)
 
     # create account updater
     async def _state_changes_listener(
@@ -411,7 +393,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
 
     # Start listening for updates
-    if not entry.options.get(CONF_DISABLE_WEBSOCKETS):
+    if entry.pref_disable_polling:
         hass.data.setdefault(DATA_LISTENERS, {})[
             entry.entry_id
         ] = hass.loop.create_task(
@@ -457,9 +439,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.info(f"Upgrading configuration entry from version {entry.version}")
 
-    new_data = {**entry.data}
-    new_options = {**entry.options}
-    new_unique_id = UNDEFINED
+    args = {
+        "data": (new_data := {**entry.data}),
+        "options": (new_options := {**entry.options}),
+    }
 
     if entry.version < 3:
         for src in (new_data, new_options):
@@ -470,7 +453,6 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if entry.version < 4:
         new_options.setdefault(CONF_VERIFY_SSL, True)
-        new_options.setdefault(CONF_DISABLE_WEBSOCKETS, False)
         # new_unique_id = entry.unique_id or entry.data[CONF_USERNAME]
         entry.version = 4
 
@@ -487,18 +469,61 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await async_run_pandora_coro(account.async_authenticate())
 
         new_data[CONF_ACCESS_TOKEN] = account.access_token
-        new_unique_id = str(account.user_id)
+        args["unique_id"] = str(account.user_id)
 
         entry.version = 5
 
-    # Migrate device registry data
+    if entry.version < 6:
+        # Migrate websocket disabling
+        disable_websockets = new_options.pop("disable_websockets", False)
+        if not entry.pref_disable_polling:
+            args["pref_disable_polling"] = not disable_websockets
 
-    hass.config_entries.async_update_entry(
-        entry,
-        data=new_data,
-        options=new_options,
-        unique_id=new_unique_id,
-    )
+        dev_reg = async_get_device_registry(hass)
+        entries_to_update: Dict[Union[str, int], str] = {}
+        for device_entry in tuple(dev_reg.devices.values()):
+            for (domain, pandora_id) in device_entry.identifiers:
+                if domain != DOMAIN:
+                    continue
+                try:
+                    if isinstance(pandora_id, int):
+                        # Find valid device for this pandora ID
+                        remove_id = device_entry.id
+                        entries_to_update.pop(str(pandora_id))
+                    else:
+                        # Find erroneous device for this pandora ID
+                        remove_id = entries_to_update.pop(int(pandora_id))
+                except KeyError:
+                    entries_to_update[pandora_id] = device_entry.id
+                except (TypeError, ValueError):
+                    _LOGGER.warning(
+                        f"[{entry.entry_id}] Device identifier {pandora_id} "
+                        f"is not supported. Did it come from another "
+                        f"integration?"
+                    )
+                else:
+                    # Remove obsolete device if both found
+                    _LOGGER.info(
+                        f"[{entry.entry_id}] Removing obsolete device"
+                        f"entry for {pandora_id}"
+                    )
+                    dev_reg.async_remove_device(remove_id)
+
+        for pandora_id, device_id in entries_to_update.items():
+            if isinstance(pandora_id, str):
+                continue
+            _LOGGER.info(
+                f"[{entry.entry_id}] Updating obsolete device entry"
+                f"for {pandora_id}"
+            )
+            dev_reg.async_update_device(
+                device_id,
+                new_identifiers={(DOMAIN, str(pandora_id))},
+            )
+
+        entry.version = 6
+
+    hass.config_entries.async_update_entry(entry, **args)
 
     _LOGGER.info(f"Upgraded configuration entry to version {entry.version}")
 

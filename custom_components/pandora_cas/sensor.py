@@ -1,6 +1,7 @@
 """Sensor platform for Pandora Car Alarm System."""
 __all__ = ("ENTITY_TYPES", "async_setup_entry")
 
+import dataclasses
 import logging
 from dataclasses import dataclass
 from functools import partial
@@ -26,6 +27,8 @@ from homeassistant.const import (
     ATTR_LONGITUDE,
     ATTR_LATITUDE,
     EntityCategory,
+    UnitOfSpeed,
+    REVOLUTIONS_PER_MINUTE,
 )
 from homeassistant.core import Event, callback
 from homeassistant.helpers.typing import StateType
@@ -50,35 +53,28 @@ class PandoraCASSensorEntityDescription(
 
 
 ENTITY_TYPES = [
-    PandoraCASSensorEntityDescription(
+    _sensor := PandoraCASSensorEntityDescription(
         key="mileage",
         name="Mileage",
         icon="mdi:map-marker-distance",
         native_unit_of_measurement=UnitOfLength.MILES,
+        suggested_unit_of_measurement=UnitOfLength.KILOMETERS,
         attribute="mileage",
-        online_sensitive=True,
+        device_class=SensorDeviceClass.DISTANCE,
         state_class=SensorStateClass.TOTAL,
         suggested_display_precision=2,
     ),
-    PandoraCASSensorEntityDescription(
+    dataclasses.replace(
+        _sensor,
         key="can_mileage",
         name="CAN Mileage",
-        icon="mdi:map-marker-distance",
-        native_unit_of_measurement=UnitOfLength.KILOMETERS,
         attribute="can_mileage",
-        online_sensitive=True,
-        state_class=SensorStateClass.TOTAL,
-        suggested_display_precision=2,
     ),
-    PandoraCASSensorEntityDescription(
+    dataclasses.replace(
+        _sensor,
         key="can_mileage_to_empty",
         name="CAN Mileage to empty",
-        icon="mdi:map-marker-distance",
-        native_unit_of_measurement=UnitOfLength.KILOMETERS,
         attribute="can_mileage_to_empty",
-        online_sensitive=True,
-        state_class=SensorStateClass.MEASUREMENT,
-        suggested_display_precision=2,
         entity_registry_enabled_default=False,
     ),
     PandoraCASSensorEntityDescription(
@@ -88,91 +84,71 @@ ENTITY_TYPES = [
         native_unit_of_measurement=PERCENTAGE,
         attribute="fuel",
         online_sensitive=False,
+        device_class=SensorDeviceClass.VOLUME_STORAGE,
+        state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
     ),
-    PandoraCASSensorEntityDescription(
+    _sensor := PandoraCASSensorEntityDescription(
         key="interior_temperature",
         name="Interior Temperature",
         icon="mdi:thermometer",
+        attribute="interior_temperature",
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=SensorDeviceClass.TEMPERATURE,
         state_class=SensorStateClass.MEASUREMENT,
-        attribute="interior_temperature",
-        online_sensitive=True,
         suggested_display_precision=1,
     ),
-    PandoraCASSensorEntityDescription(
+    dataclasses.replace(
+        _sensor,
         key="engine_temperature",
         name="Engine Temperature",
-        icon="mdi:thermometer",
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        device_class=SensorDeviceClass.TEMPERATURE,
-        state_class=SensorStateClass.MEASUREMENT,
         attribute="engine_temperature",
-        online_sensitive=True,
-        suggested_display_precision=1,
     ),
-    PandoraCASSensorEntityDescription(
+    dataclasses.replace(
+        _sensor,
         key="exterior_temperature",
         name="Exterior Temperature",
-        icon="mdi:thermometer",
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        device_class=SensorDeviceClass.TEMPERATURE,
-        state_class=SensorStateClass.MEASUREMENT,
         attribute="exterior_temperature",
-        online_sensitive=True,
-        suggested_display_precision=1,
     ),
-    PandoraCASSensorEntityDescription(
+    dataclasses.replace(
+        _sensor,
         key="battery_temperature",
         name="Battery Temperature",
-        icon="mdi:thermometer",
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        device_class=SensorDeviceClass.TEMPERATURE,
-        state_class=SensorStateClass.MEASUREMENT,
         attribute="battery_temperature",
-        online_sensitive=True,
         entity_registry_enabled_default=False,
-        suggested_display_precision=1,
     ),
-    PandoraCASSensorEntityDescription(
+    _sensor := PandoraCASSensorEntityDescription(
         key="balance",
         name="Balance",
         icon="mdi:cash",
-        native_unit_of_measurement="RUB",
         device_class=SensorDeviceClass.MONETARY,
         state_class=SensorStateClass.TOTAL,
         attribute="balance",
         online_sensitive=False,
     ),
-    PandoraCASSensorEntityDescription(
+    dataclasses.replace(
+        _sensor,
         key="balance_secondary",
         name="Balance Secondary",
-        icon="mdi:cash",
-        native_unit_of_measurement="RUB",
-        device_class=SensorDeviceClass.MONETARY,
-        state_class=SensorStateClass.TOTAL,
-        attribute="balance_other",
-        online_sensitive=False,
         entity_registry_enabled_default=False,
     ),
     PandoraCASSensorEntityDescription(
         key="speed",
         name="Speed",
         icon="mdi:gauge",
-        native_unit_of_measurement=SPEED_KILOMETERS_PER_HOUR,
+        native_unit_of_measurement=UnitOfSpeed.KILOMETERS_PER_HOUR,
+        device_class=SensorDeviceClass.SPEED,
         state_class=SensorStateClass.MEASUREMENT,
         attribute="speed",
-        online_sensitive=True,
     ),
     PandoraCASSensorEntityDescription(
         key="tachometer",
         name="Tachometer",
         icon="mdi:gauge",
-        native_unit_of_measurement="rpm",
+        native_unit_of_measurement=REVOLUTIONS_PER_MINUTE,
         state_class=SensorStateClass.MEASUREMENT,
+        entity_category=EntityCategory.DIAGNOSTIC,
         attribute="engine_rpm",
-        online_sensitive=True,
     ),
     PandoraCASSensorEntityDescription(
         key="gsm_level",
@@ -187,7 +163,6 @@ ENTITY_TYPES = [
         # device_class="gsm_level",
         state_class=SensorStateClass.MEASUREMENT,
         attribute="gsm_level",
-        online_sensitive=True,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
     PandoraCASSensorEntityDescription(
@@ -198,10 +173,9 @@ ENTITY_TYPES = [
         device_class=SensorDeviceClass.VOLTAGE,
         state_class=SensorStateClass.MEASUREMENT,
         attribute="voltage",
-        online_sensitive=True,
         suggested_display_precision=1,
     ),
-    PandoraCASSensorEntityDescription(
+    tire_sensor := PandoraCASSensorEntityDescription(
         key="left_front_tire_pressure",
         name="Left Front Tire Pressure",
         icon="mdi:car-tire-alert",
@@ -209,52 +183,31 @@ ENTITY_TYPES = [
         native_unit_of_measurement=UnitOfPressure.KPA,
         device_class=SensorDeviceClass.PRESSURE,
         state_class=SensorStateClass.MEASUREMENT,
-        online_sensitive=True,
         entity_registry_enabled_default=False,
     ),
-    PandoraCASSensorEntityDescription(
+    dataclasses.replace(
+        tire_sensor,
         key="right_front_tire_pressure",
         name="Right Front Tire Pressure",
-        icon="mdi:car-tire-alert",
         attribute="can_tpms_front_right",
-        native_unit_of_measurement=UnitOfPressure.KPA,
-        device_class=SensorDeviceClass.PRESSURE,
-        state_class=SensorStateClass.MEASUREMENT,
-        online_sensitive=True,
-        entity_registry_enabled_default=False,
     ),
-    PandoraCASSensorEntityDescription(
+    dataclasses.replace(
+        tire_sensor,
         key="left_back_tire_pressure",
         name="Left Back Tire Pressure",
-        icon="mdi:car-tire-alert",
         attribute="can_tpms_back_left",
-        native_unit_of_measurement=UnitOfPressure.KPA,
-        device_class=SensorDeviceClass.PRESSURE,
-        state_class=SensorStateClass.MEASUREMENT,
-        online_sensitive=True,
-        entity_registry_enabled_default=False,
     ),
-    PandoraCASSensorEntityDescription(
+    dataclasses.replace(
+        tire_sensor,
         key="right_back_tire_pressure",
         name="Right Back Tire Pressure",
-        icon="mdi:car-tire-alert",
         attribute="can_tpms_back_right",
-        native_unit_of_measurement=UnitOfPressure.KPA,
-        device_class=SensorDeviceClass.PRESSURE,
-        state_class=SensorStateClass.MEASUREMENT,
-        online_sensitive=True,
-        entity_registry_enabled_default=False,
     ),
-    PandoraCASSensorEntityDescription(
+    dataclasses.replace(
+        tire_sensor,
         key="reserve_tire_pressure",
         name="Reserve Tire Pressure",
-        icon="mdi:car-tire-alert",
         attribute="can_tpms_reserve",
-        native_unit_of_measurement="kPa",
-        device_class=SensorDeviceClass.PRESSURE,
-        state_class=SensorStateClass.MEASUREMENT,
-        online_sensitive=True,
-        entity_registry_enabled_default=False,
     ),
     PandoraCASSensorEntityDescription(
         key="track_distance",
@@ -263,7 +216,6 @@ ENTITY_TYPES = [
         native_unit_of_measurement=UnitOfLength.KILOMETERS,
         device_class=SensorDeviceClass.DISTANCE,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        online_sensitive=True,
         attribute_source="last_point",
         attribute="length",
         entity_registry_enabled_default=False,
@@ -273,7 +225,6 @@ ENTITY_TYPES = [
         name="Key Number",
         icon="mdi:key",
         state_class=SensorStateClass.MEASUREMENT,
-        online_sensitive=True,
         attribute="key_number",
         entity_registry_enabled_default=False,
     ),
@@ -282,41 +233,38 @@ ENTITY_TYPES = [
         name="Tag Number",
         icon="mdi:tag",
         state_class=SensorStateClass.MEASUREMENT,
-        online_sensitive=True,
         attribute="tag_number",
         entity_registry_enabled_default=False,
     ),
-    PandoraCASSensorEntityDescription(
+    _sensor := PandoraCASSensorEntityDescription(
         key="last_online",
         name="Last Online",
         icon="mdi:cloud-clock",
         attribute="online_timestamp_utc",
         device_class=SensorDeviceClass.TIMESTAMP,
         entity_category=EntityCategory.DIAGNOSTIC,
+        online_sensitive=False,
     ),
-    PandoraCASSensorEntityDescription(
+    dataclasses.replace(
+        _sensor,
         key="last_state_update",
         name="Last State Update",
         icon="mdi:message-text-clock",
         attribute="state_timestamp_utc",
-        device_class=SensorDeviceClass.TIMESTAMP,
-        entity_category=EntityCategory.DIAGNOSTIC,
     ),
-    PandoraCASSensorEntityDescription(
+    dataclasses.replace(
+        _sensor,
         key="last_settings_change",
         name="Last Settings Change",
         icon="mdi:wrench-clock",
         attribute="settings_timestamp_utc",
-        device_class=SensorDeviceClass.TIMESTAMP,
-        entity_category=EntityCategory.DIAGNOSTIC,
     ),
-    PandoraCASSensorEntityDescription(
+    dataclasses.replace(
+        _sensor,
         key="last_command_execution",
         name="Last Command Execution",
         icon="mdi:send-variant-clock",
         attribute="command_timestamp_utc",
-        device_class=SensorDeviceClass.TIMESTAMP,
-        entity_category=EntityCategory.DIAGNOSTIC,
     ),
 ]
 

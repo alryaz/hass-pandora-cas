@@ -35,12 +35,12 @@ ENTITY_TYPES = [
         attribute="is_online",
         attribute_source=None,
         entity_category=EntityCategory.DIAGNOSTIC,
+        online_sensitive=False,
     ),
     PandoraCASBooleanEntityDescription(
         key="moving",
         name="Moving",
         device_class=BinarySensorDeviceClass.MOTION,
-        online_sensitive=True,
         attribute="is_moving",
     ),
     # Status-related sensors
@@ -52,7 +52,6 @@ ENTITY_TYPES = [
         device_class=BinarySensorDeviceClass.DOOR,
         attribute="bit_state",
         flag=BitStatus.DOOR_DRIVER_OPEN,
-        online_sensitive=True,
     ),
     PandoraCASBooleanEntityDescription(
         key="passenger_door",
@@ -62,7 +61,6 @@ ENTITY_TYPES = [
         device_class=BinarySensorDeviceClass.DOOR,
         attribute="bit_state",
         flag=BitStatus.DOOR_PASSENGER_OPEN,
-        online_sensitive=True,
     ),
     PandoraCASBooleanEntityDescription(
         key="left_back_door",
@@ -72,7 +70,6 @@ ENTITY_TYPES = [
         device_class=BinarySensorDeviceClass.DOOR,
         attribute="bit_state",
         flag=BitStatus.DOOR_BACK_LEFT_OPEN,
-        online_sensitive=True,
     ),
     PandoraCASBooleanEntityDescription(
         key="right_back_door",
@@ -82,7 +79,6 @@ ENTITY_TYPES = [
         device_class=BinarySensorDeviceClass.DOOR,
         attribute="bit_state",
         flag=BitStatus.DOOR_BACK_RIGHT_OPEN,
-        online_sensitive=True,
     ),
     PandoraCASBooleanEntityDescription(
         key="driver_glass",
@@ -91,7 +87,6 @@ ENTITY_TYPES = [
         icon_off=_ICON_CAR_GLASS_OFF,
         device_class=BinarySensorDeviceClass.DOOR,
         attribute="can_glass_driver",
-        online_sensitive=True,
         entity_registry_enabled_default=False,
     ),
     PandoraCASBooleanEntityDescription(
@@ -101,7 +96,6 @@ ENTITY_TYPES = [
         icon_off=_ICON_CAR_GLASS_OFF,
         device_class=BinarySensorDeviceClass.DOOR,
         attribute="can_glass_passenger",
-        online_sensitive=True,
         entity_registry_enabled_default=False,
     ),
     PandoraCASBooleanEntityDescription(
@@ -111,7 +105,6 @@ ENTITY_TYPES = [
         icon_off=_ICON_CAR_GLASS_OFF,
         device_class=BinarySensorDeviceClass.DOOR,
         attribute="can_glass_back_left",
-        online_sensitive=True,
         entity_registry_enabled_default=False,
     ),
     PandoraCASBooleanEntityDescription(
@@ -121,7 +114,6 @@ ENTITY_TYPES = [
         icon_off=_ICON_CAR_GLASS_OFF,
         device_class=BinarySensorDeviceClass.DOOR,
         attribute="can_glass_back_right",
-        online_sensitive=True,
         entity_registry_enabled_default=False,
     ),
     PandoraCASBooleanEntityDescription(
@@ -131,7 +123,6 @@ ENTITY_TYPES = [
         device_class=BinarySensorDeviceClass.DOOR,
         attribute="bit_state",
         flag=BitStatus.TRUNK_OPEN,
-        online_sensitive=True,
     ),
     PandoraCASBooleanEntityDescription(
         key="hood",
@@ -140,7 +131,6 @@ ENTITY_TYPES = [
         device_class=BinarySensorDeviceClass.DOOR,
         attribute="bit_state",
         flag=BitStatus.HOOD_OPEN,
-        online_sensitive=True,
     ),
     PandoraCASBooleanEntityDescription(
         key="parking",
@@ -148,7 +138,6 @@ ENTITY_TYPES = [
         icon="mdi:car-brake-parking",
         attribute="bit_state",
         flag=BitStatus.HANDBRAKE_ENGAGED,
-        online_sensitive=True,
     ),
     PandoraCASBooleanEntityDescription(
         key="brakes",
@@ -156,7 +145,6 @@ ENTITY_TYPES = [
         icon="mdi:car-brake-hold",
         attribute="bit_state",
         flag=BitStatus.BRAKES_ENGAGED,
-        online_sensitive=True,
     ),
     PandoraCASBooleanEntityDescription(
         key="ignition",
@@ -180,14 +168,12 @@ ENTITY_TYPES = [
         icon_off="mdi:train-car-flatbed",
         attribute="bit_state",
         flag=BitStatus.EVACUATION_MODE_ACTIVE,
-        online_sensitive=True,
     ),
     PandoraCASBooleanEntityDescription(
         key="ev_charging_connected",
         name="EV Charging Connected",
         icon="mdi:ev-station",
         attribute="ev_charging_connected",
-        online_sensitive=True,
         entity_registry_enabled_default=False,
     ),
     PandoraCASBooleanEntityDescription(
@@ -198,7 +184,6 @@ ENTITY_TYPES = [
         icon_off="mdi:wiper-wash",
         device_class=BinarySensorDeviceClass.PROBLEM,
         attribute="can_low_liquid",
-        online_sensitive=True,
         entity_registry_enabled_default=False,
     ),
     PandoraCASBooleanEntityDescription(
@@ -208,8 +193,6 @@ ENTITY_TYPES = [
         icon_on="mdi:alert-octagon",
         icon="mdi:cancel",
         attribute="bit_state",
-        flag=BitStatus.ENGINE_LOCKED,
-        online_sensitive=True,
     ),
 ]
 

@@ -2,7 +2,7 @@ import asyncio
 import dataclasses
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Flag
 from typing import (
     Type,
@@ -125,13 +125,13 @@ class PandoraCASUpdateCoordinator(
     def __init__(
         self,
         hass: HomeAssistant,
-        *,
         account: PandoraOnlineAccount,
-        **kwargs,
     ) -> None:
         self.account = account
 
-        super().__init__(hass, _LOGGER, name=DOMAIN, **kwargs)
+        super().__init__(
+            hass, _LOGGER, name=DOMAIN, update_interval=timedelta(seconds=5)
+        )
 
     async def _async_update_data(self) -> Mapping[int, Mapping[str, Any]]:
         """Fetch data for sub-entities."""
@@ -154,7 +154,7 @@ class PandoraCASUpdateCoordinator(
 class PandoraCASEntityDescription(EntityDescription):
     attribute: Optional[str] = None
     attribute_source: Optional[str] = "state"
-    online_sensitive: Optional[bool] = False
+    online_sensitive: bool = True
     features: Optional[Features] = None
     assumed_state: bool = False
     compatible_types: Collection[Union[str, None]] = (
@@ -374,7 +374,6 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
             self._last_command_failed = True
             self.async_write_ha_state()
             raise
-            
 
     async def async_will_remove_from_hass(self) -> None:
         if (waiter := self._command_waiter) is not None:
@@ -447,7 +446,7 @@ class PandoraCASBooleanEntity(PandoraCASEntity):
             ),
             self.pandora_device.type,
         )
-        
+
         self._is_turning_on = enable
         self._is_turning_off = not enable
 

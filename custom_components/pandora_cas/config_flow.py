@@ -2,7 +2,12 @@
 __all__ = ("PandoraCASConfigFlow", "PandoraCASOptionsFlow")
 
 import logging
-from typing import Any, Dict, Final, List, Optional, TypeVar, Collection, Mapping, Callable, Iterable
+from typing import (
+    Any,
+    Dict,
+    Final,
+    Optional,
+)
 
 import voluptuous as vol
 from homeassistant import config_entries
@@ -12,17 +17,15 @@ from homeassistant.const import (
     CONF_VERIFY_SSL,
     CONF_ACCESS_TOKEN,
 )
-from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult, FlowResultType
 from homeassistant.exceptions import ConfigEntryNotReady, ConfigEntryAuthFailed
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers import config_validation as cv
 
 from custom_components.pandora_cas import async_run_pandora_coro
 from custom_components.pandora_cas.api import (
     PandoraOnlineAccount,
 )
-from custom_components.pandora_cas.const import DOMAIN, CONF_DISABLE_WEBSOCKETS
+from custom_components.pandora_cas.const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,7 +43,7 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
     """Handle a config flow for Pandora Car Alarm System config entries."""
 
     CONNECTION_CLASS: Final[str] = config_entries.CONN_CLASS_CLOUD_PUSH
-    VERSION: Final[int] = 5
+    VERSION: Final[int] = 6
 
     def __init__(self) -> None:
         """Init the config flow."""
@@ -63,7 +66,6 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
             },
             options={
                 CONF_VERIFY_SSL: config[CONF_VERIFY_SSL],
-                CONF_DISABLE_WEBSOCKETS: False,
             },
         )
 
@@ -125,7 +127,6 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
                         },
                         options={
                             CONF_VERIFY_SSL: user_input[CONF_VERIFY_SSL],
-                            CONF_DISABLE_WEBSOCKETS: False,
                         },
                     )
 
@@ -171,6 +172,7 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
             if result["type"] == FlowResultType.CREATE_ENTRY
             else self.async_abort("unknown")
         )
+
 
 """
 

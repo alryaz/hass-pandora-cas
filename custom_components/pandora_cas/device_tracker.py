@@ -58,7 +58,6 @@ ENTITY_TYPES = [
         name="Pandora",
         attribute="state",
         attribute_source=None,
-        online_sensitive=True,
         icon="mdi:car",
     ),
 ]
