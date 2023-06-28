@@ -37,6 +37,7 @@ from homeassistant.const import (
 from homeassistant.core import ServiceCall, HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.device_registry import async_get as async_get_device_registry
 from homeassistant.helpers.typing import ConfigType, UNDEFINED
 from homeassistant.loader import bind_hass
 from homeassistant.util import slugify
@@ -301,6 +302,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Fetch devices
     await async_run_pandora_coro(account.async_refresh_devices())
 
+    # Cleanup / merge old devices
+    dev_reg = async_get_device_registry(self.hass)
+    for device_id in account.devices:
+        if old_device := dev_reg.async_get_device({(DOMAIN, device_id)}):
+            if dev_reg.async_get_device(
+                new_identifiers := {(DOMAIN, str(device_id))},
+            ):
+                # Remove old device
+                _LOGGER.info(f"[{entry.entry_id}] Old device instance removed for {device_id}")
+                dev_reg.async_remove_device(old_device.id)
+            else:
+                # Change device identifier
+                _LOGGER.info(f"[{entry.entry_id}] Device identifier merged for {device_id}")
+                dev_reg.async_update_device(
+                    old_device.id,
+                    new_identifiers=new_identifiers,
+                )
+                    
+                
+
     # Create update coordinator
     hass.data.setdefault(DOMAIN, {})[
         entry.entry_id
@@ -464,6 +485,8 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         new_unique_id = str(account.user_id)
 
         entry.version = 5
+
+    # Migrate device registry data
 
     hass.config_entries.async_update_entry(
         entry,
