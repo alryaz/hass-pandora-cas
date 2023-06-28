@@ -1987,19 +1987,3 @@ class MissingAccessTokenError(InvalidAccessTokenError):
 
 class CommandExecutionError(PandoraOnlineException):
     pass
-
-
-if __name__ == "__main__":
-
-    async def main():
-        logging.basicConfig(level=logging.DEBUG)
-        async with aiohttp.ClientSession() as session:
-            account = PandoraOnlineAccount(
-                session=session,
-                username="alryaz@alryaz.com1",
-                password="#jjTRedRo2$yYEyk8534d#ib",
-            )
-            await account.async_authenticate()
-            await account.async_listen_for_updates()
-
-    asyncio.run(main())
