@@ -347,6 +347,7 @@ def _degrees_to_direction(degrees: float):
 @attr.s(kw_only=True, frozen=True, slots=True)
 class CurrentState:
     identifier: int = attr.ib()
+    is_online: bool = attr.ib(converter=bool, default=True)
     latitude: float = attr.ib()
     longitude: float = attr.ib()
     speed: float = attr.ib()
@@ -1050,6 +1051,7 @@ class PandoraOnlineAccount:
                 data,
                 identifier=device.device_id,
             ),
+            is_online=bool(data.get("online")),
         )
 
     def _process_http_times(
@@ -1138,7 +1140,9 @@ class PandoraOnlineAccount:
     def _process_ws_initial_state(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
     ) -> Tuple[CurrentState, Dict[str, Any]]:
-        _LOGGER.debug(f"[{self}] Initializing state for {device.device_id}")
+        _LOGGER.debug(
+            f"[{self}] Initializing state for {device.device_id} from {data}"
+        )
 
         return self._update_device_current_state(
             device,
@@ -1146,6 +1150,7 @@ class PandoraOnlineAccount:
                 data,
                 identifier=device.device_id,
             ),
+            is_online=bool(data["online_mode"]),
             state_timestamp=data["state"],
             state_timestamp_utc=data["state_utc"],
             online_timestamp=data["online"],
@@ -1205,6 +1210,8 @@ class PandoraOnlineAccount:
 
         args = self.parse_common_state_args(data, identifier=device.device_id)
 
+        if "online_mode" in data:
+            args["is_online"] = bool(data["online_mode"])
         if "state" in data:
             args["state_timestamp"] = data["state"]
         if "state_utc" in data:
@@ -1875,9 +1882,7 @@ class PandoraOnlineDevice:
     def is_online(self) -> bool:
         """Returns whether vehicle can be deemed online"""
         current_state = self._current_state
-        return current_state is not None and bool(
-            current_state.online_timestamp
-        )
+        return current_state is not None and current_state.is_online
 
     # Attributes-related properties
     @property
