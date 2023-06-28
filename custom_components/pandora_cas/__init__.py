@@ -303,7 +303,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await async_run_pandora_coro(account.async_refresh_devices())
 
     # Cleanup / merge old devices
-    dev_reg = async_get_device_registry(self.hass)
+    dev_reg = async_get_device_registry(hass)
     for device_id in account.devices:
         if old_device := dev_reg.async_get_device({(DOMAIN, device_id)}):
             if dev_reg.async_get_device(
