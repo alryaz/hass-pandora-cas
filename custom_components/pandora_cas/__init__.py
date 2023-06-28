@@ -37,7 +37,9 @@ from homeassistant.const import (
 from homeassistant.core import ServiceCall, HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.device_registry import async_get as async_get_device_registry
+from homeassistant.helpers.device_registry import (
+    async_get as async_get_device_registry,
+)
 from homeassistant.helpers.typing import ConfigType, UNDEFINED
 from homeassistant.loader import bind_hass
 from homeassistant.util import slugify
@@ -310,17 +312,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 new_identifiers := {(DOMAIN, str(device_id))},
             ):
                 # Remove old device
-                _LOGGER.info(f"[{entry.entry_id}] Old device instance removed for {device_id}")
+                _LOGGER.info(
+                    f"[{entry.entry_id}] Old device instance removed for {device_id}"
+                )
                 dev_reg.async_remove_device(old_device.id)
             else:
                 # Change device identifier
-                _LOGGER.info(f"[{entry.entry_id}] Device identifier merged for {device_id}")
+                _LOGGER.info(
+                    f"[{entry.entry_id}] Device identifier merged for {device_id}"
+                )
                 dev_reg.async_update_device(
                     old_device.id,
                     new_identifiers=new_identifiers,
                 )
-                    
-                
 
     # Create update coordinator
     hass.data.setdefault(DOMAIN, {})[
@@ -416,6 +420,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 command_callback=_command_execution_listener,
                 event_callback=_event_catcher_listener,
                 point_callback=_point_catcher_listener,
+                auto_restart=True,
             ),
             name=f"Pandora CAS entry {entry.entry_id} changes listener",
         )
