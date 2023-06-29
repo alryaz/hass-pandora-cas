@@ -40,6 +40,7 @@ from custom_components.pandora_cas.const import (
     CONF_CUSTOM_CURSOR_DEVICES,
     CONF_CUSTOM_CURSOR_TYPE,
     DEFAULT_CURSOR_TYPE,
+    DISABLED_CURSOR_TYPE,
 )
 from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
 
@@ -53,7 +54,7 @@ OPTIONS_BASE_SCHEMA = vol.Schema(
 )
 
 CUSTOM_CURSOR_TYPES_VALIDATOR: Final = vol.In(
-    tuple([DEFAULT_CURSOR_TYPE] + sorted(IMAGE_REGISTRY.keys()))
+    tuple([DEFAULT_CURSOR_TYPE, DISABLED_CURSOR_TYPE] + sorted(IMAGE_REGISTRY.keys()))
 )
 
 
