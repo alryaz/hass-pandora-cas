@@ -77,6 +77,7 @@ class WSMessageType(StrEnum):
     POINT = "point"
     COMMAND = "command"
     EVENT = "event"
+    UPDATE_SETTINGS = "update-settings"
 
 
 class CommandID(IntEnum):
@@ -549,7 +550,6 @@ class TrackingEvent:
 
 @attr.s(kw_only=True, frozen=True, slots=True)
 class TrackingPoint:
-    identifier: int = attr.ib()
     device_id: int = attr.ib()
     latitude: float = attr.ib()
     longitude: float = attr.ib()
@@ -1432,7 +1432,6 @@ class PandoraOnlineAccount:
                 length = float(length)
 
         return TrackingPoint(
-            identifier=data["id"],
             device_id=device.device_id,
             track_id=data["track_id"],
             latitude=data["x"],
@@ -1460,6 +1459,14 @@ class PandoraOnlineAccount:
                 device.release_control_lock(f"(CID:{command_id}) {reply}")
 
         return command_id, result, reply
+
+    def _process_ws_update_settings(
+        self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
+    ) -> Mapping[str, Any]:
+        # @TODO: do something?
+        return {
+            "device_id": device.device_id,
+        }
 
     async def async_listen_websockets(self, auto_restart: bool = False):
         if not (access_token := self.access_token):
@@ -1568,6 +1575,12 @@ class PandoraOnlineAccount:
                 Union[Awaitable[None], None],
             ]
         ] = None,
+        update_settings_callback: Optional[
+            Callable[
+                ["PandoraOnlineDevice", Mapping[str, Any]],
+                Union[Awaitable[None], None],
+            ]
+        ] = None,
         reconnect_on_device_online: bool = True,
         **kwargs,
     ) -> None:
@@ -1664,6 +1677,11 @@ class PandoraOnlineAccount:
                     result = self._process_ws_event(device, data)
                     if event_callback:
                         callback_coro = event_callback(device, result)
+                        
+                elif type_ == WSMessageType.UPDATE_SETTINGS:
+                    result = self._process_ws_update_settings(device, data)
+                    if event_callback:
+                        callback_coro = update_settings_callback(device, result)
 
                 else:
                     _LOGGER.warning(
@@ -1673,7 +1691,8 @@ class PandoraOnlineAccount:
                 _LOGGER.warning(
                     f"Error during preliminary response processing "
                     f"with message type {type_}: {repr(exc)}\nPlease, "
-                    f"report this error to the developer immediately!"
+                    f"report this error to the developer immediately!",
+                    exc_info=exc,
                 )
                 return True
 
