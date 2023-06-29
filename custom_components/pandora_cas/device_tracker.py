@@ -142,14 +142,16 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
             return self.pandora_device.car_type
 
     @property
-    def entity_picture(self) -> str:
+    def entity_picture(self) -> Optional[str]:
+        if (cursor := self.final_car_type) == DISABLED_CURSOR_TYPE:
+            return
         device = self.pandora_device
 
         return (
             "data:image/svg+xml;base64,"
             + base64.b64encode(
                 IMAGE_REGISTRY.get_image(
-                    self.final_car_type,
+                    cursor,
                     device.color,
                     (device.state.rotation if device.state else None) or 0,
                 ).encode()
