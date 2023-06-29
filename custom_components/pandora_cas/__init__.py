@@ -541,9 +541,9 @@ def async_update_settings_delegator(
     hass.bus.async_fire(
         EVENT_TYPE_EVENT,
         {
-            "event_type": event_enum_to_type(PrimaryEventID.SETTINGS_CHANGED),
+            "event_type": event_enum_to_type(PrimaryEventID.SETTINGS_CHANGES),
             ATTR_DEVICE_ID: device.device_id,
-            "event_id_primary": int(PrimaryEventID.SETTINGS_CHANGED),
+            "event_id_primary": int(PrimaryEventID.SETTINGS_CHANGES),
             "event_id_secondary": event.event_id_secondary,
         },
     )
