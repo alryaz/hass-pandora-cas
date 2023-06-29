@@ -3,7 +3,7 @@ __all__ = ("ENTITY_TYPES", "async_setup_entry")
 
 import base64
 import logging
-from typing import Mapping, Any, Dict
+from typing import Mapping, Any, Dict, Optional
 
 from haversine import haversine, Unit
 from homeassistant.components.device_tracker import (
@@ -132,6 +132,16 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
         return self._last_longitude
 
     @property
+    def final_car_type(self) -> Optional[str]:
+        try:
+            return self.coordinator.config_entry.options[CONF_CUSTOM_CURSORS][
+                str(self.pandora_device.device_id)
+            ]
+        except (LookupError, AttributeError) as exc:
+            _LOGGER.debug(f"Exception: {exc}", exc_info=exc)
+            return self.pandora_device.car_type
+
+    @property
     def entity_picture(self) -> str:
         device = self.pandora_device
 
@@ -139,7 +149,7 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
             "data:image/svg+xml;base64,"
             + base64.b64encode(
                 IMAGE_REGISTRY.get_image(
-                    device.car_type,
+                    self.final_car_type,
                     device.color,
                     (device.state.rotation if device.state else None) or 0,
                 ).encode()

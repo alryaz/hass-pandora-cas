@@ -270,7 +270,7 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
 
         return getattr(source, attr)
 
-    def update_native_value(self) -> bool:
+    def update_native_value(self) -> None:
         """Update entity from upstream device data."""
         try:
             value = self.get_native_value()
@@ -282,15 +282,13 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
                 exc_info=exc,
             )
             self._attr_available = False
-            return True
+            return
 
         if value is None:
             self._attr_available = False
         else:
             self._attr_available = True
             self._attr_native_value = value
-
-        return True
 
     @final
     @callback
@@ -308,22 +306,17 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
             return
 
         ed = self.entity_description
-        # Check whether availability can be synced to online state
         if (
-            not ed.online_sensitive
-            or self.available is self.pandora_device.is_online
+            self.available
+            and ed.attribute_source == "state"
+            and ed.attribute is not None
+            and ed.attribute not in device_data
         ):
-            # Do not issue update if state attribute is involved and not set
-            if (
-                ed.attribute_source == "state"
-                and ed.attribute is not None
-                and ed.attribute not in device_data
-            ):
-                return
+            return
 
         # Update native value and write state
-        if self.update_native_value():
-            super()._handle_coordinator_update()
+        self.update_native_value()
+        super()._handle_coordinator_update()
 
     @callback
     def reset_command_event(self) -> None:

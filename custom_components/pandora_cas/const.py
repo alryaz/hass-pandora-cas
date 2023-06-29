@@ -16,6 +16,15 @@ PLATFORMS: Final = (
 # Global data placeholders
 DATA_LISTENERS: Final = DOMAIN + "_listeners"
 
+# Configuration parameters
+CONF_OFFLINE_AS_UNAVAILABLE: Final = "offline_as_unavailable"
+CONF_FUEL_IS_LITERS: Final = "fuel_is_liters"
+CONF_CUSTOM_CURSORS: Final = "custom_cursors"
+CONF_CUSTOM_CURSOR_DEVICES: Final = "custom_cursor_devices"
+CONF_CUSTOM_CURSOR_TYPE: Final = "custom_cursor_type"
+
+DEFAULT_CURSOR_TYPE: Final = "default"
+
 # Entity & event attributes
 ATTR_DEVICE_ID: Final = "device_id"
 ATTR_COMMAND_ID: Final = "command_id"

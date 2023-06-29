@@ -444,7 +444,7 @@
         }
       },
       "check": {
-        "name": "Обновить",
+        "name": "Команда CHECK",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -544,6 +544,19 @@
       "tag_polling_disabled": "Событие: Tag Polling Disabled",
       "point": "Событие: Point",
       "unknown": "Событие: Unknown"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "verify_ssl": "Проверять сертификаты SSL",
+          "offline_as_unavailable": "Помечать недоступными объекты когда устройство недоступно",
+          "fuel_is_liters": "Топливный бак в литрах",
+          "custom_cursor_type": "Установить тип курсора…",
+          "custom_cursor_devices": "…на следующие устройства:"
+        }
+      }
     }
   }
 }

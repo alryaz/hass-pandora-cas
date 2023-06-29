@@ -1568,9 +1568,16 @@ class PandoraOnlineAccount:
                 Union[Awaitable[None], None],
             ]
         ] = None,
+        reconnect_on_device_online: bool = True,
         **kwargs,
     ) -> None:
-        async def _handle_ws_message(contents: Mapping[str, Any]) -> bool:
+        async def _handle_ws_message(
+            contents: Mapping[str, Any]
+        ) -> Optional[bool]:
+            """
+            Handle WebSockets message.
+            :returns: True = keep running, None = restart, False = stop
+            """
             callback_coro = None
 
             # Extract message type and data
@@ -1608,6 +1615,8 @@ class PandoraOnlineAccount:
                 )
                 return True
 
+            return_result = True
+
             try:
                 if type_ == WSMessageType.INITIAL_STATE:
                     result = self._process_ws_initial_state(device, data)
@@ -1615,7 +1624,19 @@ class PandoraOnlineAccount:
                         callback_coro = state_callback(device, *result)
 
                 elif type_ == WSMessageType.STATE:
+                    prev_online = device.is_online
                     result = self._process_ws_state(device, data)
+                    if (
+                        reconnect_on_device_online
+                        and not prev_online
+                        and device.is_online
+                    ):
+                        _LOGGER.debug(
+                            f"[{self}] Will restart WS to fetch new state "
+                            f"after device {device_id} went online"
+                        )
+                        # Force reconnection to retrieve initial state immediately
+                        return_result = None
                     if result is not None and state_callback:
                         callback_coro = state_callback(device, *result)
 
@@ -1649,7 +1670,7 @@ class PandoraOnlineAccount:
                         f"[{self}] WS data of unknown " f"type {type_}: {data}"
                     )
             except BaseException as exc:
-                _LOGGER.fatal(
+                _LOGGER.warning(
                     f"Error during preliminary response processing "
                     f"with message type {type_}: {repr(exc)}\nPlease, "
                     f"report this error to the developer immediately!"
@@ -1666,12 +1687,16 @@ class PandoraOnlineAccount:
                         f"[{self}] Error during " f"callback handling: {exc}"
                     )
 
-            return True
+            return return_result
 
         with suppress(asyncio.CancelledError):
-            async for message in self.async_listen_websockets(**kwargs):
-                if not await _handle_ws_message(message):
-                    break
+            response = None
+
+            # On empty (none) responses, reconnect WS
+            while response is not False:
+                async for message in self.async_listen_websockets(**kwargs):
+                    if not (response := await _handle_ws_message(message)):
+                        break
 
 
 class PandoraOnlineDevice:

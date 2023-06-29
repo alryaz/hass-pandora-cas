@@ -17,17 +17,105 @@ from homeassistant.const import (
     CONF_VERIFY_SSL,
     CONF_ACCESS_TOKEN,
 )
+from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult, FlowResultType
 from homeassistant.exceptions import ConfigEntryNotReady, ConfigEntryAuthFailed
+from homeassistant.helpers import config_validation, device_registry
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.schema_config_entry_flow import (
+    SchemaOptionsFlowHandler,
+    SchemaFlowFormStep,
+    SchemaCommonFlowHandler,
+)
 
 from custom_components.pandora_cas import async_run_pandora_coro
 from custom_components.pandora_cas.api import (
     PandoraOnlineAccount,
 )
-from custom_components.pandora_cas.const import DOMAIN
+from custom_components.pandora_cas.const import (
+    DOMAIN,
+    CONF_OFFLINE_AS_UNAVAILABLE,
+    CONF_FUEL_IS_LITERS,
+    CONF_CUSTOM_CURSORS,
+    CONF_CUSTOM_CURSOR_DEVICES,
+    CONF_CUSTOM_CURSOR_TYPE,
+    DEFAULT_CURSOR_TYPE,
+)
+from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
 
 _LOGGER = logging.getLogger(__name__)
+
+OPTIONS_BASE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_VERIFY_SSL, default=True): bool,
+        vol.Required(CONF_OFFLINE_AS_UNAVAILABLE, default=False): bool,
+    }
+)
+
+CUSTOM_CURSOR_TYPES_VALIDATOR: Final = vol.In(
+    tuple([DEFAULT_CURSOR_TYPE] + sorted(IMAGE_REGISTRY.keys()))
+)
+
+
+async def async_options_flow_init_step_create_schema(
+    handler: SchemaCommonFlowHandler,
+) -> vol.Schema:
+    dev_reg = device_registry.async_get(handler.parent_handler.hass)
+    device_options = {}
+    for device in dev_reg.devices.values():
+        for identifier in device.identifiers:
+            if len(identifier) != 2 or identifier[0] != DOMAIN:
+                continue
+            device_options[identifier[1]] = f"{device.name} ({identifier[1]})"
+    for pandora_id in (handler.options or {}).get(CONF_FUEL_IS_LITERS) or ():
+        device_options.setdefault(pandora_id, f"<unknown> ({pandora_id})")
+
+    custom_cursors = handler.options.get(CONF_CUSTOM_CURSORS) or {}
+    extend_dict = {
+        vol.Optional(CONF_FUEL_IS_LITERS): config_validation.multi_select(
+            device_options
+        ),
+        vol.Optional(
+            CONF_CUSTOM_CURSOR_TYPE, default=DEFAULT_CURSOR_TYPE
+        ): CUSTOM_CURSOR_TYPES_VALIDATOR,
+        vol.Optional(
+            CONF_CUSTOM_CURSOR_DEVICES
+        ): config_validation.multi_select(
+            {
+                k: (f"{v} — {custom_cursors[k]}" if k in custom_cursors else v)
+                for k, v in device_options.items()
+            }
+        ),
+    }
+
+    return OPTIONS_BASE_SCHEMA.extend(extend_dict)
+
+
+async def async_options_flow_init_step_validate(
+    handler: SchemaCommonFlowHandler,
+    user_input: dict[str, Any],
+) -> dict[str, Any]:
+    cursor_type = (
+        user_input.pop(CONF_CUSTOM_CURSOR_TYPE, None) or DEFAULT_CURSOR_TYPE
+    )
+    if devices := user_input.pop(CONF_CUSTOM_CURSOR_DEVICES, None):
+        custom_cursors = handler.options.setdefault(CONF_CUSTOM_CURSORS, {})
+        if cursor_type == DEFAULT_CURSOR_TYPE:
+            for device_id in devices:
+                custom_cursors.pop(device_id, None)
+        else:
+            for device_id in devices:
+                custom_cursors[device_id] = cursor_type
+
+    return user_input
+
+
+OPTIONS_FLOW = {
+    "init": SchemaFlowFormStep(
+        async_options_flow_init_step_create_schema,
+        async_options_flow_init_step_validate,
+    )
+}
 
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
@@ -38,8 +126,7 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
 )
 
 
-@config_entries.HANDLERS.register(DOMAIN)
-class PandoraCASConfigFlow(config_entries.ConfigFlow):
+class PandoraCASConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Pandora Car Alarm System config entries."""
 
     CONNECTION_CLASS: Final[str] = config_entries.CONN_CLASS_CLOUD_PUSH
@@ -173,67 +260,9 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow):
             else self.async_abort("unknown")
         )
 
-
-"""
-
     @staticmethod
     @callback
     def async_get_options_flow(
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
-        return PandoraCASOptionsFlow(config_entry)
-
-
-_T = TypeVar("_T")
-
-
-class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
-    @staticmethod
-    def _value_to_list(
-        data: Union[str, Iterable[_T]],
-        validator: Callable[[str], _T],
-    ) -> List[_T]:
-        if isinstance(data, str):
-            data = map(str.strip, ",".split(data))
-
-        return list(map(validator, data))
-
-    @staticmethod
-    def _list_to_validator(
-        current_values: Collection[_T],
-        existing_values: Optional[Mapping[_T], str] = None,
-    ) -> Callable:
-        if existing_values is None:
-            if not current_values:
-                return cv.string
-            return cv.multi_select(sorted(current_values))
-        return cv.multi_select(
-            {
-                value: (existing_values.get(value) or value)
-                for value in sorted({*existing_values, *current_values})
-            }
-        )
-        
-    async def async_step_init(
-        self, user_input: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
-        errors: dict[str, str] | None = None
-
-        errors = {}
-        if user_input:
-            # Save booleans
-            self._options[CONF_VERIFY_SSL] = bool(
-                user_input.get(CONF_VERIFY_SSL)
-            )
-            self._options[CONF_DISABLE_WEBSOCKETS] = bool(
-                user_input.get(CONF_DISABLE_WEBSOCKETS)
-            )
-            
-            return self.async_create_entry(title="", data=None)
-
-        return self.async_show_form(
-            step_id="init",
-            data_schema=vol.Schema,
-            errors=errors,
-        )
-"""
+        return SchemaOptionsFlowHandler(config_entry, OPTIONS_FLOW)

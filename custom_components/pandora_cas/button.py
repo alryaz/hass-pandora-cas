@@ -161,7 +161,6 @@ class PandoraCASButton(PandoraCASEntity, ButtonEntity):
         Therefore, an overriding placeholder is required to
         not do anything at all and not to trigger availability
         issues."""
-        return True
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()

@@ -28,6 +28,7 @@ from homeassistant.const import (
     EntityCategory,
     UnitOfSpeed,
     REVOLUTIONS_PER_MINUTE,
+    UnitOfVolume,
 )
 from homeassistant.core import Event, callback
 from homeassistant.helpers.typing import StateType
@@ -305,20 +306,33 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
 
         key = self.entity_description.key
         if key == "fuel":
-            target_fuel_tank = None
-            if state := self.pandora_device.state:
-                for fuel_tank in state.fuel_tanks:
-                    if fuel_tank.id == self._extra_identifier:
-                        target_fuel_tank = fuel_tank
-                        break
+            # target_fuel_tank = None
+            # if state := self.pandora_device.state:
+            #     for fuel_tank in state.fuel_tanks:
+            #         if fuel_tank.id == self._extra_identifier:
+            #             target_fuel_tank = fuel_tank
+            #             break
+            #
+            #         break
+            #
+            # if target_fuel_tank:
+            #     attributes[ATTR_ID] = target_fuel_tank.id
+            #     attributes["capacity"] = target_fuel_tank.value
+            # else:
+            #     attributes.update(dict.fromkeys((ATTR_ID, "capacity")))
 
-                    break
-
-            if target_fuel_tank:
-                attributes[ATTR_ID] = target_fuel_tank.id
-                attributes["capacity"] = target_fuel_tank.value
-            else:
-                attributes.update(dict.fromkeys((ATTR_ID, "capacity")))
+            try:
+                if (
+                    str(self.pandora_device.device_id)
+                    in self.coordinator.config_entry.options[
+                        CONF_FUEL_IS_LITERS
+                    ]
+                ):
+                    # @TODO: this is presentation-only, check registry
+                    self._attr_native_unit_of_measurement = UnitOfVolume.LITERS
+                    self._attr_device_class = SensorDeviceClass.VOLUME_STORAGE
+            except (LookupError, AttributeError, TypeError):
+                pass
 
         elif key == "track_distance":
             if last_point := self.pandora_device.last_point:
@@ -379,7 +393,7 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
 
         await super().async_will_remove_from_hass()
 
-    def update_native_value(self) -> bool:
+    def update_native_value(self) -> None:
         last_value = self._attr_native_value
         super().update_native_value()
 
@@ -395,8 +409,6 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
         elif isinstance(native_value, BalanceState):
             self._attr_native_value = native_value.value
             self._attr_native_unit_of_measurement = native_value.currency
-
-        return True
 
 
 async_setup_entry = partial(
