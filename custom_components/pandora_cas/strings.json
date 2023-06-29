@@ -514,7 +514,9 @@
           "offline_as_unavailable": "Make online-sensitive entities unavailable when device becomes offline",
           "fuel_is_liters": "Devices with fuel tank measurement in liters",
           "custom_cursor_type": "Set cursor type…",
-          "custom_cursor_devices": "…to the following devices:"
+          "custom_cursor_devices": "…to the following devices:",
+          "mileage_can_miles": "CAN mileage is in miles",
+          "mileage_miles": "System mileage is in miles"
         }
       }
     }
