@@ -24,6 +24,7 @@ CONF_CUSTOM_CURSOR_DEVICES: Final = "custom_cursor_devices"
 CONF_CUSTOM_CURSOR_TYPE: Final = "custom_cursor_type"
 
 DEFAULT_CURSOR_TYPE: Final = "default"
+DISABLED_CURSOR_TYPE: Final = "disabled"
 
 # Entity & event attributes
 ATTR_DEVICE_ID: Final = "device_id"
