@@ -335,7 +335,7 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
 
         options = self.coordinator.config_entry.options
         key = self.entity_description.key
-        device_id = self.pandora_device.device_id
+        device_id = str(self.pandora_device.device_id)
         if (
             (key.startswith("mileage") and device_id in (options.get(CONF_MILEAGE_MILES) or ()))
             or (key.startswith("can_mileage") and device_id in (options.get(CONF_MILEAGE_CAN_MILES) or ()))
