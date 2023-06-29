@@ -56,7 +56,7 @@ ENTITY_TYPES = [
         key="mileage",
         name="Mileage",
         icon="mdi:map-marker-distance",
-        native_unit_of_measurement=UnitOfLength.MILES,
+        native_unit_of_measurement=UnitOfLength.KILOMETERS,
         suggested_unit_of_measurement=UnitOfLength.KILOMETERS,
         attribute="mileage",
         device_class=SensorDeviceClass.DISTANCE,
@@ -67,7 +67,7 @@ ENTITY_TYPES = [
         key="can_mileage",
         name="CAN Mileage",
         attribute="can_mileage",
-        native_unit_of_measurement=UnitOfLength.MILES,
+        native_unit_of_measurement=UnitOfLength.KILOMETERS,
         suggested_unit_of_measurement=UnitOfLength.KILOMETERS,
         device_class=SensorDeviceClass.DISTANCE,
         state_class=SensorStateClass.TOTAL,
@@ -332,6 +332,15 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
         self._points_listener: Optional[Callable] = None
         self._extra_identifier = extra_identifier
         self._last_timestamp = None
+
+        options = self.coordinator.config_entry.options
+        key = self.entity_description.key
+        device_id = self.pandora_object.device_id
+        if (
+            (key.startswith("mileage") and device_id in (options.get(CONF_MILEAGE_MILES) or ()))
+            or (key.startswith("can_mileage") and device_id in (options.get(CONF_MILEAGE_CAN_MILES) or ()))
+        ):
+            self._attr_native_unit_of_measurement = UnitOfLength.MILES
 
     @property
     def icon(self) -> str | None:
