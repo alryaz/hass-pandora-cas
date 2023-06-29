@@ -554,7 +554,9 @@
           "offline_as_unavailable": "Помечать недоступными объекты когда устройство недоступно",
           "fuel_is_liters": "Топливный бак в литрах",
           "custom_cursor_type": "Установить тип курсора…",
-          "custom_cursor_devices": "…на следующие устройства:"
+          "custom_cursor_devices": "…на следующие устройства:",
+          "mileage_can_miles": "Пробег по CAN в милях",
+          "mileage_miles": "Пробег системы в милях"
         }
       }
     }
