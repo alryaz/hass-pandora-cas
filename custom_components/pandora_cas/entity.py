@@ -131,7 +131,7 @@ class PandoraCASUpdateCoordinator(
         self.account = account
 
         super().__init__(
-            hass, _LOGGER, name=DOMAIN, update_interval=timedelta(seconds=5)
+            hass, _LOGGER, name=DOMAIN, # update_interval=timedelta(seconds=5)
         )
 
     async def _async_update_data(self) -> Mapping[int, Mapping[str, Any]]:
