@@ -49,6 +49,7 @@ from custom_components.pandora_cas.api import (
 from custom_components.pandora_cas.const import (
     DOMAIN,
     ATTR_COMMAND_ID,
+    CONF_OFFLINE_AS_UNAVAILABLE,
 )
 
 _LOGGER = logging.getLogger(__name__)
