@@ -170,9 +170,8 @@ class PandoraCASEntityDescription(EntityDescription):
     )
 
     def __post_init__(self):
-        """Set translation key to entity description."""
-        if not self.translation_key:
-            self.translation_key = self.key
+        """Set translation key to entity description key."""
+        self.translation_key = self.key
 
 
 CommandType = Union[CommandID, int, Callable[[PandoraOnlineDevice], Awaitable]]
