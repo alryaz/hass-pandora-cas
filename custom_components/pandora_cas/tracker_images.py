@@ -30,15 +30,10 @@ class ImagesDefaultDict(defaultdict):
             rotation=(float(rotation or 0.0) - base_rotation) % 360,
         )
 
-
-TRANSPORT_TYPE_CAR: Final = "car"
-TRANSPORT_TYPE_MOTO: Final = "moto"
-TRANSPORT_TYPE_TRUCK: Final = "truck"
-
-TRANSPORT_TYPE_DEFAULT: Final = TRANSPORT_TYPE_CAR
+CURSOR_DEFAULT: Final = "arrow"
 
 IMAGE_REGISTRY: Final = ImagesDefaultDict(
-    lambda: IMAGE_REGISTRY[TRANSPORT_TYPE_DEFAULT],
+    lambda: IMAGE_REGISTRY[CURSOR_DEFAULT],
     {
         "arrow": (
             from_path(
@@ -49,7 +44,7 @@ IMAGE_REGISTRY: Final = ImagesDefaultDict(
             ),
             0,
         ),
-        TRANSPORT_TYPE_CAR: (
+        "car": (
             from_path(
                 "m 217.13642,146.13435 c -0.0357,6e-4 -0.14981,0.0181 -0.24,0.02 -0.87778,0.0194 -3.99768,"
                 "0.0945 -5.7,0.48 -1.90342,0.43104 -3.80556,1.01751 -5.48,2.02 -2.50472,1.49965 -4.61679,"
@@ -146,7 +141,7 @@ IMAGE_REGISTRY: Final = ImagesDefaultDict(
             ),
             -90,
         ),
-        TRANSPORT_TYPE_MOTO: (
+        "moto": (
             from_path(
                 "m 166.45839,357.80288 c -12.12657,-5.98218 -18.97322,-18.13056 -13.95378,-24.75899 2.00481,"
                 "-2.64746 2.04448,-3.47629 0.49849,-10.4145 -2.04796,-9.19091 -4.18095,-9.9973 -3.19028,"
@@ -244,7 +239,7 @@ IMAGE_REGISTRY: Final = ImagesDefaultDict(
             ),
             -90,
         ),
-        TRANSPORT_TYPE_TRUCK: (
+        "truck": (
             from_path(
                 "m 311,341.3273 c -2.93395,-1.09019 -4,-3.76024 -4,-10.01843 0,-6.47655 0.77489,"
                 "-8.002 5.58775,-11.00006 1.84931,-1.15199 1.8433,-1.19313 -0.18276,-1.25 -4.15299,"
