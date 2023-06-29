@@ -22,6 +22,8 @@ CONF_FUEL_IS_LITERS: Final = "fuel_is_liters"
 CONF_CUSTOM_CURSORS: Final = "custom_cursors"
 CONF_CUSTOM_CURSOR_DEVICES: Final = "custom_cursor_devices"
 CONF_CUSTOM_CURSOR_TYPE: Final = "custom_cursor_type"
+CONF_MILEAGE_MILES: Final = "mileage_miles"
+CONF_MILEAGE_CAN_MILES: Final = "mileage_can_miles"
 
 DEFAULT_CURSOR_TYPE: Final = "default"
 DISABLED_CURSOR_TYPE: Final = "disabled"
