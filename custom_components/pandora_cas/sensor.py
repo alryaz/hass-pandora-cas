@@ -17,7 +17,6 @@ from homeassistant.components.sensor.const import (
     SensorStateClass,
 )
 from homeassistant.const import (
-    SPEED_KILOMETERS_PER_HOUR,
     UnitOfElectricPotential,
     UnitOfPressure,
     UnitOfLength,
@@ -83,7 +82,6 @@ ENTITY_TYPES = [
         icon="mdi:fuel",
         native_unit_of_measurement=PERCENTAGE,
         attribute="fuel",
-        online_sensitive=False,
         device_class=SensorDeviceClass.VOLUME_STORAGE,
         state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
@@ -124,7 +122,6 @@ ENTITY_TYPES = [
         device_class=SensorDeviceClass.MONETARY,
         state_class=SensorStateClass.TOTAL,
         attribute="balance",
-        online_sensitive=False,
     ),
     dataclasses.replace(
         _sensor,
@@ -266,6 +263,14 @@ ENTITY_TYPES = [
         icon="mdi:send-variant-clock",
         attribute="command_timestamp_utc",
     ),
+    # PandoraCASSensorEntityDescription(
+    #     key="last_event",
+    #     name="Last Event",
+    #     icon="mdi:timeline-alert",
+    #     attribute="last_event",
+    #     attribute_source=None,
+    #     online_sensitive=False,
+    # ),
 ]
 
 
@@ -317,7 +322,7 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
 
         elif key == "track_distance":
             if last_point := self.pandora_device.last_point:
-                attributes[ATTR_ID] = last_point.identifier
+                attributes[ATTR_ID] = last_point.device_id
                 attributes["timestamp"] = last_point.timestamp
                 attributes["track_id"] = last_point.track_id
                 attributes["max_speed"] = last_point.max_speed

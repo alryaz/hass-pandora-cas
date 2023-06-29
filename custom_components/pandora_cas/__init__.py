@@ -1,6 +1,6 @@
 """Initialization script for Pandora Car Alarm System component."""
 
-__all__ = [
+__all__ = (
     "async_setup",
     "async_setup_entry",
     "async_unload_entry",
@@ -8,21 +8,18 @@ __all__ = [
     "async_run_pandora_coro",
     "CONFIG_SCHEMA",
     "SERVICE_REMOTE_COMMAND",
-]
+)
 
 import asyncio
 import logging
-from datetime import timedelta
 from functools import partial
 from typing import (
     Any,
     Mapping,
-    Optional,
     Union,
-    Awaitable,
+    Type,
     TypeVar,
-    Set,
-    Dict,
+    Awaitable,
 )
 
 import aiohttp
@@ -33,16 +30,16 @@ from homeassistant.const import (
     ATTR_ID,
     CONF_PASSWORD,
     CONF_USERNAME,
-    Platform,
     CONF_VERIFY_SSL,
     CONF_ACCESS_TOKEN,
+    ATTR_LATITUDE,
+    ATTR_LONGITUDE,
 )
 from homeassistant.core import ServiceCall, HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import (
     async_get as async_get_device_registry,
-    DeviceEntry,
 )
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import bind_hass
@@ -60,24 +57,12 @@ from custom_components.pandora_cas.api import (
     TrackingPoint,
     Features,
     MalformedResponseError,
+    PrimaryEventID,
 )
 from custom_components.pandora_cas.const import *
 from custom_components.pandora_cas.entity import (
     PandoraCASEntity,
     PandoraCASUpdateCoordinator,
-)
-
-MIN_POLLING_INTERVAL = timedelta(seconds=10)
-DEFAULT_POLLING_INTERVAL = timedelta(minutes=1)
-DEFAULT_EXECUTION_DELAY = timedelta(seconds=15)
-
-PLATFORMS: Final = (
-    Platform.BINARY_SENSOR,
-    Platform.BUTTON,
-    Platform.DEVICE_TRACKER,
-    Platform.LOCK,
-    Platform.SENSOR,
-    Platform.SWITCH,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -171,7 +156,7 @@ UPDATE_SERVICE_SCHEMA = vol.Schema(
 @bind_hass
 async def _async_register_services(hass: HomeAssistant) -> None:
     async def _execute_remote_command(
-        call: "ServiceCall", command_id: Optional[Union[int, CommandID]] = None
+        call: "ServiceCall", command_id: int | CommandID | None = None
     ) -> None:
         _LOGGER.debug(
             f"Called service '{call.service}' with data: {dict(call.data)}"
@@ -224,20 +209,6 @@ async def _async_register_services(hass: HomeAssistant) -> None:
             ),
             schema=SERVICE_PREDEFINED_COMMAND_SCHEMA,
         )
-
-
-_T = TypeVar("_T")
-
-
-async def async_run_pandora_coro(coro: Awaitable[_T]) -> _T:
-    try:
-        return await coro
-    except AuthenticationError as exc:
-        raise ConfigEntryAuthFailed("Authentication failed") from exc
-    except MalformedResponseError as exc:
-        raise ConfigEntryNotReady("Server responds erroneously") from exc
-    except (OSError, aiohttp.ClientError, TimeoutError) as exc:
-        raise ConfigEntryNotReady("Timed out while authenticating") from exc
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -313,98 +284,34 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.entry_id
     ] = coordinator = PandoraCASUpdateCoordinator(hass, account)
 
-    # create account updater
-    async def _state_changes_listener(
-        device: PandoraOnlineDevice,
-        _: CurrentState,
-        new_state_values: Mapping[str, Any],
-    ):
-        _LOGGER.debug(
-            f"Received WebSockets state update for "
-            f"device {device.device_id}: {new_state_values}"
-        )
-
-        coordinator.async_set_updated_data(
-            {device.device_id: new_state_values}
-        )
-
-    async def _command_execution_listener(
-        device: PandoraOnlineDevice,
-        command_id: int,
-        result: int,
-        reply: Any,
-    ):
-        _LOGGER.debug(
-            "Received command execution result: %s / %s / %s",
-            command_id,
-            result,
-            reply,
-        )
-
-        hass.bus.async_fire(
-            f"{DOMAIN}_command",
-            {
-                "device_id": device.device_id,
-                "command_id": command_id,
-                "result": result,
-                "reply": reply,
-            },
-        )
-
-    async def _event_catcher_listener(
-        device: PandoraOnlineDevice,
-        event: TrackingEvent,
-    ):
-        _LOGGER.info("Received event: %s", event)
-
-        hass.bus.async_fire(
-            f"{DOMAIN}_event",
-            {
-                "device_id": device.device_id,
-                "event_id_primary": event.event_id_primary,
-                "event_id_secondary": event.event_id_secondary,
-                "event_type": event.primary_event_enum.name.lower(),
-                "latitude": event.latitude,
-                "longitude": event.longitude,
-                "gsm_level": event.gsm_level,
-                "fuel": event.fuel,
-                "exterior_temperature": event.exterior_temperature,
-                "engine_temperature": event.engine_temperature,
-            },
-        )
-
-    async def _point_catcher_listener(
-        device: PandoraOnlineDevice,
-        point: TrackingPoint,
-    ):
-        _LOGGER.info("Received point: %s", point)
-
-        hass.bus.async_fire(
-            f"{DOMAIN}_point",
-            {
-                "device_id": device.device_id,
-                "timestamp": point.timestamp,
-                "track_id": point.track_id,
-                "fuel": point.fuel,
-                "speed": point.speed,
-                "max_speed": point.max_speed,
-                "length": point.length,
-            },
-        )
-
     # Start listening for updates
     if entry.pref_disable_polling:
+
+        def _state_changes_listener(
+            device: PandoraOnlineDevice,
+            _: CurrentState,
+            new_state_values: Mapping[str, Any],
+        ) -> None:
+            _LOGGER.debug(
+                f"Received WebSockets state update for "
+                f"device {device.device_id}: {new_state_values}"
+            )
+            coordinator.async_set_updated_data(
+                {device.device_id: new_state_values}
+            )
+
+        # noinspection PyTypeChecker
         hass.data.setdefault(DATA_LISTENERS, {})[
             entry.entry_id
         ] = hass.loop.create_task(
             account.async_listen_for_updates(
                 state_callback=_state_changes_listener,
-                command_callback=_command_execution_listener,
-                event_callback=_event_catcher_listener,
-                point_callback=_point_catcher_listener,
+                command_callback=partial(async_command_delegator, hass),
+                event_callback=partial(async_event_delegator, hass),
+                point_callback=partial(async_point_delegator, hass),
                 auto_restart=True,
             ),
-            name=f"Pandora CAS entry {entry.entry_id} changes listener",
+            name=f"Pandora CAS entry {entry.entry_id} listener",
         )
 
     # Forward entry setup to sensor platform
@@ -480,11 +387,12 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             args["pref_disable_polling"] = not disable_websockets
 
         dev_reg = async_get_device_registry(hass)
-        entries_to_update: Dict[Union[str, int], str] = {}
+        entries_to_update: dict[str | int, str] = {}
         for device_entry in tuple(dev_reg.devices.values()):
-            for (domain, pandora_id) in device_entry.identifiers:
-                if domain != DOMAIN:
+            for identifier in device_entry.identifiers:
+                if len(identifier) != 2 or identifier[0] != DOMAIN:
                     continue
+                pandora_id = identifier[1]
                 try:
                     if isinstance(pandora_id, int):
                         # Find valid device for this pandora ID
@@ -528,3 +436,85 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.info(f"Upgraded configuration entry to version {entry.version}")
 
     return True
+
+
+def event_enum_to_type(
+    primary_event_id: PrimaryEventID | Type[PrimaryEventID],
+) -> str:
+    """Convert event ID to a slugified representation."""
+    return slugify(primary_event_id.name.lower())
+
+
+def async_command_delegator(
+    hass: HomeAssistant,
+    device: PandoraOnlineDevice,
+    command_id: int,
+    result: int,
+    reply: Any,
+) -> None:
+    """Pass command execution data to Home Assistant event bus."""
+    hass.bus.async_fire(
+        EVENT_TYPE_COMMAND,
+        {
+            "device_id": device.device_id,
+            "command_id": command_id,
+            "result": result,
+            "reply": reply,
+        },
+    )
+
+
+def async_event_delegator(
+    hass: HomeAssistant, device: PandoraOnlineDevice, event: TrackingEvent
+) -> None:
+    """Pass event data to Home Assistant event bus."""
+    hass.bus.async_fire(
+        EVENT_TYPE_EVENT,
+        {
+            "event_type": event_enum_to_type(event.primary_event_enum),
+            ATTR_DEVICE_ID: device.device_id,
+            "event_id_primary": event.event_id_primary,
+            "event_id_secondary": event.event_id_secondary,
+            ATTR_LATITUDE: event.latitude,
+            ATTR_LONGITUDE: event.longitude,
+            "gsm_level": event.gsm_level,
+            "fuel": event.fuel,
+            "exterior_temperature": event.exterior_temperature,
+            "engine_temperature": event.engine_temperature,
+        },
+    )
+
+    # @TODO: add time_fired parameter
+
+
+# noinspection PyUnusedLocal
+def async_point_delegator(
+    hass: HomeAssistant, device: PandoraOnlineDevice, point: TrackingPoint
+) -> None:
+    hass.bus.async_fire(
+        EVENT_TYPE_POINT,
+        {
+            "identifier": point.identifier,
+            "device_id": point.device_id,
+            "timestamp": point.timestamp,
+            "track_id": point.track_id,
+            "fuel": point.fuel,
+            "speed": point.speed,
+            "max_speed": point.max_speed,
+            "length": point.length,
+        },
+    )
+
+
+_T = TypeVar("_T")
+
+
+async def async_run_pandora_coro(coro: Awaitable[_T]) -> _T:
+    try:
+        return await coro
+    except AuthenticationError as exc:
+        raise ConfigEntryAuthFailed("Authentication failed") from exc
+    except MalformedResponseError as exc:
+        raise ConfigEntryNotReady("Server responds erroneously") from exc
+    except (OSError, aiohttp.ClientError, TimeoutError) as exc:
+        raise ConfigEntryNotReady("Timed out while authenticating") from exc

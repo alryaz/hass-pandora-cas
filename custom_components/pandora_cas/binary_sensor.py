@@ -1,5 +1,5 @@
 """Binary sensor platform for Pandora Car Alarm System."""
-__all__ = ["ENTITY_TYPES", "async_setup_entry"]
+__all__ = ("ENTITY_TYPES", "async_setup_entry")
 
 import logging
 from functools import partial

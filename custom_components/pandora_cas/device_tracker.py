@@ -1,15 +1,14 @@
 """Device tracker for Pandora Car Alarm System component"""
-__all__ = ("async_setup_entry", "PLATFORM_DOMAIN")
+__all__ = ("ENTITY_TYPES", "async_setup_entry")
 
 import base64
 import logging
 from typing import Mapping, Any, Dict
-from haversine import haversine, Unit
 
+from haversine import haversine, Unit
 from homeassistant.components.device_tracker import (
-    DOMAIN as PLATFORM_DOMAIN,
-    SOURCE_TYPE_GPS,
     ENTITY_ID_FORMAT,
+    SourceType,
 )
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 from homeassistant.config_entries import ConfigEntry
@@ -59,6 +58,7 @@ ENTITY_TYPES = [
         attribute="state",
         attribute_source=None,
         icon="mdi:car",
+        online_sensitive=False,
     ),
 ]
 
@@ -149,4 +149,4 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
     @property
     def source_type(self):
         """Default to GPS source only."""
-        return SOURCE_TYPE_GPS
+        return SourceType.GPS

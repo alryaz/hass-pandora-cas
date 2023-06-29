@@ -16,6 +16,7 @@ from typing import (
     Dict,
     final,
     List,
+    Awaitable,
 )
 
 from homeassistant.config_entries import ConfigEntry
@@ -71,7 +72,7 @@ def parse_description_command_id(
             except KeyError:
                 raise NotImplementedError("command not defined")
 
-    return int(value)
+    return value if callable(value) else int(value)
 
 
 async def async_platform_setup_entry(
@@ -138,16 +139,22 @@ class PandoraCASUpdateCoordinator(
         # @TODO: manual polling updates!
         try:
             try:
-                return await self.account.async_request_updates()
+                updates, events = await self.account.async_request_updates()
             except AuthenticationError:
                 try:
                     await self.account.async_authenticate()
+                    (
+                        updates,
+                        events,
+                    ) = await self.account.async_request_updates()
                 except AuthenticationError as exc:
                     raise ConfigEntryAuthFailed(
                         "Authentication failed during fetching"
                     ) from exc
         except MalformedResponseError as exc:
             raise UpdateFailed("Malformed response retrieved") from exc
+
+        return updates
 
 
 @dataclass
@@ -168,8 +175,8 @@ class PandoraCASEntityDescription(EntityDescription):
             self.translation_key = self.key
 
 
-CommandIDType = Union[CommandID, int]
-CommandType = Union[CommandIDType, Mapping[str, CommandIDType]]
+CommandType = Union[CommandID, int, Callable[[PandoraOnlineDevice], Awaitable]]
+CommandOptions = Union[CommandType, Mapping[str, CommandType]]
 
 
 class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
@@ -300,14 +307,19 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
         except KeyError:
             return
 
-        # Do not issue update if state attribute is involved and not set
         ed = self.entity_description
+        # Check whether availability can be synced to online state
         if (
-            ed.attribute_source == "state"
-            and ed.attribute is not None
-            and ed.attribute not in device_data
+            not ed.online_sensitive
+            or self.available is self.pandora_device.is_online
         ):
-            return
+            # Do not issue update if state attribute is involved and not set
+            if (
+                ed.attribute_source == "state"
+                and ed.attribute is not None
+                and ed.attribute not in device_data
+            ):
+                return
 
         # Update native value and write state
         if self.update_native_value():
@@ -326,12 +338,14 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
         self.reset_command_event()
         self.async_write_ha_state()
 
-    def _add_command_listener(self, command: Optional[CommandType]) -> None:
+    def _add_command_listener(self, command: Optional[CommandOptions]) -> None:
         if command is None:
             return None
         command_id = parse_description_command_id(
             command, self.pandora_device.type
         )
+        if not isinstance(command_id, int):
+            return None
         if (listeners := self._command_listeners) is None:
             self._command_listeners = listeners = []
         listeners.append(
@@ -344,16 +358,27 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
             )
         )
 
-    async def run_device_command(self, command: Union[str, int, CommandID]):
-        d = self.pandora_device
-        if isinstance(command, str):
-            command = getattr(d, command)
+    async def run_device_command(self, command: CommandOptions):
+        if command is None:
+            raise ValueError("command not provided")
+
+        # Use integer enumerations as direct command identifiers
+        if isinstance(command, (int, CommandID)):
+            result = self.pandora_device.async_remote_command(
+                command, ensure_complete=False
+            )
+
+        # Treat callables as separate options
+        elif callable(command):
             if asyncio.iscoroutinefunction(command):
-                result = command()
+                result = command(self.pandora_device)
             else:
-                result = self.hass.async_add_executor_job(command)
+                result = self.hass.async_add_executor_job(
+                    command, self.pandora_device
+                )
+
         else:
-            result = d.async_remote_command(command, ensure_complete=False)
+            raise TypeError("command type not supported")
 
         # Set command waiter
         if (waiter := self._command_waiter) is not None:
@@ -393,8 +418,8 @@ class PandoraCASBooleanEntityDescription(PandoraCASEntityDescription):
     icon_turning_off: Optional[str] = None
     flag: Optional[Flag] = None
     inverse: bool = False
-    command_on: Optional[CommandType] = None
-    command_off: Optional[CommandType] = None
+    command_on: Optional[CommandOptions] = None
+    command_off: Optional[CommandOptions] = None
 
 
 class PandoraCASBooleanEntity(PandoraCASEntity):

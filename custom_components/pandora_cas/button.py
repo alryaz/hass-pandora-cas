@@ -1,10 +1,11 @@
-__all__ = ("async_setup_entry", "ENTITY_TYPES", "PandoraCASButton")
+"""Button platform for Pandora Car Alarm System."""
+__all__ = ("ENTITY_TYPES", "async_setup_entry")
 
 import asyncio
 import logging
 from dataclasses import dataclass
 from functools import partial
-from typing import Optional, Callable, Mapping, Union
+from typing import Optional, Callable
 
 from homeassistant.components.button import (
     ButtonEntity,
@@ -13,13 +14,18 @@ from homeassistant.components.button import (
 )
 from homeassistant.const import EntityCategory
 from homeassistant.core import callback
+from homeassistant.exceptions import HomeAssistantError
 
-from custom_components.pandora_cas.api import CommandID, PandoraDeviceTypes
+from custom_components.pandora_cas.api import (
+    CommandID,
+    PandoraDeviceTypes,
+    PandoraOnlineDevice,
+)
 from custom_components.pandora_cas.entity import (
     async_platform_setup_entry,
     PandoraCASEntity,
     PandoraCASEntityDescription,
-    CommandType,
+    CommandOptions,
     parse_description_command_id,
 )
 
@@ -30,8 +36,9 @@ _LOGGER = logging.getLogger(__name__)
 class PandoraCASButtonEntityDescription(
     PandoraCASEntityDescription, ButtonEntityDescription
 ):
-    command: Optional[Union[CommandType, Mapping[str, CommandType]]] = None
+    command: Optional[CommandOptions] = None
     icon_pressing: Optional[str] = "mdi:progress-clock"
+    allow_simultaneous_presses: bool = True
 
 
 ENTITY_TYPES = [
@@ -88,6 +95,15 @@ ENTITY_TYPES = [
         command=CommandID.ADDITIONAL_COMMAND_2,
         icon="mdi:numeric-2-box",
     ),
+    PandoraCASButtonEntityDescription(
+        key="wake_up",
+        name="Wake Up",
+        icon="mdi:power-cycle",
+        command=PandoraOnlineDevice.async_wake_up,
+        online_sensitive=False,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        allow_simultaneous_presses=False,
+    ),
 ]
 
 
@@ -120,12 +136,18 @@ class PandoraCASButton(PandoraCASEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         """Proxy method to run disable boolean command."""
-        self._is_pressing = True
-        await self.run_device_command(
-            parse_description_command_id(
-                self.entity_description.command, self.pandora_device.type
+        if (
+            self._is_pressing
+            and not self.entity_description.allow_simultaneous_presses
+        ):
+            raise HomeAssistantError(
+                "Simultaneous commands not allowed, wait until command completes"
             )
+        command_id = parse_description_command_id(
+            self.entity_description.command, self.pandora_device.type
         )
+        self._is_pressing = True
+        await self.run_device_command(command_id)
 
     def press(self) -> None:
         """Compatibility for synchronous turn on calls."""

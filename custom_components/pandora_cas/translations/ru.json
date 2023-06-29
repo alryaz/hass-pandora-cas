@@ -231,14 +231,6 @@
           }
         }
       },
-      "can_mileage": {
-        "name": "Пробег по CAN",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
       "fuel": {
         "name": "Топливный бак",
         "state_attributes": {
@@ -255,43 +247,8 @@
           }
         }
       },
-      "engine_temperature": {
-        "name": "Температура двигателя",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "exterior_temperature": {
-        "name": "Температура за бортом",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "battery_temperature": {
-        "name": "Температура аккумулятора",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
       "balance": {
         "name": "Баланс SIM",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          },
-          "phone_number": {
-            "name": "Номер телефона"
-          }
-        }
-      },
-      "balance_secondary": {
-        "name": "Баланс дополнительной SIM",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -341,38 +298,6 @@
           }
         }
       },
-      "right_front_tire_pressure": {
-        "name": "Давление передней правой шины",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "left_back_tire_pressure": {
-        "name": "Давление задней левой шины",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "right_back_tire_pressure": {
-        "name": "Давление задней правой шины",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "reserve_tire_pressure": {
-        "name": "Давление запасной шины",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
       "track_distance": {
         "name": "Дистанция трека",
         "state_attributes": {
@@ -397,56 +322,8 @@
           }
         }
       },
-      "rotation": {
-        "name": "Поворот",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "direction": {
-        "name": "Направление",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
       "last_online": {
         "name": "Последняя связь",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "last_state_update": {
-        "name": "Последнее изменение",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "last_settings_change": {
-        "name": "Последняя настройка",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "last_command_execution": {
-        "name": "Последняя команда",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "can_mileage_to_empty": {
-        "name": "Пробег на оставшемся топливе",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -531,6 +408,12 @@
           },
           "gsm_level": {
             "name": "Сотовый сигнал"
+          },
+          "direction": {
+            "name": "Компас"
+          },
+          "rotation": {
+            "name": "Поворот"
           }
         }
       }
@@ -599,7 +482,68 @@
             "name": "Идентификатор устройства"
           }
         }
+      },
+      "wake_up": {
+        "name": "Пробудить",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
       }
+    }
+  },
+  "device_automation": {
+    "trigger_type": {
+      "locking_enabled": "Событие: Locking Enabled",
+      "locking_disabled": "Событие: Locking Disabled",
+      "alert": "Событие: Тревога",
+      "engine_started": "Событие: Двигатель запущен",
+      "engine_stopped": "Событие: Двигатель остановлен",
+      "engine_locked": "Событие: Двигатель заблокирован",
+      "service_mode_enabled": "Событие: Сервисный режим включен",
+      "settings_changed": "Событие: Настройки изменены",
+      "refuel": "Событие: Заправка",
+      "collision": "Событие: Столкновение",
+      "gsm_connection": "Событие: Сотовая связь",
+      "emergency_call": "Событие: Экстренный вызов",
+      "failed_start_attempt": "Событие: Ошибка запуска двигателя",
+      "tracking_enabled": "Событие: Отслеживание включено",
+      "tracking_disabled": "Событие: Отслеживание отключено",
+      "system_power_loss": "Событие: Система потеряла питание",
+      "secure_trunk_open": "Событие: Secure Trunk Open",
+      "factory_testing": "Событие: Factory Testing",
+      "power_dip": "Событие: Power Dip",
+      "check_received": "Событие: Получена команда CHECK",
+      "system_login": "Событие: System Login",
+      "active_security_enabled": "Событие: Active Security Enabled",
+      "active_security_disabled": "Событие: Режим активной защиты выключен",
+      "active_security_alert": "Событие: Тревога в режиме активной защиты",
+      "block_heater_enabled": "Событие: Включение предпускового подогревателя",
+      "block_heater_disabled": "Событие: Отключение предпускового подогревателя",
+      "rough_road_conditions": "Событие: Rough Road Conditions",
+      "driving": "Событие: В движении",
+      "engine_running_prolongation": "Событие: Продление времени работы двигателя",
+      "service_mode_disabled": "Событие: Выключение сервисного режима",
+      "gsm_channel_enabled": "Событие: Канал GSM включен",
+      "gsm_channel_disabled": "Событие: Канал GSM отключен",
+      "nav_11_status": "Событие: Nav 11 Status",
+      "dtc_read_request": "Событие: Dtc Read Request",
+      "dtc_read_error": "Событие: Dtc Read Error",
+      "dtc_read_active": "Событие: Dtc Read Active",
+      "dtc_erase_request": "Событие: Dtc Erase Request",
+      "dtc_erase_active": "Событие: Dtc Erase Active",
+      "system_message": "Событие: Сообщение системы",
+      "eco_mode_enabled": "Событие: Отключение Эко-режима",
+      "eco_mode_disabled": "Событие: Включение Эко-режима",
+      "tire_pressure_low": "Событие: Низкое давление в шинах",
+      "bluetooth_status": "Событие: Состояние Bluetooth",
+      "tag_requirement_enabled": "Событие: Tag Requirement Enabled",
+      "tag_requirement_disabled": "Событие: Tag Requirement Disabled",
+      "tag_polling_enabled": "Событие: Tag Polling Enabled",
+      "tag_polling_disabled": "Событие: Tag Polling Disabled",
+      "point": "Событие: Point",
+      "unknown": "Событие: Unknown"
     }
   }
 }

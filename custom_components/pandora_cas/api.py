@@ -15,6 +15,7 @@ __all__ = [
     "TrackingPoint",
     "FuelTank",
     "PandoraDeviceTypes",
+    "PrimaryEventID",
     # Exceptions
     "PandoraOnlineException",
     "AuthenticationError",
@@ -45,6 +46,7 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
+    List,
 )
 
 import aiohttp
@@ -287,7 +289,7 @@ class BalanceState:
         return round(self.value, n)
 
     @classmethod
-    def state_value_from_dict(cls, data: Optional[Mapping[str, Any]]):
+    def from_dict(cls, data: Optional[Mapping[str, Any]]):
         try:
             if data:
                 return cls(
@@ -490,6 +492,7 @@ class PrimaryEventID(IntEnum):
 @attr.s(kw_only=True, frozen=True, slots=True)
 class TrackingEvent:
     identifier: int = attr.ib()
+    device_id: int = attr.ib()
     bit_state: BitStatus = attr.ib()
     cabin_temperature: float = attr.ib()
     engine_rpm: float = attr.ib()
@@ -509,10 +512,45 @@ class TrackingEvent:
     def primary_event_enum(self) -> PrimaryEventID:
         return PrimaryEventID(self.event_id_primary)
 
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any], **kwargs):
+        if "identifier" not in kwargs:
+            kwargs["identifier"] = int(data["id"])
+        if "bit_state" not in kwargs:
+            kwargs["bit_state"] = BitStatus(int(data["bit_state_1"]))
+        if "cabin_temperature" not in kwargs:
+            kwargs["cabin_temperature"] = data["cabin_temp"]
+        if "engine_rpm" not in kwargs:
+            kwargs["engine_rpm"] = data["engine_rpm"]
+        if "engine_temperature" not in kwargs:
+            kwargs["engine_temperature"] = data["engine_temp"]
+        if "event_id_primary" not in kwargs:
+            kwargs["event_id_primary"] = data["eventid1"]
+        if "event_id_secondary" not in kwargs:
+            kwargs["event_id_secondary"] = data["eventid2"]
+        if "fuel" not in kwargs:
+            kwargs["fuel"] = data["fuel"]
+        if "gsm_level" not in kwargs:
+            kwargs["gsm_level"] = data["gsm_level"]
+        if "exterior_temperature" not in kwargs:
+            kwargs["exterior_temperature"] = data["out_temp"]
+        if "timestamp" not in kwargs:
+            kwargs["timestamp"] = data["dtime"]
+        if "recorded_timestamp" not in kwargs:
+            kwargs["recorded_timestamp"] = data["dtime_rec"]
+        if "voltage" not in kwargs:
+            kwargs["voltage"] = data["voltage"]
+        if "latitude" not in kwargs:
+            kwargs["latitude"] = data["x"]
+        if "longitude" not in kwargs:
+            kwargs["longitude"] = data["y"]
+        return cls(**kwargs)
+
 
 @attr.s(kw_only=True, frozen=True, slots=True)
 class TrackingPoint:
     identifier: int = attr.ib()
+    device_id: int = attr.ib()
     latitude: float = attr.ib()
     longitude: float = attr.ib()
     track_id: Optional[int] = attr.ib(default=None)
@@ -862,25 +900,51 @@ class PandoraOnlineAccount:
             self.BASE_URL + "/api/devices/command",
             data={"id": device_id, "command": int(command_id)},
             params={"access_token": self.access_token},
-            raise_for_status=True,
         ) as response:
             data = await self._handle_dict_response(response)
 
-        try:
-            status = data["action_result"][str(device_id)]
-        except (LookupError, AttributeError, TypeError):
-            status = "unknown error"
+            try:
+                status = data["action_result"][str(device_id)]
+            except (LookupError, AttributeError, TypeError):
+                status = "unknown error"
 
-        if status != "sent":
-            _LOGGER.error(
-                f"[{self}] Error sending command {command_id} "
-                f"to device {device_id}: {status}"
-            )
-            raise CommandExecutionError(status)
+            if status != "sent":
+                _LOGGER.error(
+                    f"[{self}] Error sending command {command_id} "
+                    f"to device {device_id}: {status}"
+                )
+                raise CommandExecutionError(status)
+
+            response.raise_for_status()
 
         _LOGGER.debug(
             f"[{self}] Command {command_id} sent to device {device_id}"
         )
+
+    async def async_wake_up_device(self, device_id: int) -> None:
+        _LOGGER.debug(f"[{self}] Waking up device {device_id}")
+
+        async with self._session.post(
+            self.BASE_URL + "/api/devices/wakeup",
+            data={"id": device_id},
+            params={"access_token": self.access_token},
+        ) as response:
+            data = await self._handle_dict_response(response)
+
+            try:
+                status = data["status"]
+            except (LookupError, AttributeError, TypeError):
+                status = "unknown error"
+
+            if status != "success":
+                _LOGGER.error(
+                    f"[{self}] Error waking up device {device_id}: {status}"
+                )
+                raise CommandExecutionError(status)
+
+            response.raise_for_status()
+
+        _LOGGER.debug(f"[{self}] Sent wake up command to device {device_id}")
 
     @staticmethod
     def parse_device_id(data: Mapping[str, Any]) -> int:
@@ -949,12 +1013,12 @@ class PandoraOnlineAccount:
         if "balance" in data:
             kwargs.setdefault(
                 "balance",
-                BalanceState.state_value_from_dict(data.get("balance")),
+                BalanceState.from_dict(data.get("balance")),
             )
         if "balance1" in data:
             kwargs.setdefault(
                 "balance_other",
-                BalanceState.state_value_from_dict(data.get("balance")),
+                BalanceState.from_dict(data.get("balance")),
             )
         if "bit_state_1" in data:
             kwargs.setdefault("bit_state", BitStatus(int(data["bit_state_1"])))
@@ -1040,11 +1104,19 @@ class PandoraOnlineAccount:
         # noinspection PyTypeChecker
         return state, state_args
 
+    def _process_http_event(
+        self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
+    ) -> TrackingEvent:
+        event = TrackingEvent.from_dict(data, device_id=device.device_id)
+
+        if (e := device.last_event) and e.timestamp < event.timestamp:
+            device.last_event = TrackingEvent
+
+        return event
+
     def _process_http_stats(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
     ) -> Tuple[CurrentState, Dict[str, Any]]:
-        _LOGGER.debug(f"[{self}] Processing stats for {device.device_id}")
-
         return self._update_device_current_state(
             device,
             **self.parse_common_state_args(
@@ -1057,8 +1129,6 @@ class PandoraOnlineAccount:
     def _process_http_times(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
     ) -> Tuple[CurrentState, Dict[str, Any]]:
-        _LOGGER.debug(f"[{self}] Processing times for {device.device_id}")
-
         # @TODO: unknown timestamp format
 
         return self._update_device_current_state(
@@ -1071,7 +1141,7 @@ class PandoraOnlineAccount:
 
     async def async_request_updates(
         self, timestamp: Optional[int] = None
-    ) -> Dict[int, Dict[str, Any]]:
+    ) -> Tuple[Dict[int, Dict[str, Any]], List[TrackingEvent]]:
         """
         Fetch the latest changes from update server.
         :param timestamp: Timestamp to fetch updates since (optional, uses
@@ -1095,7 +1165,7 @@ class PandoraOnlineAccount:
 
         device_new_attrs: Dict[int, Dict[str, Any]] = {}
 
-        # Time updates
+        # Stats / time updates
         for key, meth in (
             ("stats", self._process_http_stats),
             ("time", self._process_http_times),
@@ -1126,16 +1196,45 @@ class PandoraOnlineAccount:
                     except KeyError:
                         device_new_attrs[device.device_id] = new_attrs
 
-        _LOGGER.debug(
-            f"[{self}] Received updates from HTTP: {device_new_attrs}"
-        )
+        # Event updates
+        events = []
+        for event_wrapper in data.get(key) or ():
+            if not (event_obj := event_wrapper.get("obj")):
+                continue
+
+            try:
+                raw_device_id = event_obj["dev_id"]
+            except (LookupError, AttributeError):
+                # @TODO: handle such events?
+                continue
+
+            try:
+                device = self._devices[int(raw_device_id)]
+            except (TypeError, ValueError):
+                _LOGGER.warning(
+                    f"[{self}] Bad device ID in event data: {raw_device_id}"
+                )
+                continue
+            except LookupError:
+                _LOGGER.warning(
+                    f"[{self}] Received event data for "
+                    f"uninitialized device {raw_device_id}: {event_obj}"
+                )
+                continue
+
+            events.append(self._process_ws_event(device, event_obj))
+
+        if device_new_attrs:
+            _LOGGER.debug(
+                f"[{self}] Received updates from HTTP: {device_new_attrs}"
+            )
 
         try:
             self._last_update = int(data["ts"])
         except (LookupError, TypeError, ValueError):
             _LOGGER.warning(f"[{self}] Response did not contain timestamp")
 
-        return device_new_attrs
+        return device_new_attrs, events
 
     def _process_ws_initial_state(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
@@ -1294,26 +1393,8 @@ class PandoraOnlineAccount:
 
         return new_state, args
 
-    def _process_ws_event(
-        self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
-    ) -> TrackingEvent:
-        return TrackingEvent(
-            identifier=self.parse_device_id(data),
-            bit_state=BitStatus(int(data["bit_state_1"])),
-            cabin_temperature=data["cabin_temp"],
-            engine_rpm=data["engine_rpm"],
-            engine_temperature=data["engine_temp"],
-            event_id_primary=data["eventid1"],
-            event_id_secondary=data["eventid2"],
-            fuel=data["fuel"],
-            gsm_level=data["gsm_level"],
-            exterior_temperature=data["out_temp"],
-            timestamp=data["dtime"],
-            recorded_timestamp=data["dtime_rec"],
-            voltage=data["voltage"],
-            latitude=data["x"],
-            longitude=data["y"],
-        )
+    # The routines are virtually the same
+    _process_ws_event = _process_http_event
 
     def _process_ws_point(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
@@ -1351,7 +1432,8 @@ class PandoraOnlineAccount:
                 length = float(length)
 
         return TrackingPoint(
-            identifier=device.device_id,
+            identifier=data["id"],
+            device_id=device.device_id,
             track_id=data["track_id"],
             latitude=data["x"],
             longitude=data["y"],
@@ -1465,25 +1547,25 @@ class PandoraOnlineAccount:
         state_callback: Optional[
             Callable[
                 ["PandoraOnlineDevice", CurrentState, Mapping[str, Any]],
-                Awaitable[None],
+                Union[Awaitable[None], None],
             ]
         ] = None,
         command_callback: Optional[
             Callable[
                 ["PandoraOnlineDevice", int, int, Any],
-                Awaitable[None],
+                Union[Awaitable[None], None],
             ]
         ] = None,
         event_callback: Optional[
             Callable[
                 ["PandoraOnlineDevice", TrackingEvent],
-                Awaitable[None],
+                Union[Awaitable[None], None],
             ]
         ] = None,
         point_callback: Optional[
             Callable[
                 ["PandoraOnlineDevice", TrackingPoint],
-                Awaitable[None],
+                Union[Awaitable[None], None],
             ]
         ] = None,
         **kwargs,
@@ -1558,10 +1640,9 @@ class PandoraOnlineAccount:
                         )
 
                 elif type_ == WSMessageType.EVENT:
-                    tracking_event = self._process_ws_event(device, data)
-
+                    result = self._process_ws_event(device, data)
                     if event_callback:
-                        callback_coro = event_callback(device, tracking_event)
+                        callback_coro = event_callback(device, result)
 
                 else:
                     _LOGGER.warning(
@@ -1621,6 +1702,7 @@ class PandoraOnlineDevice:
         self._attributes = attributes
         self._current_state = current_state
         self._last_point: Optional[TrackingPoint] = None
+        self._last_event: Optional[TrackingEvent] = None
         self._utc_offset = utc_offset
 
         # Control timeout setting
@@ -1682,7 +1764,7 @@ class PandoraOnlineDevice:
             self._last_point = None
             return
 
-        if value.identifier != self.device_id:
+        if value.device_id != self.device_id:
             raise ValueError("Point does not belong to device identifier")
 
         timestamp = value.timestamp
@@ -1706,6 +1788,14 @@ class PandoraOnlineDevice:
             self._current_state = attr.evolve(current_state, **evolve_args)
 
         self._last_point = value
+
+    @property
+    def last_event(self) -> Optional[TrackingEvent]:
+        return self._last_event
+
+    @last_event.setter
+    def last_event(self, value: Optional[TrackingEvent]) -> None:
+        self._last_event = value
 
     # Remote command execution section
     async def async_remote_command(
@@ -1738,6 +1828,9 @@ class PandoraOnlineDevice:
                 raise CommandExecutionError("timeout executing command")
 
         _LOGGER.debug("Command executed successfully")
+
+    async def async_wake_up(self) -> None:
+        return await self.account.async_wake_up_device(self.device_id)
 
     # Lock/unlock toggles
     async def async_remote_lock(self, ensure_complete: bool = True):
