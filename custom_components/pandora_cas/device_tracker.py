@@ -133,19 +133,23 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
 
     @property
     def final_car_type(self) -> Optional[str]:
-        try:
-            return self.coordinator.config_entry.options[CONF_CUSTOM_CURSORS][
-                str(self.pandora_device.device_id)
-            ]
-        except (LookupError, AttributeError) as exc:
-            _LOGGER.debug(f"Exception: {exc}", exc_info=exc)
+        if (
+            cursor_type := self._device_config[CONF_CUSTOM_CURSOR_TYPE]
+        ) == DEFAULT_CURSOR_TYPE:
             return self.pandora_device.car_type
+        if cursor_type != DISABLED_CURSOR_TYPE:
+            return cursor_type
+        return None
 
     @property
     def entity_picture(self) -> Optional[str]:
-        if (cursor := self.final_car_type) == DISABLED_CURSOR_TYPE:
+        if (
+            cursor := self._device_config[CONF_CUSTOM_CURSOR_TYPE]
+        ) == DISABLED_CURSOR_TYPE:
             return
         device = self.pandora_device
+        if cursor == DEFAULT_CURSOR_TYPE:
+            cursor = device.car_type
 
         return (
             "data:image/svg+xml;base64,"

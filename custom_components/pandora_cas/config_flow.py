@@ -16,89 +16,32 @@ from homeassistant.const import (
     CONF_USERNAME,
     CONF_VERIFY_SSL,
     CONF_ACCESS_TOKEN,
+    CONF_DEVICES,
 )
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult, FlowResultType
+from homeassistant.data_entry_flow import (
+    FlowResult,
+    FlowResultType,
+)
 from homeassistant.exceptions import ConfigEntryNotReady, ConfigEntryAuthFailed
-from homeassistant.helpers import config_validation, device_registry
+from homeassistant.helpers import device_registry
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.schema_config_entry_flow import (
-    SchemaOptionsFlowHandler,
-    SchemaFlowFormStep,
     SchemaCommonFlowHandler,
 )
 
-from custom_components.pandora_cas import async_run_pandora_coro
-from custom_components.pandora_cas.api import (
-    PandoraOnlineAccount,
-)
+from custom_components.pandora_cas.entity import async_run_pandora_coro
+from custom_components.pandora_cas.entity import DEVICE_OPTIONS_SCHEMA
+from custom_components.pandora_cas.api import PandoraOnlineAccount
 from custom_components.pandora_cas.const import (
     DOMAIN,
-    CONF_OFFLINE_AS_UNAVAILABLE,
-    CONF_FUEL_IS_LITERS,
     CONF_CUSTOM_CURSORS,
     CONF_CUSTOM_CURSOR_DEVICES,
     CONF_CUSTOM_CURSOR_TYPE,
-    CONF_MILEAGE_MILES,
-    CONF_MILEAGE_CAN_MILES,
     DEFAULT_CURSOR_TYPE,
-    DISABLED_CURSOR_TYPE,
 )
-from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
 
 _LOGGER = logging.getLogger(__name__)
-
-OPTIONS_BASE_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_VERIFY_SSL, default=True): bool,
-        vol.Required(CONF_OFFLINE_AS_UNAVAILABLE, default=False): bool,
-        
-    }
-)
-
-CUSTOM_CURSOR_TYPES_VALIDATOR: Final = vol.In(
-    tuple([DEFAULT_CURSOR_TYPE, DISABLED_CURSOR_TYPE] + sorted(IMAGE_REGISTRY.keys()))
-)
-
-
-async def async_options_flow_init_step_create_schema(
-    handler: SchemaCommonFlowHandler,
-) -> vol.Schema:
-    dev_reg = device_registry.async_get(handler.parent_handler.hass)
-    device_options = {}
-    for device in dev_reg.devices.values():
-        for identifier in device.identifiers:
-            if len(identifier) != 2 or identifier[0] != DOMAIN:
-                continue
-            device_options[identifier[1]] = f"{device.name} ({identifier[1]})"
-    for pandora_id in (handler.options or {}).get(CONF_FUEL_IS_LITERS) or ():
-        device_options.setdefault(pandora_id, f"<unknown> ({pandora_id})")
-
-    custom_cursors = handler.options.get(CONF_CUSTOM_CURSORS) or {}
-    extend_dict = {
-        vol.Optional(CONF_FUEL_IS_LITERS): config_validation.multi_select(
-            device_options
-        ),
-        vol.Optional(
-            CONF_CUSTOM_CURSOR_TYPE, default=DEFAULT_CURSOR_TYPE
-        ): CUSTOM_CURSOR_TYPES_VALIDATOR,
-        vol.Optional(
-            CONF_CUSTOM_CURSOR_DEVICES
-        ): config_validation.multi_select(
-            {
-                k: (f"{v} — {custom_cursors[k]}" if k in custom_cursors else v)
-                for k, v in device_options.items()
-            }
-        ),
-        vol.Optional(CONF_MILEAGE_MILES): config_validation.multi_select(
-            device_options
-        ),
-        vol.Optional(CONF_MILEAGE_CAN_MILES): config_validation.multi_select(
-            device_options
-        ),
-    }
-
-    return OPTIONS_BASE_SCHEMA.extend(extend_dict)
 
 
 async def async_options_flow_init_step_validate(
@@ -119,13 +62,6 @@ async def async_options_flow_init_step_validate(
 
     return user_input
 
-
-OPTIONS_FLOW = {
-    "init": SchemaFlowFormStep(
-        async_options_flow_init_step_create_schema,
-        async_options_flow_init_step_validate,
-    )
-}
 
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
@@ -275,4 +211,76 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
-        return SchemaOptionsFlowHandler(config_entry, OPTIONS_FLOW)
+        return PandoraCASOptionsFlow(config_entry)
+
+
+STEP_INTEGRATION: Final = "integration"
+STEP_SAVE: Final = "save"
+
+
+class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+
+        self.device_options: Optional[dict[str, str]] = None
+        self.current_pandora_id: str | None = None
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        if self.device_options is None:
+            self.device_options = {}
+            dev_reg = device_registry.async_get(self.hass)
+            for device in dev_reg.devices.values():
+                for identifier in device.identifiers:
+                    if len(identifier) != 2 or identifier[0] != DOMAIN:
+                        continue
+                    self.device_options[
+                        str(identifier[1])
+                    ] = f"{device.name} ({identifier[1]})"
+
+            for pandora_id in self.options.get(CONF_DEVICES) or {}:
+                self.device_options.setdefault(
+                    str(pandora_id), f"<unknown> ({pandora_id})"
+                )
+
+        menu_options = {STEP_INTEGRATION: STEP_INTEGRATION}
+        menu_options.update(self.device_options)
+        if self.current_pandora_id is not None:
+            menu_options[STEP_SAVE] = STEP_SAVE
+        return self.async_show_menu(step_id="init", menu_options=menu_options)
+
+    async def async_step_save(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        return self.async_create_entry(title="", data=self.options)
+
+    async def async_step_device_options(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        if (pandora_id := self.current_pandora_id) is None:
+            return self.async_abort("unknown_error")
+
+        schema = DEVICE_OPTIONS_SCHEMA
+
+        if user_input is None:
+            schema = self.add_suggested_values_to_schema(
+                schema, self.options.get(CONF_DEVICES, {}).get(pandora_id, {})
+            )
+        else:
+            self.options.setdefault(CONF_DEVICES, {}).setdefault(
+                pandora_id, {}
+            ).update(user_input)
+            return await self.async_step_init()
+
+        return self.async_show_form(
+            step_id="device_options", data_schema=schema
+        )
+
+    def __getattr__(self, attribute):
+        if isinstance(attribute, str) and attribute.startswith("async_step_"):
+            pandora_id = attribute[11:]
+            if pandora_id.isnumeric():
+                self.current_pandora_id = pandora_id
+                return self.async_step_device_options
+        raise AttributeError

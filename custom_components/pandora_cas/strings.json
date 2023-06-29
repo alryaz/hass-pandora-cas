@@ -392,6 +392,113 @@
             "name": "Device Identifier"
           }
         }
+      },
+      "can_mileage": {
+        "name": "CAN Mileage",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "can_mileage_to_empty": {
+        "name": "CAN Mileage to empty",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "engine_temperature": {
+        "name": "Engine Temperature",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "exterior_temperature": {
+        "name": "Exterior Temperature",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "battery_temperature": {
+        "name": "Battery Temperature",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "balance_secondary": {
+        "name": "Balance Secondary",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          },
+          "phone_number": {
+            "name": "Phone Number"
+          }
+        }
+      },
+      "right_front_tire_pressure": {
+        "name": "Right Front Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "left_back_tire_pressure": {
+        "name": "Left Back Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "right_back_tire_pressure": {
+        "name": "Right Back Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "reserve_tire_pressure": {
+        "name": "Reserve Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "last_state_update": {
+        "name": "Last State Update",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "last_settings_change": {
+        "name": "Last Settings Change",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "last_command_execution": {
+        "name": "Last Command Execution",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
       }
     },
     "switch": {
@@ -510,11 +617,20 @@
     "step": {
       "init": {
         "data": {
-          "verify_ssl": "Verify SSL certificates",
+          "integration": "Integration settings",
+          "save": "Save changes"
+        }
+      },
+      "integration": {
+        "data": {
+          "verify_ssl": "Verify SSL certificates"
+        }
+      },
+      "device_options": {
+        "data": {
           "offline_as_unavailable": "Make online-sensitive entities unavailable when device becomes offline",
           "fuel_is_liters": "Devices with fuel tank measurement in liters",
-          "custom_cursor_type": "Set cursor type…",
-          "custom_cursor_devices": "…to the following devices:",
+          "custom_cursor_type": "Custom cursor type",
           "mileage_can_miles": "CAN mileage is in miles",
           "mileage_miles": "System mileage is in miles"
         }

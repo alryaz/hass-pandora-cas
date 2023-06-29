@@ -1,7 +1,6 @@
 """Sensor platform for Pandora Car Alarm System."""
 __all__ = ("ENTITY_TYPES", "async_setup_entry")
 
-import dataclasses
 import logging
 from dataclasses import dataclass
 from functools import partial
@@ -50,6 +49,7 @@ class PandoraCASSensorEntityDescription(
     PandoraCASEntityDescription, SensorEntityDescription
 ):
     icon_states: Optional[Mapping[Hashable, str]] = None
+
 
 ENTITY_TYPES = [
     PandoraCASSensorEntityDescription(
@@ -333,12 +333,13 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
         self._extra_identifier = extra_identifier
         self._last_timestamp = None
 
-        options = self.coordinator.config_entry.options
         key = self.entity_description.key
-        device_id = str(self.pandora_device.device_id)
         if (
-            (key.startswith("mileage") and device_id in (options.get(CONF_MILEAGE_MILES) or ()))
-            or (key.startswith("can_mileage") and device_id in (options.get(CONF_MILEAGE_CAN_MILES) or ()))
+            key.startswith("mileage")
+            and self._device_config[CONF_MILEAGE_MILES]
+        ) or (
+            key.startswith("can_mileage")
+            and self._device_config[CONF_MILEAGE_CAN_MILES]
         ):
             self._attr_native_unit_of_measurement = UnitOfLength.MILES
 
@@ -373,18 +374,10 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
             # else:
             #     attributes.update(dict.fromkeys((ATTR_ID, "capacity")))
 
-            try:
-                if (
-                    str(self.pandora_device.device_id)
-                    in self.coordinator.config_entry.options[
-                        CONF_FUEL_IS_LITERS
-                    ]
-                ):
-                    # @TODO: this is presentation-only, check registry
-                    self._attr_native_unit_of_measurement = UnitOfVolume.LITERS
-                    self._attr_device_class = SensorDeviceClass.VOLUME_STORAGE
-            except (LookupError, AttributeError, TypeError):
-                pass
+            if self._device_config[CONF_FUEL_IS_LITERS]:
+                # @TODO: this is presentation-only, check registry
+                self._attr_native_unit_of_measurement = UnitOfVolume.LITERS
+                self._attr_device_class = SensorDeviceClass.VOLUME_STORAGE
 
         elif key == "track_distance":
             if last_point := self.pandora_device.last_point:

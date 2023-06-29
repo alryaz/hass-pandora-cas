@@ -1,8 +1,9 @@
 import asyncio
 import dataclasses
 import logging
+from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Flag
 from typing import (
     Type,
@@ -17,12 +18,17 @@ from typing import (
     final,
     List,
     Awaitable,
+    TypeVar,
+    Final,
 )
 
+import aiohttp
+import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_USERNAME, ATTR_DEVICE_ID
+from homeassistant.const import CONF_USERNAME, ATTR_DEVICE_ID, CONF_DEVICES
 from homeassistant.core import HomeAssistant, callback, Event
-from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity import EntityDescription, DeviceInfo
 from homeassistant.helpers.entity_platform import (
     AddEntitiesCallback,
@@ -50,7 +56,14 @@ from custom_components.pandora_cas.const import (
     DOMAIN,
     ATTR_COMMAND_ID,
     CONF_OFFLINE_AS_UNAVAILABLE,
+    CONF_FUEL_IS_LITERS,
+    CONF_MILEAGE_MILES,
+    CONF_MILEAGE_CAN_MILES,
+    CONF_CUSTOM_CURSOR_TYPE,
+    DEFAULT_CURSOR_TYPE,
+    DISABLED_CURSOR_TYPE,
 )
+from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -130,10 +143,25 @@ class PandoraCASUpdateCoordinator(
         account: PandoraOnlineAccount,
     ) -> None:
         self.account = account
-
+        self._device_configs = {}
         super().__init__(
-            hass, _LOGGER, name=DOMAIN, # update_interval=timedelta(seconds=5)
+            hass,
+            _LOGGER,
+            name=DOMAIN,  # update_interval=timedelta(seconds=5)
         )
+
+    def get_device_config(self, device_id: str | int) -> Dict[str, Any]:
+        device_id = str(device_id)
+        try:
+            return self._device_configs[device_id]
+        except KeyError:
+            config = DEVICE_OPTIONS_SCHEMA(
+                self.config_entry.options.get(CONF_DEVICES, {}).get(
+                    device_id, {}
+                )
+            )
+            self._device_configs[device_id] = config
+            return config
 
     async def _async_update_data(self) -> Mapping[int, Mapping[str, Any]]:
         """Fetch data for sub-entities."""
@@ -172,7 +200,8 @@ class PandoraCASEntityDescription(EntityDescription):
 
     def __post_init__(self):
         """Set translation key to entity description key."""
-        self.translation_key = self.key
+        if not self.translation_key:
+            self.translation_key = self.key
 
 
 CommandType = Union[CommandID, int, Callable[[PandoraOnlineDevice], Awaitable]]
@@ -201,6 +230,9 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
         super().__init__(coordinator, context)
         self.pandora_device = pandora_device
         self.entity_description = entity_description
+        self._device_config = self.coordinator.get_device_config(
+            self.pandora_device.device_id
+        )
 
         # Set unique ID based on entity type
         unique_id = (
@@ -251,13 +283,10 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
 
     @property
     def available(self) -> bool:
-        return (
-            self._attr_available is not False
-            and (
-                not self.entity_description.online_sensitive
-                or self.pandora_device.is_online
-                or not self.coordinator.config_entry.options.get(CONF_OFFLINE_AS_UNAVAILABLE)
-            )
+        return self._attr_available is not False and (
+            not self.entity_description.online_sensitive
+            or self.pandora_device.is_online
+            or not self._device_config[CONF_OFFLINE_AS_UNAVAILABLE]
         )
 
     def get_native_value(self) -> Optional[Any]:
@@ -493,3 +522,37 @@ class PandoraCASBooleanEntity(PandoraCASEntity):
         await super().async_added_to_hass()
         self._add_command_listener(self.entity_description.command_on)
         self._add_command_listener(self.entity_description.command_off)
+
+
+_T = TypeVar("_T")
+
+
+async def async_run_pandora_coro(coro: Awaitable[_T]) -> _T:
+    try:
+        return await coro
+    except AuthenticationError as exc:
+        raise ConfigEntryAuthFailed("Authentication failed") from exc
+    except MalformedResponseError as exc:
+        raise ConfigEntryNotReady("Server responds erroneously") from exc
+    except (OSError, aiohttp.ClientError, TimeoutError) as exc:
+        raise ConfigEntryNotReady("Timed out while authenticating") from exc
+
+
+DEVICE_OPTIONS_SCHEMA: Final = vol.Schema(
+    {
+        vol.Optional(CONF_FUEL_IS_LITERS, default=False): cv.boolean,
+        vol.Optional(CONF_MILEAGE_MILES, default=False): cv.boolean,
+        vol.Optional(CONF_MILEAGE_CAN_MILES, default=False): cv.boolean,
+        vol.Optional(CONF_OFFLINE_AS_UNAVAILABLE, default=False): cv.boolean,
+        vol.Optional(
+            CONF_CUSTOM_CURSOR_TYPE, default=DEFAULT_CURSOR_TYPE
+        ): vol.In(
+            (
+                DEFAULT_CURSOR_TYPE,
+                DISABLED_CURSOR_TYPE,
+                *sorted(IMAGE_REGISTRY.keys()),
+            )
+        ),
+    },
+    extra=vol.ALLOW_EXTRA,
+)

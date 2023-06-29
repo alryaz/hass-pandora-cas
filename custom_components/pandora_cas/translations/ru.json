@@ -329,6 +329,113 @@
             "name": "Идентификатор устройства"
           }
         }
+      },
+      "can_mileage": {
+        "name": "Пробег по CAN",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "can_mileage_to_empty": {
+        "name": "Пробег по CAN на топливе",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "engine_temperature": {
+        "name": "Температура двигателя",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "exterior_temperature": {
+        "name": "Exterior Temperature",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "battery_temperature": {
+        "name": "Battery Temperature",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "balance_secondary": {
+        "name": "Balance Secondary",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          },
+          "phone_number": {
+            "name": "Номер телефона"
+          }
+        }
+      },
+      "right_front_tire_pressure": {
+        "name": "Right Front Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "left_back_tire_pressure": {
+        "name": "Left Back Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "right_back_tire_pressure": {
+        "name": "Right Back Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "reserve_tire_pressure": {
+        "name": "Reserve Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "last_state_update": {
+        "name": "Last State Update",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "last_settings_change": {
+        "name": "Last Settings Change",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "last_command_execution": {
+        "name": "Last Command Execution",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
       }
     },
     "switch": {
@@ -550,13 +657,22 @@
     "step": {
       "init": {
         "data": {
-          "verify_ssl": "Проверять сертификаты SSL",
-          "offline_as_unavailable": "Помечать недоступными объекты когда устройство недоступно",
+          "integration": "Настройки интеграции",
+          "save": "Сохранить изменения"
+        }
+      },
+      "integration": {
+        "data": {
+          "verify_ssl": "Verify SSL certificates"
+        }
+      },
+      "device_options": {
+        "data": {
+          "offline_as_unavailable": "Оффлайн делает объекты недоступными",
           "fuel_is_liters": "Топливный бак в литрах",
-          "custom_cursor_type": "Установить тип курсора…",
-          "custom_cursor_devices": "…на следующие устройства:",
+          "custom_cursor_type": "Вид курсора трекера",
           "mileage_can_miles": "Пробег по CAN в милях",
-          "mileage_miles": "Пробег системы в милях"
+          "mileage_miles": "Системный пробег в милях"
         }
       }
     }

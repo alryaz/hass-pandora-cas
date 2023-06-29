@@ -5,7 +5,6 @@ __all__ = (
     "async_setup_entry",
     "async_unload_entry",
     "async_migrate_entry",
-    "async_run_pandora_coro",
     "CONFIG_SCHEMA",
     "SERVICE_REMOTE_COMMAND",
 )
@@ -16,14 +15,9 @@ from functools import partial
 from typing import (
     Any,
     Mapping,
-    Union,
     Type,
-    TypeVar,
-    Awaitable,
 )
 
-import aiohttp
-import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
 from homeassistant.const import (
@@ -34,12 +28,14 @@ from homeassistant.const import (
     CONF_ACCESS_TOKEN,
     ATTR_LATITUDE,
     ATTR_LONGITUDE,
+    CONF_DEVICES,
 )
 from homeassistant.core import ServiceCall, HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import (
     async_get as async_get_device_registry,
+    async_entries_for_config_entry,
 )
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.loader import bind_hass
@@ -63,7 +59,9 @@ from custom_components.pandora_cas.const import *
 from custom_components.pandora_cas.entity import (
     PandoraCASEntity,
     PandoraCASUpdateCoordinator,
+    async_run_pandora_coro,
 )
+from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -285,7 +283,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ] = coordinator = PandoraCASUpdateCoordinator(hass, account)
 
     # Start listening for updates
-    if entry.pref_disable_polling:
+    # if entry.pref_disable_polling:
+    if True:
 
         def _state_changes_listener(
             device: PandoraOnlineDevice,
@@ -439,13 +438,47 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         entry.version = 7
 
-    if entry.version < 8:
-        new_options.setdefault(CONF_MILEAGE_MILES, [])
-        new_options.setdefault(CONF_MILEAGE_CAN_MILES, [])
+    if entry.version < 9:
+        # Transition per-entity options
+        devices_conf = new_options.setdefault(CONF_DEVICES, {})
+        for key in (
+            CONF_MILEAGE_MILES,
+            CONF_MILEAGE_CAN_MILES,
+            CONF_FUEL_IS_LITERS,
+        ):
+            if key in new_options:
+                for pandora_id in map(str, new_options.pop(key) or ()):
+                    devices_conf.setdefault(pandora_id, {})[key] = True
 
-        entry.version = 8
+        # Transition cursors
+        for pandora_id, cursor_type in (
+            new_options.pop(CONF_CUSTOM_CURSORS) or {}
+        ).items():
+            devices_conf.setdefault(str(pandora_id), {})[
+                CONF_CUSTOM_CURSOR_TYPE
+            ] = cursor_type
 
-    hass.config_entries.async_update_entry(entry, **args)
+        # Transition global offline_as_unavailable
+        if (
+            v := new_options.pop(CONF_OFFLINE_AS_UNAVAILABLE, None)
+        ) is not None:
+            for device in async_entries_for_config_entry(
+                async_get_device_registry(hass), entry.entry_id
+            ):
+                try:
+                    domain, pandora_id = next(iter(device.identifiers))
+                except (StopIteration, TypeError, ValueError):
+                    continue
+                else:
+                    devices_conf.setdefault(str(pandora_id), {})[
+                        CONF_OFFLINE_AS_UNAVAILABLE
+                    ] = v
+
+        entry.version = 9
+
+    hass.config_entries.async_update_entry(
+        entry, **args, pref_disable_polling=True
+    )
 
     _LOGGER.info(f"Upgraded configuration entry to version {entry.version}")
 
@@ -508,9 +541,9 @@ def async_update_settings_delegator(
     hass.bus.async_fire(
         EVENT_TYPE_EVENT,
         {
-            "event_type": event_enum_to_type(PrimaryEventID.SETTINGS_CHANGE),
+            "event_type": event_enum_to_type(PrimaryEventID.SETTINGS_CHANGED),
             ATTR_DEVICE_ID: device.device_id,
-            "event_id_primary": int(PrimaryEventID.SETTINGS_CHANGE),
+            "event_id_primary": int(PrimaryEventID.SETTINGS_CHANGED),
             "event_id_secondary": event.event_id_secondary,
         },
     )
@@ -534,17 +567,3 @@ def async_point_delegator(
             "length": point.length,
         },
     )
-
-
-_T = TypeVar("_T")
-
-
-async def async_run_pandora_coro(coro: Awaitable[_T]) -> _T:
-    try:
-        return await coro
-    except AuthenticationError as exc:
-        raise ConfigEntryAuthFailed("Authentication failed") from exc
-    except MalformedResponseError as exc:
-        raise ConfigEntryNotReady("Server responds erroneously") from exc
-    except (OSError, aiohttp.ClientError, TimeoutError) as exc:
-        raise ConfigEntryNotReady("Timed out while authenticating") from exc
