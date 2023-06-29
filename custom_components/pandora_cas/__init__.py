@@ -439,6 +439,12 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         entry.version = 7
 
+    if entry.version < 8:
+        new_options.setdefault(CONF_MILEAGE_MILES, [])
+        new_options.setdefault(CONF_MILEAGE_CAN_MILES, [])
+
+        entry.version = 8
+
     hass.config_entries.async_update_entry(entry, **args)
 
     _LOGGER.info(f"Upgraded configuration entry to version {entry.version}")
