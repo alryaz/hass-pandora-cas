@@ -250,9 +250,13 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
 
     @property
     def available(self) -> bool:
-        return self._attr_available is not False and (
-            not self.entity_description.online_sensitive
-            or self.pandora_device.is_online
+        return (
+            self._attr_available is not False
+            and (
+                not self.entity_description.online_sensitive
+                or self.pandora_device.is_online
+                or not self.coordinator.config_entry.options.get(CONF_OFFLINE_AS_UNAVAILABLE)
+            )
         )
 
     def get_native_value(self) -> Optional[Any]:
