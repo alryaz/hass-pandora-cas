@@ -131,7 +131,7 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Pandora Car Alarm System config entries."""
 
     CONNECTION_CLASS: Final[str] = config_entries.CONN_CLASS_CLOUD_PUSH
-    VERSION: Final[int] = 6
+    VERSION: Final[int] = 7
 
     def __init__(self) -> None:
         """Init the config flow."""
