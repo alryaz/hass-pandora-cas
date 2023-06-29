@@ -39,6 +39,8 @@ from custom_components.pandora_cas.const import (
     CONF_CUSTOM_CURSORS,
     CONF_CUSTOM_CURSOR_DEVICES,
     CONF_CUSTOM_CURSOR_TYPE,
+    CONF_MILEAGE_MILES,
+    CONF_MILEAGE_CAN_MILES,
     DEFAULT_CURSOR_TYPE,
     DISABLED_CURSOR_TYPE,
 )
@@ -50,6 +52,7 @@ OPTIONS_BASE_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_VERIFY_SSL, default=True): bool,
         vol.Required(CONF_OFFLINE_AS_UNAVAILABLE, default=False): bool,
+        
     }
 )
 
@@ -86,6 +89,12 @@ async def async_options_flow_init_step_create_schema(
                 k: (f"{v} — {custom_cursors[k]}" if k in custom_cursors else v)
                 for k, v in device_options.items()
             }
+        ),
+        vol.Optional(CONF_MILEAGE_MILES): config_validation.multi_select(
+            device_options
+        ),
+        vol.Optional(CONF_MILEAGE_CAN_MILES): config_validation.multi_select(
+            device_options
         ),
     }
 
