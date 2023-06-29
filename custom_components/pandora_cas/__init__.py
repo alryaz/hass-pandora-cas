@@ -285,7 +285,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ] = coordinator = PandoraCASUpdateCoordinator(hass, account)
 
     # Start listening for updates
-    if entry.pref_disable_polling:
+    #if entry.pref_disable_polling:
+    if True:
 
         def _state_changes_listener(
             device: PandoraOnlineDevice,
@@ -508,9 +509,9 @@ def async_update_settings_delegator(
     hass.bus.async_fire(
         EVENT_TYPE_EVENT,
         {
-            "event_type": event_enum_to_type(PrimaryEventID.SETTINGS_CHANGE),
+            "event_type": event_enum_to_type(PrimaryEventID.SETTINGS_CHANGES),
             ATTR_DEVICE_ID: device.device_id,
-            "event_id_primary": int(PrimaryEventID.SETTINGS_CHANGE),
+            "event_id_primary": int(PrimaryEventID.SETTINGS_CHANGES),
             "event_id_secondary": event.event_id_secondary,
         },
     )
