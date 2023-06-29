@@ -434,6 +434,11 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         entry.version = 6
 
+    if entry.version < 7:
+        new_options.setdefault(CONF_OFFLINE_AS_UNAVAILABLE, False)
+
+        entry.version = 7
+
     hass.config_entries.async_update_entry(entry, **args)
 
     _LOGGER.info(f"Upgraded configuration entry to version {entry.version}")
