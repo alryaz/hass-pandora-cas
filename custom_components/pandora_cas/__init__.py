@@ -309,6 +309,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 command_callback=partial(async_command_delegator, hass),
                 event_callback=partial(async_event_delegator, hass),
                 point_callback=partial(async_point_delegator, hass),
+                update_settings_callback=partial(
+                    async_update_settings_delegator, hass
+                ),
                 auto_restart=True,
             ),
             name=f"Pandora CAS entry {entry.entry_id} listener",
@@ -487,6 +490,23 @@ def async_event_delegator(
     # @TODO: add time_fired parameter
 
 
+def async_update_settings_delegator(
+    hass: HomeAssistant, device: PandoraOnlineDevice, event: TrackingEvent
+) -> None:
+    """Pass event data to Home Assistant event bus."""
+    hass.bus.async_fire(
+        EVENT_TYPE_EVENT,
+        {
+            "event_type": event_enum_to_type(PrimaryEventID.SETTINGS_CHANGE),
+            ATTR_DEVICE_ID: device.device_id,
+            "event_id_primary": int(PrimaryEventID.SETTINGS_CHANGE),
+            "event_id_secondary": event.event_id_secondary,
+        },
+    )
+
+    # @TODO: add time_fired parameter
+
+
 # noinspection PyUnusedLocal
 def async_point_delegator(
     hass: HomeAssistant, device: PandoraOnlineDevice, point: TrackingPoint
@@ -494,7 +514,6 @@ def async_point_delegator(
     hass.bus.async_fire(
         EVENT_TYPE_POINT,
         {
-            "identifier": point.identifier,
             "device_id": point.device_id,
             "timestamp": point.timestamp,
             "track_id": point.track_id,
