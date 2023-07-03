@@ -1,6 +1,44 @@
 name: Сообщение об ошибке / Bug report
 description: Обозначьте проблему с интеграцией чтобы помочь улучшить hass-pandora-cas
+labels: 'bug,needs-triage'
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug! If you need real-time help, join us on Discord.
+
+        Прежде чем создать обращение, проверьте, не существует ли уже открытых со схожей тематикой.
+
+        НЕ УДАЛЯЙТЕ НИЧЕГО из данного шаблона! Иначе Ваше обращение может быть закрыто без каких-либо разъяснений.
+        
+        Сообщайте информацию о проблеме в уже существующее обращение, если таковое имеется.
+  - type: checkboxes
+    attributes:
+      label: Следующие действия были мною выполнены перед созданием обращения
+      description: |
+        > Прежде чем сообщать о проблеме, подтвердите следующий перечень действий.
+        > Before submitting a new issue, please perform actions described below
+      options:
+        - required: true
+          label: |
+            Успешный вход в мобильное приложение Pandora Connect / Pandora Online.  
+            Successful authentication with Pandora Connect / Pandora Online smartphone app.
+        - required: true
+          label: |
+            Успешный вход на сайт https://pro.p-on.ru или https://p-on.ru.  
+            Successful authentication with web portal.
+        - required: true
+          label: |
+            Отсутствуют явные упоминания о несовместимости устройства в README-файле.  
+            Any discrete mentions of incompatibility of device missing from README.
+        - required: true
+          label: |
+            Смежные обращения по проблеме _**отсутствуют**_.  
+            There are _**no issues**_ describing similar problem.
+        - required: true
+          label: |
+            Лог-файлы интеграции загружены на Pastebin или скопированы в поле ниже.
+            Integration log files uploaded to Pastebin or pasted into the field below.
   - type: input
     validations:
       required: true
@@ -45,6 +83,16 @@ body:
   - type: textarea
     attributes:
       label: Способ воспроизведения / Steps to reproduce
+      description: |
+        > Перечислите последовательно шаги, приводящие к возникновению проблемы.
+        > How do you trigger this bug? Please walk us through it step by step.
+      value: |
+        1.
+        2.
+        3.
+        ...
+      render: bash
+        
   - type: textarea
     attributes:
       label: Ожидаемый результат / Expected outcome
