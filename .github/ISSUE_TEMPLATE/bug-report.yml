@@ -1,0 +1,59 @@
+name: Сообщение об ошибке / Bug report
+description: Обозначьте проблему с интеграцией чтобы помочь улучшить hass-pandora-cas
+body:
+  - type: input
+    validations:
+      required: true
+    attributes:
+      label: Версия интеграции / Integration version
+      placeholder: v2023.X.X
+  - type: input
+    validations:
+      required: true
+    attributes:
+      label: Версия Home Assistant / Home Assistant version
+      placeholder: v2023.X.X
+  - type: dropdown
+    validations:
+      required: true
+    attributes:
+      label: Способ установки Home Assistant / Home Assistant install method
+      options:
+        - Home Assistant OS
+        - Supervised
+        - Container
+        - Core
+        - venv
+  - type: dropdown
+    validations:
+      required: true
+    attributes:
+      label: Способ установки интеграции / Integration install method
+      options:
+        - HACS (Home Assistant Community Store)
+        - Скачивание zip-файла релиза
+        - Скачивание zip-файла ветки
+  - type: input
+    validations:
+      required: true
+    attributes:
+      label: Модель устройства / Device model
+      placeholder: Pandora DX-6969...
+  - type: textarea
+    attributes:
+      label: Описание проблемы / Problem description
+  - type: textarea
+    attributes:
+      label: Способ воспроизведения / Steps to reproduce
+  - type: textarea
+    attributes:
+      label: Ожидаемый результат / Expected outcome
+  - type: textarea
+    attributes:
+      label: Журнал отладки / Traceback and logging information
+      description: |
+        > [⚙️ Настройки > Система > ✍️ Журнал сервера](https://my.home-assistant.io/redirect/logs) > 🔍 Фильтр `pandora_cas`
+        > [⚙️ Settings > System > ✍️ Logs](https://my.home-assistant.io/redirect/logs) > 🔍 Filter `pandora_cas`
+  - type: textarea
+    attributes:
+      label: Дополнительные сведения / Additional context
