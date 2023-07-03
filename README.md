@@ -59,12 +59,27 @@ Connect_, и реализует часть его функционала. Для
 ## Скриншоты
 
 <details>
-  <summary>Панель со всеми поддерживаемыми элементами</summary> 
-  <img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/screenshot_default.png" alt="Скриншот: Панель со всеми поддерживаемыми элементами">
+    <summary>Панель со всеми поддерживаемыми элементами</summary> 
+    <img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/screenshot_default.png" alt="Скриншот: Панель со всеми поддерживаемыми элементами">
 </details>
 <details>
-  <summary>Карточка устройства (тёмная тема)</summary> 
-  <img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/stack_default_dark.png" alt="Скриншот: Карточка устройства (тёмная тема)">
+    <summary>Карточка устройства (тёмная тема)</summary> 
+    <img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/stack_default_dark.png" alt="Скриншот: Карточка устройства (тёмная тема)">
+</details>
+<details>
+    <summary>Доступные виды курсоров трекера</summary>
+    <ul>
+        <li><a href="https://github.com/alryaz/hass-pandora-cas/blob/master/custom_components/pandora_cas/cursors/arrow.svg" target="_blank"><img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/custom_components/pandora_cas/cursors/arrow.svg" width="32" height="32" alt="Курсор: arrow"></a> &mdash; <em>arrow</em></li>
+        <li><a href="https://github.com/alryaz/hass-pandora-cas/blob/master/custom_components/pandora_cas/cursors/bird.svg" target="_blank"><img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/custom_components/pandora_cas/cursors/bird.svg" width="32" height="32" alt="Курсор: bird"></a> &mdash; <em>bird</em></li>
+        <li><a href="https://github.com/alryaz/hass-pandora-cas/blob/master/custom_components/pandora_cas/cursors/car.svg" target="_blank"><img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/custom_components/pandora_cas/cursors/car.svg" width="32" height="32" alt="Курсор: car"></a> &mdash; <em>car</em></li>
+        <li><a href="https://github.com/alryaz/hass-pandora-cas/blob/master/custom_components/pandora_cas/cursors/helicopter.svg" target="_blank"><img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/custom_components/pandora_cas/cursors/helicopter.svg" width="32" height="32" alt="Курсор: helicopter"></a> &mdash; <em>helicopter</em></li>
+        <li><a href="https://github.com/alryaz/hass-pandora-cas/blob/master/custom_components/pandora_cas/cursors/moto.svg" target="_blank"><img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/custom_components/pandora_cas/cursors/moto.svg" width="32" height="32" alt="Курсор: moto"></a> &mdash; <em>moto</em></li>
+        <li><a href="https://github.com/alryaz/hass-pandora-cas/blob/master/custom_components/pandora_cas/cursors/pierced_heart.svg" target="_blank"><img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/custom_components/pandora_cas/cursors/pierced_heart.svg" width="32" height="32" alt="Курсор: pierced_heart"></a> &mdash; <em>pierced_heart</em></li>
+        <li><a href="https://github.com/alryaz/hass-pandora-cas/blob/master/custom_components/pandora_cas/cursors/plane.svg" target="_blank"><img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/custom_components/pandora_cas/cursors/plane.svg" width="32" height="32" alt="Курсор: plane"></a> &mdash; <em>plane</em></li>
+        <li><a href="https://github.com/alryaz/hass-pandora-cas/blob/master/custom_components/pandora_cas/cursors/quadrocopter.svg" target="_blank"><img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/custom_components/pandora_cas/cursors/quadrocopter.svg" width="32" height="32" alt="Курсор: quadrocopter"></a> &mdash; <em>quadrocopter</em></li>
+        <li><a href="https://github.com/alryaz/hass-pandora-cas/blob/master/custom_components/pandora_cas/cursors/rocket.svg" target="_blank"><img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/custom_components/pandora_cas/cursors/rocket.svg" width="32" height="32" alt="Курсор: rocket"></a> &mdash; <em>rocket</em></li>
+        <li><a href="https://github.com/alryaz/hass-pandora-cas/blob/master/custom_components/pandora_cas/cursors/truck.svg" target="_blank"><img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/custom_components/pandora_cas/cursors/truck.svg" width="32" height="32" alt="Курсор: truck"></a> &mdash; <em>truck</em></li>
+    </ul>
 </details>
 
 ## Установка
