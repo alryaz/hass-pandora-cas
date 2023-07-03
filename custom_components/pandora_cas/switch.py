@@ -4,10 +4,11 @@ __all__ = ("ENTITY_TYPES", "async_setup_entry")
 import asyncio
 import logging
 from functools import partial
-from typing import Any
+from typing import Any, Optional
 
 from homeassistant.components.switch import SwitchEntity, ENTITY_ID_FORMAT
 
+from custom_components.pandora_cas import CONF_ENGINE_STATE_BY_RPM
 from custom_components.pandora_cas.api import (
     BitStatus,
     CommandID,
@@ -76,6 +77,7 @@ ENTITY_TYPES = [
         flag=BitStatus.ENGINE_RUNNING,
         command_on=CommandID.START_ENGINE,
         command_off=CommandID.STOP_ENGINE,
+        force_update_method_call=True,
         # features=Features.AUTO_START,  # @TODO: check whether true
     ),
     PandoraCASBooleanEntityDescription(
@@ -150,6 +152,17 @@ class PandoraCASSwitch(PandoraCASBooleanEntity, SwitchEntity):
         asyncio.run_coroutine_threadsafe(
             self.async_turn_off(), self.hass.loop
         ).result()
+
+    def get_native_value(self) -> Optional[Any]:
+        if (
+            self.entity_description.key == "engine"
+            and self._device_config[CONF_ENGINE_STATE_BY_RPM]
+        ):
+            if (
+                current_rpm := self.pandora_device.state.engine_rpm
+            ) is not None:
+                return current_rpm > 0
+        return super().get_native_value()
 
 
 async_setup_entry = partial(

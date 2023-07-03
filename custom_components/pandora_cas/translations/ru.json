@@ -12,7 +12,9 @@
         "data": {
           "username": "Имя пользователя",
           "password": "Пароль",
-          "verify_ssl": "Проверять сертификаты SSL"
+          "verify_ssl": "Проверять сертификаты SSL",
+          "disable_websockets": "Отключить WebSockets",
+          "disable_polling": "Отключить периодический опрос"
         },
         "title": "Аутентификация",
         "description": "Введите данные для входа в Ваш аккаунт Pandora Online."
@@ -682,7 +684,8 @@
           "mileage_miles": "Системный пробег в милях",
           "coordinates_debounce": "Сглаживание координат",
           "rpm_coefficient": "Коэффициент оборотов",
-          "rpm_offset": "Сдвиг оборотов"
+          "rpm_offset": "Сдвиг оборотов",
+          "engine_state_by_rpm": "Состояние двигателя по оборотам"
         }
       }
     }

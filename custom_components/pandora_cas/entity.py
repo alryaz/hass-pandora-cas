@@ -128,6 +128,7 @@ class PandoraCASEntityDescription(EntityDescription):
         PandoraDeviceTypes.ALARM,
         None,
     )
+    force_update_method_call: bool = False
 
     def __post_init__(self):
         """Set translation key to entity description key."""
@@ -274,13 +275,14 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
             return
 
         ed = self.entity_description
-        if (
-            self.available
-            and ed.attribute_source == "state"
-            and ed.attribute is not None
-            and ed.attribute not in device_data
-        ):
-            return
+        if not ed.force_update_method_call:
+            if (
+                self.available
+                and ed.attribute_source == "state"
+                and ed.attribute is not None
+                and ed.attribute not in device_data
+            ):
+                return
 
         # Update native value and write state
         self.update_native_value()

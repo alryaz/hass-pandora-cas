@@ -16,6 +16,7 @@ __all__ = (
 
 import asyncio
 import logging
+from datetime import timedelta
 from functools import partial
 from typing import Any, Mapping, Type, TypeVar, Awaitable, Dict, Tuple, Literal
 
@@ -89,6 +90,7 @@ DEVICE_OPTIONS_SCHEMA: Final = vol.Schema(
         vol.Optional(CONF_MILEAGE_CAN_MILES, default=False): cv.boolean,
         vol.Optional(CONF_OFFLINE_AS_UNAVAILABLE, default=False): cv.boolean,
         vol.Optional(CONF_IGNORE_WS_COORDINATES, default=False): cv.boolean,
+        vol.Optional(CONF_ENGINE_STATE_BY_RPM, default=False): cv.boolean,
         vol.Optional(CONF_RPM_COEFFICIENT, default=1.0): cv.positive_float,
         vol.Optional(CONF_RPM_OFFSET, default=0.0): vol.Coerce(float),
         vol.Optional(
@@ -313,13 +315,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await async_run_pandora_coro(account.async_refresh_devices())
 
     # Create update coordinator
+    update_interval = None
+    if not entry.pref_disable_polling:
+        update_interval = timedelta(
+            seconds=(5 if entry.options[CONF_DISABLE_WEBSOCKETS] else 30)
+        )
+
     hass.data.setdefault(DOMAIN, {})[
         entry.entry_id
-    ] = coordinator = PandoraCASUpdateCoordinator(hass, account)
+    ] = coordinator = PandoraCASUpdateCoordinator(
+        hass, account, update_interval
+    )
+    await coordinator.async_config_entry_first_refresh()
 
-    # Start listening for updates
-    # if entry.pref_disable_polling:
-    if True:
+    # Start listening for updates if enabled
+    if not entry.options[CONF_DISABLE_WEBSOCKETS]:
 
         def _state_changes_listener(
             device: PandoraOnlineDevice,
@@ -474,11 +484,12 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         entry.version = 6
 
-    if entry.version < 10:
+    if entry.version < 9:
         # Transition per-entity options
         _add_new_devices_option(CONF_MILEAGE_MILES, False)
         _add_new_devices_option(CONF_MILEAGE_CAN_MILES, False)
         _add_new_devices_option(CONF_FUEL_IS_LITERS, False)
+        _add_new_devices_option(CONF_ENGINE_STATE_BY_RPM, False)
 
         # Transition cursors
         devices_conf = new_options.setdefault(CONF_DEVICES)
@@ -626,13 +637,12 @@ class PandoraCASUpdateCoordinator(
         self,
         hass: HomeAssistant,
         account: PandoraOnlineAccount,
+        update_interval: timedelta | None = None,
     ) -> None:
         self.account = account
         self._device_configs = {}
         super().__init__(
-            hass,
-            _LOGGER,
-            name=DOMAIN,  # update_interval=timedelta(seconds=5)
+            hass, _LOGGER, name=DOMAIN, update_interval=update_interval
         )
 
     @property

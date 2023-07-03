@@ -12,7 +12,9 @@
         "data": {
           "username": "Username",
           "password": "Password",
-          "verify_ssl": "Verify SSL certificates"
+          "verify_ssl": "Verify SSL certificates",
+          "disable_websockets": "Disable WebSockets",
+          "disable_polling": "Disable polling"
         },
         "title": "Authentication",
         "description": "Enter your credentials for your Pandora Online account."
@@ -624,7 +626,8 @@
       "integration_options": {
         "data": {
           "verify_ssl": "Verify SSL certificates",
-          "disable_websockets": "Disable WebSockets"
+          "disable_websockets": "Disable WebSockets",
+          "disable_polling": "Disable polling"
         }
       },
       "device_options": {
@@ -637,7 +640,8 @@
           "mileage_miles": "System mileage is in miles",
           "coordinates_debounce": "Coordinates debouncing",
           "rpm_coefficient": "RPM coefficient",
-          "rpm_offset": "RPM offset"
+          "rpm_offset": "RPM offset",
+          "engine_state_by_rpm": "Engine state by RPM"
         }
       }
     }

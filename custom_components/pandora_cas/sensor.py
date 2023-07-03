@@ -438,6 +438,17 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
 
         await super().async_will_remove_from_hass()
 
+    def get_native_value(self) -> Optional[Any]:
+        native_value = super().get_native_value()
+        if self.entity_description.key == "tachometer":
+            if native_value:
+                return int(
+                    native_value * self._device_config[CONF_RPM_COEFFICIENT]
+                    + CONF_RPM_OFFSET
+                )
+            return 0
+        return native_value
+
     def update_native_value(self) -> None:
         last_value = self._attr_native_value
         super().update_native_value()

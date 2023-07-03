@@ -119,6 +119,11 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
             self._last_latitude, self._last_longitude = new_ll
 
     @property
+    def location_accuracy(self) -> int:
+        # This value is always present due to init
+        return int(self._device_config[CONF_COORDINATES_DEBOUNCE])
+
+    @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
         attr: Dict[str, StateType] = dict()
         if super_attr := super().extra_state_attributes:

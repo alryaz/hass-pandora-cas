@@ -371,9 +371,9 @@ class CurrentState:
     relay: int = attr.ib()
     is_moving: bool = attr.ib(converter=bool)
     is_evacuating: bool = attr.ib(converter=bool)
-    lock_latitude: float = attr.ib(converter=float)
-    lock_longitude: float = attr.ib(converter=float)
-    rotation: float = attr.ib(converter=float)
+    lock_latitude: Optional[float] = attr.ib(default=None)
+    lock_longitude: Optional[float] = attr.ib(default=None)
+    rotation: Optional[float] = attr.ib(default=None)
     phone: Optional[str] = attr.ib(default=None, converter=_empty_is_none)
     imei: Optional[int] = attr.ib(default=None, converter=_empty_is_none)
     phone_other: Optional[str] = attr.ib(
@@ -421,17 +421,17 @@ class CurrentState:
     ex_status: Optional[int] = attr.ib(default=None)
     fuel_tanks: Collection[FuelTank] = attr.ib(default=None)
 
-    state_timestamp: int = attr.ib()
-    state_timestamp_utc: int = attr.ib()
-    online_timestamp: int = attr.ib()
-    online_timestamp_utc: int = attr.ib()
-    settings_timestamp_utc: int = attr.ib()
-    command_timestamp_utc: int = attr.ib()
+    state_timestamp: Optional[int] = attr.ib(default=None)
+    state_timestamp_utc: Optional[int] = attr.ib(default=None)
+    online_timestamp: Optional[int] = attr.ib(default=None)
+    online_timestamp_utc: Optional[int] = attr.ib(default=None)
+    settings_timestamp_utc: Optional[int] = attr.ib(default=None)
+    command_timestamp_utc: Optional[int] = attr.ib(default=None)
 
     @property
     def direction(self) -> str:
         """Textual interpretation of rotation."""
-        return _degrees_to_direction(self.rotation)
+        return _degrees_to_direction(self.rotation or 0.0)
 
 
 class PrimaryEventID(IntEnum):
@@ -1198,7 +1198,7 @@ class PandoraOnlineAccount:
 
         # Event updates
         events = []
-        for event_wrapper in data.get(key) or ():
+        for event_wrapper in data.get("lenta") or ():
             if not (event_obj := event_wrapper.get("obj")):
                 continue
 
@@ -1257,8 +1257,8 @@ class PandoraOnlineAccount:
             settings_timestamp_utc=data["setting_utc"],
             command_timestamp_utc=data["command_utc"],
             tracking_remaining=data["track_remains"],
-            lock_latitude=data["lock_x"] / 1000000,
-            lock_longitude=data["lock_y"] / 1000000,
+            lock_latitude=float(data["lock_x"]) / 1000000,
+            lock_longitude=float(data["lock_y"]) / 1000000,
             fuel_tanks=self.parse_fuel_tanks(data.get("tanks")),
             # CAN data about wheel pressure
             can_tpms_front_left=data.get("CAN_TMPS_forvard_left"),
@@ -1328,9 +1328,9 @@ class PandoraOnlineAccount:
         if "track_remains" in data:
             args["tracking_remaining"] = data["track_remains"]
         if "lock_x" in data:
-            args["lock_latitude"] = data["lock_x"] / 1000000
+            args["lock_latitude"] = float(data["lock_x"]) / 1000000
         if "lock_y" in data:
-            args["lock_longitude"] = data["lock_y"] / 1000000
+            args["lock_longitude"] = float(data["lock_y"]) / 1000000
         if "CAN_average_speed" in data:
             args["can_average_speed"] = data["CAN_average_speed"]
         if "CAN_TMPS_forvard_left" in data:
@@ -1677,11 +1677,13 @@ class PandoraOnlineAccount:
                     result = self._process_ws_event(device, data)
                     if event_callback:
                         callback_coro = event_callback(device, result)
-                        
+
                 elif type_ == WSMessageType.UPDATE_SETTINGS:
                     result = self._process_ws_update_settings(device, data)
                     if event_callback:
-                        callback_coro = update_settings_callback(device, result)
+                        callback_coro = update_settings_callback(
+                            device, result
+                        )
 
                 else:
                     _LOGGER.warning(

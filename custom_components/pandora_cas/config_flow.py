@@ -63,31 +63,11 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Pandora Car Alarm System config entries."""
 
     CONNECTION_CLASS: Final[str] = config_entries.CONN_CLASS_CLOUD_PUSH
-    VERSION: Final[int] = 8
+    VERSION: Final[int] = 10
 
     def __init__(self) -> None:
         """Init the config flow."""
         self._reauth_entry: Optional[config_entries.ConfigEntry] = None
-
-    async def _create_entry(self, config: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Finalize flow and create account entry.
-        :param config: Configuration for account
-        :return: (internal) Entry creation command
-        """
-
-        _LOGGER.debug(f"Creating entry for username {config[CONF_USERNAME]}")
-
-        return self.async_create_entry(
-            title=config[CONF_USERNAME],
-            data={
-                CONF_USERNAME: config[CONF_USERNAME],
-                CONF_PASSWORD: config[CONF_PASSWORD],
-            },
-            options={
-                CONF_VERIFY_SSL: config[CONF_VERIFY_SSL],
-            },
-        )
 
     async def async_step_user(
         self, user_input: Optional[Dict[str, Any]] = None
@@ -138,16 +118,17 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     await self.async_set_unique_id(unique_id)
                     self._abort_if_unique_id_configured()
 
+                    user_input[CONF_ACCESS_TOKEN] = account.access_token
+
+                    options = {
+                        str(option): user_input.pop(str(option))
+                        for option in INTEGRATION_OPTIONS_SCHEMA.schema
+                    }
+
                     return self.async_create_entry(
                         title=user_input[CONF_USERNAME],
-                        data={
-                            CONF_USERNAME: user_input[CONF_USERNAME],
-                            CONF_PASSWORD: user_input[CONF_PASSWORD],
-                            CONF_ACCESS_TOKEN: account.access_token,
-                        },
-                        options={
-                            CONF_VERIFY_SSL: user_input[CONF_VERIFY_SSL],
-                        },
+                        data=user_input,
+                        options=options,
                     )
 
             errors = {"base": error}
