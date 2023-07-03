@@ -1,0 +1,27 @@
+name: Prepare release asset
+
+on:
+  release:
+    types: [prereleased,published]
+
+jobs:
+  release_zip_file:
+    name: Prepare release asset
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Compress component directory
+        run: |
+          cd custom_components/pandora_cas
+          zip pandora_cas.zip -r ./
+
+      - name: Upload zip to release
+        uses: svenstaro/upload-release-action@2.6.1
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./custom_components/pandora_cas/pandora_cas.zip
+          asset_name: hass-pandora-cas.zip
+          tag: ${{ github.ref }}
+          overwrite: true

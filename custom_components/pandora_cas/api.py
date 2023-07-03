@@ -48,6 +48,7 @@ from typing import (
     List,
     SupportsFloat,
     SupportsInt,
+    Optional,
 )
 
 import aiohttp
@@ -1165,6 +1166,31 @@ class PandoraOnlineAccount:
             response.raise_for_status()
 
         _LOGGER.debug(f"[{self}] Sent wake up command to device {device_id}")
+
+    async def async_fetch_device_settings(
+        self, device_id: int | str
+    ) -> dict[str, Any]:
+        async with self._session.get(
+            self.BASE_URL + "/api/devices/settings",
+            params={"access_token": self.access_token, "id": device_id},
+        ) as response:
+            data = await self._handle_dict_response(response)
+
+        try:
+            devices_settings = data["device_settings"]
+        except KeyError as exc:
+            raise MalformedResponseError(
+                "device_settings not present in response"
+            ) from exc
+
+        if not (device_id is None or device_id in devices_settings):
+            raise MalformedResponseError(
+                "settings for requested device not present in response"
+            )
+
+        return sorted(
+            devices_settings[device_id], key=lambda x: x.get("dtime") or 0
+        )[-1]
 
     @staticmethod
     def parse_device_id(data: Mapping[str, Any]) -> int:

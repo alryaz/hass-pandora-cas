@@ -19,7 +19,15 @@ import asyncio
 import logging
 from datetime import timedelta
 from functools import partial
-from typing import Any, Mapping, Type, TypeVar, Awaitable, Tuple, Literal
+from typing import (
+    Any,
+    Mapping,
+    Type,
+    TypeVar,
+    Awaitable,
+    Tuple,
+    Literal,
+)
 
 import aiohttp
 import voluptuous as vol
@@ -35,7 +43,10 @@ from homeassistant.const import (
     CONF_DEVICES,
 )
 from homeassistant.core import ServiceCall, HomeAssistant
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.exceptions import (
+    ConfigEntryAuthFailed,
+    ConfigEntryNotReady,
+)
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import (
@@ -95,7 +106,8 @@ DEVICE_OPTIONS_SCHEMA: Final = vol.Schema(
         vol.Optional(CONF_RPM_COEFFICIENT, default=1.0): cv.positive_float,
         vol.Optional(CONF_RPM_OFFSET, default=0.0): vol.Coerce(float),
         vol.Optional(
-            CONF_COORDINATES_DEBOUNCE, default=DEFAULT_COORDINATES_SMOOTHING
+            CONF_COORDINATES_DEBOUNCE,
+            default=DEFAULT_COORDINATES_SMOOTHING,
         ): cv.positive_float,
         vol.Optional(
             CONF_CUSTOM_CURSOR_TYPE, default=DEFAULT_CURSOR_TYPE
@@ -110,7 +122,6 @@ DEVICE_OPTIONS_SCHEMA: Final = vol.Schema(
     },
     extra=vol.ALLOW_EXTRA,
 )
-
 
 CONFIG_ENTRY_SCHEMA = vol.All(
     *(
@@ -310,7 +321,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Update access token if necessary
     if entry.data.get(CONF_ACCESS_TOKEN) != account.access_token:
         hass.config_entries.async_update_entry(
-            entry, data={**entry.data, CONF_ACCESS_TOKEN: account.access_token}
+            entry,
+            data={
+                **entry.data,
+                CONF_ACCESS_TOKEN: account.access_token,
+            },
         )
 
     # Fetch devices
@@ -561,7 +576,9 @@ def async_command_delegator(
 
 
 def async_event_delegator(
-    hass: HomeAssistant, device: PandoraOnlineDevice, event: TrackingEvent
+    hass: HomeAssistant,
+    device: PandoraOnlineDevice,
+    event: TrackingEvent,
 ) -> None:
     """Pass event data to Home Assistant event bus."""
     hass.bus.async_fire(
@@ -584,7 +601,9 @@ def async_event_delegator(
 
 
 def async_update_settings_delegator(
-    hass: HomeAssistant, device: PandoraOnlineDevice, event: TrackingEvent
+    hass: HomeAssistant,
+    device: PandoraOnlineDevice,
+    event: TrackingEvent,
 ) -> None:
     """Pass event data to Home Assistant event bus."""
     hass.bus.async_fire(
@@ -602,7 +621,9 @@ def async_update_settings_delegator(
 
 # noinspection PyUnusedLocal
 def async_point_delegator(
-    hass: HomeAssistant, device: PandoraOnlineDevice, point: TrackingPoint
+    hass: HomeAssistant,
+    device: PandoraOnlineDevice,
+    point: TrackingPoint,
 ) -> None:
     hass.bus.async_fire(
         EVENT_TYPE_POINT,
@@ -671,7 +692,10 @@ class PandoraCASUpdateCoordinator(
         # @TODO: manual polling updates!
         try:
             try:
-                updates, events = await self.account.async_request_updates()
+                (
+                    updates,
+                    events,
+                ) = await self.account.async_request_updates()
             except AuthenticationError:
                 try:
                     await self.account.async_authenticate()

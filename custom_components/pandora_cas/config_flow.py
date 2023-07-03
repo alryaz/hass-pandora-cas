@@ -4,6 +4,7 @@ __all__ = ("PandoraCASConfigFlow",)
 import logging
 from typing import Any
 
+import voluptuous
 from homeassistant import config_entries
 from homeassistant.const import (
     CONF_PASSWORD,
@@ -179,6 +180,7 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
 
 STEP_DEVICE_OPTIONS: Final = "device_options"
+STEP_DEVICE_SETTINGS: Final = "device_settings"
 STEP_INTEGRATION_OPTIONS: Final = "integration_options"
 STEP_SAVE: Final = "save"
 
@@ -194,10 +196,31 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
             CONF_DISABLE_POLLING
         ] = self.config_entry.pref_disable_polling
 
+    def init_device_options(self):
+        if self.device_options is None:
+            self.device_options = {}
+            dev_reg = device_registry.async_get(self.hass)
+            for device in dev_reg.devices.values():
+                for identifier in device.identifiers:
+                    if len(identifier) != 2 or identifier[0] != DOMAIN:
+                        continue
+                    self.device_options[
+                        str(identifier[1])
+                    ] = f"{device.name} ({identifier[1]})"
+
+            for pandora_id in self.options.get(CONF_DEVICES) or {}:
+                self.device_options.setdefault(
+                    str(pandora_id), f"<unknown> ({pandora_id})"
+                )
+
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        menu_options = [STEP_INTEGRATION_OPTIONS, STEP_DEVICE_OPTIONS]
+        menu_options = [
+            STEP_INTEGRATION_OPTIONS,
+            STEP_DEVICE_SETTINGS,
+            STEP_DEVICE_OPTIONS,
+        ]
         if self.save_needed:
             menu_options.append(STEP_SAVE)
         return self.async_show_menu(step_id="init", menu_options=menu_options)
@@ -219,24 +242,13 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         if (pandora_id := self.current_pandora_id) is None:
-            if self.device_options is None:
-                self.device_options = {}
-                dev_reg = device_registry.async_get(self.hass)
-                for device in dev_reg.devices.values():
-                    for identifier in device.identifiers:
-                        if len(identifier) != 2 or identifier[0] != DOMAIN:
-                            continue
-                        self.device_options[
-                            str(identifier[1])
-                        ] = f"{device.name} ({identifier[1]})"
-
-                for pandora_id in self.options.get(CONF_DEVICES) or {}:
-                    self.device_options.setdefault(
-                        str(pandora_id), f"<unknown> ({pandora_id})"
-                    )
-
+            self.init_device_options()
             return self.async_show_menu(
-                step_id=STEP_DEVICE_OPTIONS, menu_options=self.device_options
+                step_id=STEP_DEVICE_OPTIONS,
+                menu_options={
+                    f"{STEP_DEVICE_OPTIONS}_{pandora_id}": name
+                    for pandora_id, name in self.device_options.items()
+                },
             )
 
         schema = DEVICE_OPTIONS_SCHEMA
@@ -273,10 +285,51 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
             step_id=STEP_INTEGRATION_OPTIONS, data_schema=schema
         )
 
+    async def async_step_device_settings(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        if (pandora_id := self.current_pandora_id) is None:
+            self.init_device_options()
+            return self.async_show_menu(
+                step_id=STEP_DEVICE_SETTINGS,
+                menu_options={
+                    f"{STEP_DEVICE_SETTINGS}_{pandora_id}": name
+                    for pandora_id, name in self.device_options.items()
+                },
+            )
+
+        try:
+            account: PandoraOnlineAccount = self.hass.data[DOMAIN][
+                self.config_entry.entry_id
+            ].account
+        except (KeyError, AttributeError):
+            account = PandoraOnlineAccount(
+                session=async_get_clientsession(
+                    self.hass, self.options[CONF_VERIFY_SSL]
+                ),
+                username=self.config_entry.data[CONF_USERNAME],
+                password=self.config_entry.data[CONF_USERNAME],
+                access_token=self.config_entry.data.get(CONF_ACCESS_TOKEN),
+            )
+            await account.async_authenticate()
+
+        settings = await account.async_fetch_device_settings(pandora_id)
+
+        # @TODO: this is a development access point
+
     def __getattr__(self, attribute):
-        if isinstance(attribute, str) and attribute.startswith("async_step_"):
-            pandora_id = attribute[11:]
-            if pandora_id.isnumeric():
+        if isinstance(attribute, str) and attribute.startswith(
+            "async_step_device_"
+        ):
+            pandora_id = attribute[18:]
+            target_method = None
+            if pandora_id.startswith("options_"):
+                target_method = self.async_step_device_options
+                pandora_id = pandora_id[8:]
+            elif pandora_id.startswith("settings_"):
+                target_method = self.async_step_device_settings
+                pandora_id = pandora_id[9:]
+            if target_method is not None and pandora_id.isnumeric():
                 self.current_pandora_id = pandora_id
-                return self.async_step_device_options
+                return target_method
         raise AttributeError
