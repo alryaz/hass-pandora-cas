@@ -80,6 +80,9 @@ body:
   - type: textarea
     attributes:
       label: Описание проблемы / Problem description
+      description: |
+        > Кратко опишите возникшую проблему.  
+        > Add a brief problem description.
   - type: textarea
     attributes:
       label: Способ воспроизведения / Steps to reproduce
@@ -96,11 +99,17 @@ body:
   - type: textarea
     attributes:
       label: Ожидаемый результат / Expected outcome
+      description: |
+        > Вставьте краткое описание ожидаемого результата предпринятых действий.  
+        > Insert a brief description of the expected outcome of actions described above.
   - type: textarea
     attributes:
       label: Журнал отладки / Traceback and logging information
       description: |
+        > Включите отладку интеграции и загрузите результаты в это поле (или на pastebin.com).  
         > [⚙️ Настройки > Система > ✍️ Журнал сервера](https://my.home-assistant.io/redirect/logs) > 🔍 Фильтр `pandora_cas`
+        >
+        > Enable integration debugging and upload results into this field (or to pastebin.com).  
         > [⚙️ Settings > System > ✍️ Logs](https://my.home-assistant.io/redirect/logs) > 🔍 Filter `pandora_cas`
   - type: textarea
     attributes:
