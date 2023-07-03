@@ -22,6 +22,6 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./custom_components/pandora_cas/pandora_cas.zip
-          asset_name: hass-pandora-cas.zip
+          asset_name: pandora_cas.zip
           tag: ${{ github.ref }}
           overwrite: true
