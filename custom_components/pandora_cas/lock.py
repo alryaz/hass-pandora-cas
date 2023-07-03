@@ -1,6 +1,7 @@
 """Switch entity for Pandora Car Alarm System."""
 __all__ = ("ENTITY_TYPES", "async_setup_entry")
 
+import dataclasses
 import logging
 from asyncio import run_coroutine_threadsafe
 from dataclasses import dataclass
@@ -13,12 +14,18 @@ from homeassistant.components.lock import (
     LockEntityDescription,
 )
 
-from custom_components.pandora_cas.api import BitStatus, CommandID
+from custom_components.pandora_cas import PandoraCASUpdateCoordinator
+from custom_components.pandora_cas.api import (
+    BitStatus,
+    CommandID,
+    PandoraOnlineDevice,
+)
 from custom_components.pandora_cas.entity import (
     async_platform_setup_entry,
     PandoraCASBooleanEntityDescription,
     PandoraCASBooleanEntity,
 )
+from custom_components.pandora_cas.const import CONF_FORCE_LOCK_ICONS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -47,6 +54,24 @@ ENTITY_TYPES = [
 class PandoraCASLock(PandoraCASBooleanEntity, LockEntity):
     ENTITY_TYPES = ENTITY_TYPES
     ENTITY_ID_FORMAT = ENTITY_ID_FORMAT
+
+    def __init__(
+        self,
+        coordinator: PandoraCASUpdateCoordinator,
+        pandora_device: PandoraOnlineDevice,
+        entity_description: "PandoraCASLockEntityDescription",
+        *args,
+        **kwargs
+    ) -> None:
+        if coordinator.config_entry.options.get(CONF_FORCE_LOCK_ICONS):
+            entity_description = dataclasses.replace(
+                entity_description,
+                icon_turning_on="mdi:lock-clock",
+                icon_turning_off="mdi:lock-clock",
+            )
+        super().__init__(
+            coordinator, pandora_device, entity_description, *args, **kwargs
+        )
 
     @property
     def is_locked(self) -> bool | None:

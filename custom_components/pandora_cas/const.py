@@ -32,6 +32,7 @@ CONF_MILEAGE_MILES: Final = "mileage_miles"
 CONF_OFFLINE_AS_UNAVAILABLE: Final = "offline_as_unavailable"
 CONF_RPM_COEFFICIENT: Final = "rpm_coefficient"
 CONF_RPM_OFFSET: Final = "rpm_offset"
+CONF_FORCE_LOCK_ICONS: Final = "force_lock_icons"
 
 DEFAULT_COORDINATES_SMOOTHING: Final = 10.0
 DEFAULT_CURSOR_TYPE: Final = "default"

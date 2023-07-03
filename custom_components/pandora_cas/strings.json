@@ -628,7 +628,8 @@
         "data": {
           "verify_ssl": "Verify SSL certificates",
           "disable_websockets": "Disable WebSockets",
-          "disable_polling": "Disable polling"
+          "disable_polling": "Disable polling",
+          "force_lock_icons": "Use lock icons"
         }
       },
       "device_options": {

@@ -408,7 +408,7 @@
         }
       },
       "reserve_tire_pressure": {
-        "name": "Reserve Tire Pressure",
+        "name": "Давление запасной шины",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -416,7 +416,7 @@
         }
       },
       "last_state_update": {
-        "name": "Last State Update",
+        "name": "Последнее обновление состояния",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -482,7 +482,7 @@
         }
       },
       "ext_channel": {
-        "name": "Дополнтельный канал",
+        "name": "Дополнительный канал",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -669,7 +669,8 @@
         "data": {
           "verify_ssl": "Проверять сертификаты SSL",
           "disable_websockets": "Отключить WebSockets",
-          "disable_polling": "Отключить периодический опрос"
+          "disable_polling": "Отключить периодический опрос",
+          "force_lock_icons": "Использовать иконки замка"
         },
         "data_description": {
           "verify_ssl": "Выполнять проверку на безопасность соединения с серверами AlarmTrade.",

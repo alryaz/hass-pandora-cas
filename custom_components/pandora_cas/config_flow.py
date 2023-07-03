@@ -2,6 +2,8 @@
 __all__ = ("PandoraCASConfigFlow",)
 
 import logging
+from copy import deepcopy
+from json import dumps
 from typing import Any
 
 import voluptuous
@@ -195,6 +197,7 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
         self.options[
             CONF_DISABLE_POLLING
         ] = self.config_entry.pref_disable_polling
+        self.initial_options = deepcopy(self.options)
 
     def init_device_options(self):
         if self.device_options is None:
@@ -218,10 +221,10 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
     ) -> FlowResult:
         menu_options = [
             STEP_INTEGRATION_OPTIONS,
-            STEP_DEVICE_SETTINGS,
+            # STEP_DEVICE_SETTINGS,
             STEP_DEVICE_OPTIONS,
         ]
-        if self.save_needed:
+        if dumps(self.options) != dumps(self.initial_options):
             menu_options.append(STEP_SAVE)
         return self.async_show_menu(step_id="init", menu_options=menu_options)
 
@@ -262,7 +265,6 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
                 pandora_id, {}
             ).update(user_input)
             self.current_pandora_id = None
-            self.save_needed = True
             return await self.async_step_init()
 
         return self.async_show_form(
@@ -278,7 +280,6 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
             schema = self.add_suggested_values_to_schema(schema, self.options)
         else:
             self.options.update(user_input)
-            self.save_needed = True
             return await self.async_step_init()
 
         return self.async_show_form(

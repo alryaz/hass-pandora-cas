@@ -85,6 +85,7 @@ INTEGRATION_OPTIONS_SCHEMA: Final = vol.Schema(
         vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
         vol.Optional(CONF_DISABLE_WEBSOCKETS, default=False): cv.boolean,
         vol.Optional(CONF_DISABLE_POLLING, default=False): cv.boolean,
+        vol.Optional(CONF_FORCE_LOCK_ICONS, default=False): cv.boolean,
     }
 )
 
