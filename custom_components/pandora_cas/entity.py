@@ -254,24 +254,23 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
             self._attr_available = True
             self._attr_native_value = value
 
+    @property
+    def coordinator_device_data(self) -> Optional[Mapping[str, Any]]:
+        if not (coordinator_data := self.coordinator.data):
+            return
+
+        if not (devices_data := coordinator_data[1]):
+            return
+
+        return devices_data[self.pandora_device.device_id]
+
     @final
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
 
         # Do not issue update if coordinator data is empty
-        if not (coordinator_data := self.coordinator.data):
-            return
-
-        # Ignore WS coordinates if required
-        is_ws, data = coordinator_data
-        if is_ws and self._device_config[CONF_IGNORE_WS_COORDINATES]:
-            return
-
-        # Do not issue update if device id within list of data
-        try:
-            device_data = data[self.pandora_device.device_id]
-        except KeyError:
+        if not (device_data := self.coordinator_device_data):
             return
 
         ed = self.entity_description

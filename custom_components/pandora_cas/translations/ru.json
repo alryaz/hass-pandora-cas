@@ -658,14 +658,17 @@
       "init": {
         "menu_options": {
           "integration_options": "Настройки интеграции",
+          "device_options": "Настройки устройств",
           "save": "Сохранить изменения"
         }
       },
       "integration_options": {
         "title": "Настройки интеграции",
+        "description": "Параметры:\n- _Проверять сертификаты SSL_ — выполнять проверку на безопасность соединения с серверами AlarmTrade.\n- _Отключить WebSockets_ — отключение получения данных посредством канала WebSockets.\n- _Отключить периодический опрос_ — отключение периодического опроса устройств, участвующих в обновлении.",
         "data": {
-          "verify_ssl": "Verify SSL certificates",
-          "disable_websockets": "Отключить WebSockets"
+          "verify_ssl": "Проверять сертификаты SSL",
+          "disable_websockets": "Отключить WebSockets",
+          "disable_polling": "Отключить периодический опрос"
         }
       },
       "device_options": {

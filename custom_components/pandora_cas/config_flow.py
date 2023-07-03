@@ -8,7 +8,6 @@ from typing import (
     Optional,
 )
 
-import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import (
     CONF_PASSWORD,
@@ -214,42 +213,54 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
         self.device_options: Optional[dict[str, str]] = None
         self.current_pandora_id: str | None = None
         self.save_needed = False
+        self.options[
+            CONF_DISABLE_POLLING
+        ] = self.config_entry.pref_disable_polling
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        if self.device_options is None:
-            self.device_options = {}
-            dev_reg = device_registry.async_get(self.hass)
-            for device in dev_reg.devices.values():
-                for identifier in device.identifiers:
-                    if len(identifier) != 2 or identifier[0] != DOMAIN:
-                        continue
-                    self.device_options[
-                        str(identifier[1])
-                    ] = f"{device.name} ({identifier[1]})"
-
-            for pandora_id in self.options.get(CONF_DEVICES) or {}:
-                self.device_options.setdefault(
-                    str(pandora_id), f"<unknown> ({pandora_id})"
-                )
-
-        menu_options = {STEP_INTEGRATION_OPTIONS: STEP_INTEGRATION_OPTIONS}
-        menu_options.update(self.device_options)
+        menu_options = [STEP_INTEGRATION_OPTIONS, STEP_DEVICE_OPTIONS]
         if self.save_needed:
-            menu_options[STEP_SAVE] = STEP_SAVE
+            menu_options.append(STEP_SAVE)
         return self.async_show_menu(step_id="init", menu_options=menu_options)
 
     async def async_step_save(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
+        disable_polling = self.options.pop(CONF_DISABLE_POLLING)
+
+        if disable_polling != self.config_entry.pref_disable_polling:
+            self.hass.config_entries.async_update_entry(
+                self.config_entry,
+                options=self.options,
+                pref_disable_polling=disable_polling,
+            )
         return self.async_create_entry(title="", data=self.options)
 
     async def async_step_device_options(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         if (pandora_id := self.current_pandora_id) is None:
-            return self.async_abort("unknown_error")
+            if self.device_options is None:
+                self.device_options = {}
+                dev_reg = device_registry.async_get(self.hass)
+                for device in dev_reg.devices.values():
+                    for identifier in device.identifiers:
+                        if len(identifier) != 2 or identifier[0] != DOMAIN:
+                            continue
+                        self.device_options[
+                            str(identifier[1])
+                        ] = f"{device.name} ({identifier[1]})"
+
+                for pandora_id in self.options.get(CONF_DEVICES) or {}:
+                    self.device_options.setdefault(
+                        str(pandora_id), f"<unknown> ({pandora_id})"
+                    )
+
+            return self.async_show_menu(
+                step_id=STEP_DEVICE_OPTIONS, menu_options=self.device_options
+            )
 
         schema = DEVICE_OPTIONS_SCHEMA
 
@@ -261,6 +272,7 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
             self.options.setdefault(CONF_DEVICES, {}).setdefault(
                 pandora_id, {}
             ).update(user_input)
+            self.current_pandora_id = None
             self.save_needed = True
             return await self.async_step_init()
 

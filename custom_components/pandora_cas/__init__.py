@@ -5,6 +5,7 @@ __all__ = (
     "CONFIG_SCHEMA",
     "DEVICE_OPTIONS_SCHEMA",
     "INTEGRATION_OPTIONS_SCHEMA",
+    "PandoraCASUpdateCoordinator",
     "SERVICE_REMOTE_COMMAND",
     "async_migrate_entry",
     "async_run_pandora_coro",
@@ -70,6 +71,7 @@ INTEGRATION_OPTIONS_SCHEMA: Final = vol.Schema(
     {
         vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
         vol.Optional(CONF_DISABLE_WEBSOCKETS, default=False): cv.boolean,
+        vol.Optional(CONF_DISABLE_POLLING, default=False): cv.boolean,
     }
 )
 
@@ -632,6 +634,10 @@ class PandoraCASUpdateCoordinator(
             _LOGGER,
             name=DOMAIN,  # update_interval=timedelta(seconds=5)
         )
+
+    @property
+    def is_last_update_ws(self) -> bool:
+        return self.data and self.data[0]
 
     def get_device_config(self, device_id: str | int) -> dict[str, Any]:
         device_id = str(device_id)

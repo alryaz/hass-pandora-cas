@@ -90,18 +90,16 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
         if not self.available:
             return
 
-        state = self.pandora_device.state
-        old_ll = (self._last_latitude, self._last_longitude)
-        if not all(old_ll):
-            self._last_latitude = state.latitude
-            self._last_longitude = state.longitude
-            return
-
-        device_data = self.coordinator.data.get(self.pandora_device.device_id)
-        if not device_data:
+        # Ignore WS coordinates if required
+        if (
+            self.coordinator.is_last_update_ws
+            and self._device_config[CONF_IGNORE_WS_COORDINATES]
+        ):
+            _LOGGER.debug(f"[{self.entity_id}] Ignored WS coordinates update")
             return
 
         # Debounce updates with a single coordinate
+        device_data = self.coordinator_device_data
         if "latitude" in device_data:
             self._received_latitude = device_data["latitude"]
         if "longitude" in device_data:

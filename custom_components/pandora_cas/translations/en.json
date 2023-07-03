@@ -617,7 +617,8 @@
     "step": {
       "init": {
         "menu_options": {
-          "integration_options": "Integration settings",
+          "integration_options": "Integration options",
+          "device_options": "Per-device options",
           "save": "Save changes"
         }
       },
