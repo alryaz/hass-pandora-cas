@@ -52,9 +52,8 @@ Connect_, и реализует
 - Pandora DXL-4970
 - Pandora DXL-5570
 - Pandora NAV-08 _(маячок)_
--
-
-_[Сообщите о Вашем успехе!](mailto:alryaz@xavux.com?subject=Pandora%20Car%20Alarm%20System%20%D0%B4%D0%BB%D1%8F%20Home%20Assistant%20-%20%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%BA%D0%B0%20%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%B0&body=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5!%0D%0A%0D%0A%D0%9F%D0%BE%D0%B4%D1%82%D0%B2%D0%B5%D1%80%D0%B6%D0%B4%D0%B0%D1%8E%2C%20%D1%87%D1%82%D0%BE%20%D0%B8%D0%BD%D1%82%D0%B5%D0%B3%D1%80%D0%B0%D1%86%D0%B8%D1%8F%20%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0%D0%B5%D1%82%20%D1%81%20%D0%BC%D0%BE%D0%B8%D0%BC%20%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%BE%D0%BC%20...!%0D%0A%0D%0A(%D0%95%D1%81%D0%BB%D0%B8%20%D1%8D%D1%82%D0%BE%20%D0%BD%D0%B5%20%D1%82%D0%B0%D0%BA%2C%20%D0%BE%D0%BF%D0%B8%D1%88%D0%B8%D1%82%D0%B5%2C%20%D0%BF%D0%BE%D0%B6%D0%B0%D0%BB%D1%83%D0%B9%D1%81%D1%82%D0%B0%2C%20%D0%92%D0%B0%D1%88%D0%B8%20%D0%BD%D0%B0%D0%B1%D0%BB%D1%8E%D0%B4%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BE%20%D0%BD%D0%B5%D0%BF%D0%BE%D0%BB%D0%B0%D0%B4%D0%BA%D0%B0%D1%85))_
+- Pandora VX-4G GPS
+- _[Сообщите о Вашем успехе!](mailto:alryaz@xavux.com?subject=Pandora%20Car%20Alarm%20System%20%D0%B4%D0%BB%D1%8F%20Home%20Assistant%20-%20%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%BA%D0%B0%20%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%B0&body=%D0%97%D0%B4%D1%80%D0%B0%D0%B2%D1%81%D1%82%D0%B2%D1%83%D0%B9%D1%82%D0%B5!%0D%0A%0D%0A%D0%9F%D0%BE%D0%B4%D1%82%D0%B2%D0%B5%D1%80%D0%B6%D0%B4%D0%B0%D1%8E%2C%20%D1%87%D1%82%D0%BE%20%D0%B8%D0%BD%D1%82%D0%B5%D0%B3%D1%80%D0%B0%D1%86%D0%B8%D1%8F%20%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D0%B0%D0%B5%D1%82%20%D1%81%20%D0%BC%D0%BE%D0%B8%D0%BC%20%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%BE%D0%BC%20...!%0D%0A%0D%0A(%D0%95%D1%81%D0%BB%D0%B8%20%D1%8D%D1%82%D0%BE%20%D0%BD%D0%B5%20%D1%82%D0%B0%D0%BA%2C%20%D0%BE%D0%BF%D0%B8%D1%88%D0%B8%D1%82%D0%B5%2C%20%D0%BF%D0%BE%D0%B6%D0%B0%D0%BB%D1%83%D0%B9%D1%81%D1%82%D0%B0%2C%20%D0%92%D0%B0%D1%88%D0%B8%20%D0%BD%D0%B0%D0%B1%D0%BB%D1%8E%D0%B4%D0%B5%D0%BD%D0%B8%D1%8F%20%D0%BE%20%D0%BD%D0%B5%D0%BF%D0%BE%D0%BB%D0%B0%D0%B4%D0%BA%D0%B0%D1%85))_
 
 ## Панель со всеми поддерживаемыми элементами
 
@@ -77,10 +76,7 @@ _[Сообщите о Вашем успехе!](mailto:alryaz@xavux.com?subject=
 
 Чтобы подготовить собственную конфигурацию, выполните следующие действия:
 
-1.
-
-Открыть [папку с подготовленными конфигурациями](https://github.com/alryaz/hass-pandora-cas/tree/master/interface)
-
+1. Открыть [папку с подготовленными конфигурациями](https://github.com/alryaz/hass-pandora-cas/tree/master/interface)
 2. Выбрать файл с желаемым типом конфигурации
 3. Скопировать содержимое файла в текстовый редактор
 4. Заменить все вхождения `REPLACE_WITH_PANDORA_ID` на идентификатор
