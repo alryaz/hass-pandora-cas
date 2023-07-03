@@ -37,8 +37,8 @@ body:
             There are _**no issues**_ describing similar problem.
         - required: true
           label: |
-            Лог-файлы интеграции загружены на Pastebin или скопированы в поле ниже.
-            Integration log files uploaded to Pastebin or pasted into the field below.
+            > Лог-файлы интеграции загружены на Pastebin или скопированы в поле ниже.
+            > Integration log files uploaded to Pastebin or pasted into the field below.
   - type: input
     validations:
       required: true
