@@ -21,24 +21,24 @@ body:
       options:
         - required: true
           label: |
-            Успешный вход в мобильное приложение Pandora Connect / Pandora Online.  
+            **Успешный вход в мобильное приложение Pandora Connect / Pandora Online.**  
             Successful authentication with Pandora Connect / Pandora Online smartphone app.
         - required: true
           label: |
-            Успешный вход на сайт https://pro.p-on.ru или https://p-on.ru.  
+            **Успешный вход на сайт https://pro.p-on.ru или https://p-on.ru.**  
             Successful authentication with web portal.
         - required: true
           label: |
-            Отсутствуют явные упоминания о несовместимости устройства в README-файле.  
+            **Отсутствуют явные упоминания о несовместимости устройства в README-файле.**  
             Any discrete mentions of incompatibility of device missing from README.
         - required: true
           label: |
-            Смежные обращения по проблеме _**отсутствуют**_.  
-            There are _**no issues**_ describing similar problem.
+            **Смежные обращения по проблеме _отсутствуют_.**  
+            There are _no issues_ describing similar problem.
         - required: true
           label: |
-            > Лог-файлы интеграции загружены на Pastebin или скопированы в поле ниже.
-            > Integration log files uploaded to Pastebin or pasted into the field below.
+            **Лог-файлы интеграции загружены на Pastebin или скопированы в поле ниже.**  
+            Integration log files uploaded to Pastebin or pasted into the field below.
   - type: input
     validations:
       required: true
