@@ -6,8 +6,12 @@ from copy import deepcopy
 from json import dumps
 from typing import Any
 
-import voluptuous
-from homeassistant import config_entries
+from homeassistant.config_entries import (
+    OptionsFlowWithConfigEntry,
+    ConfigFlow,
+    ConfigEntry,
+    OptionsFlow,
+)
 from homeassistant.const import (
     CONF_PASSWORD,
     CONF_USERNAME,
@@ -58,15 +62,14 @@ async def async_options_flow_init_step_validate(
     return user_input
 
 
-class PandoraCASConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Pandora Car Alarm System config entries."""
 
-    CONNECTION_CLASS: Final[str] = config_entries.CONN_CLASS_CLOUD_PUSH
     VERSION: Final[int] = 10
 
     def __init__(self) -> None:
         """Init the config flow."""
-        self._reauth_entry: config_entries.ConfigEntry | None = None
+        self._reauth_entry: ConfigEntry | None = None
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -176,8 +179,8 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> config_entries.OptionsFlow:
+        config_entry: ConfigEntry,
+    ) -> OptionsFlow:
         return PandoraCASOptionsFlow(config_entry)
 
 
@@ -187,7 +190,7 @@ STEP_INTEGRATION_OPTIONS: Final = "integration_options"
 STEP_SAVE: Final = "save"
 
 
-class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
+class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 

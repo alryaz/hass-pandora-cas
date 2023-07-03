@@ -1,0 +1,116 @@
+name: Сообщение об ошибке / Bug report
+description: Обозначьте проблему с интеграцией чтобы помочь улучшить hass-pandora-cas
+labels: 'bug,needs-triage'
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug! If you need real-time help, join us on Discord.
+
+        Прежде чем создать обращение, проверьте, не существует ли уже открытых со схожей тематикой.
+
+        НЕ УДАЛЯЙТЕ НИЧЕГО из данного шаблона! Иначе Ваше обращение может быть закрыто без каких-либо разъяснений.
+        
+        Сообщайте информацию о проблеме в уже существующее обращение, если таковое имеется.
+  - type: checkboxes
+    attributes:
+      label: Следующие действия были мною выполнены перед созданием обращения
+      description: |
+        > Прежде чем сообщать о проблеме, подтвердите следующий перечень действий.
+        > Before submitting a new issue, please perform actions described below
+      options:
+        - required: true
+          label: |
+            **Успешный вход в мобильное приложение Pandora Connect / Pandora Online.**  
+            Successful authentication with Pandora Connect / Pandora Online smartphone app.
+        - required: true
+          label: |
+            **Успешный вход на сайт https://pro.p-on.ru или https://p-on.ru.**  
+            Successful authentication with web portal.
+        - required: true
+          label: |
+            **Отсутствуют явные упоминания о несовместимости устройства в README-файле.**  
+            Any discrete mentions of incompatibility of device missing from README.
+        - required: true
+          label: |
+            **Смежные обращения по проблеме _отсутствуют_.**  
+            There are _no issues_ describing similar problem.
+        - required: true
+          label: |
+            **Лог-файлы интеграции загружены на Pastebin или скопированы в поле ниже.**  
+            Integration log files uploaded to Pastebin or pasted into the field below.
+  - type: input
+    validations:
+      required: true
+    attributes:
+      label: Версия интеграции / Integration version
+      placeholder: v2023.X.X
+  - type: input
+    validations:
+      required: true
+    attributes:
+      label: Версия Home Assistant / Home Assistant version
+      placeholder: v2023.X.X
+  - type: dropdown
+    validations:
+      required: true
+    attributes:
+      label: Способ установки Home Assistant / Home Assistant install method
+      options:
+        - Home Assistant OS
+        - Supervised
+        - Container
+        - Core
+        - venv
+  - type: dropdown
+    validations:
+      required: true
+    attributes:
+      label: Способ установки интеграции / Integration install method
+      options:
+        - HACS (Home Assistant Community Store)
+        - Скачивание zip-файла релиза
+        - Скачивание zip-файла ветки
+  - type: input
+    validations:
+      required: true
+    attributes:
+      label: Модель устройства / Device model
+      placeholder: Pandora DX-6969...
+  - type: textarea
+    attributes:
+      label: Описание проблемы / Problem description
+      description: |
+        > Кратко опишите возникшую проблему.  
+        > Add a brief problem description.
+  - type: textarea
+    attributes:
+      label: Способ воспроизведения / Steps to reproduce
+      description: |
+        > Перечислите последовательно шаги, приводящие к возникновению проблемы.
+        > How do you trigger this bug? Please walk us through it step by step.
+      value: |
+        1.
+        2.
+        3.
+        ...
+      render: bash
+        
+  - type: textarea
+    attributes:
+      label: Ожидаемый результат / Expected outcome
+      description: |
+        > Вставьте краткое описание ожидаемого результата предпринятых действий.  
+        > Insert a brief description of the expected outcome of actions described above.
+  - type: textarea
+    attributes:
+      label: Журнал отладки / Traceback and logging information
+      description: |
+        > Включите отладку интеграции и загрузите результаты в это поле (или на pastebin.com).  
+        > [⚙️ Настройки > Система > ✍️ Журнал сервера](https://my.home-assistant.io/redirect/logs) > 🔍 Фильтр `pandora_cas`
+        >
+        > Enable integration debugging and upload results into this field (or to pastebin.com).  
+        > [⚙️ Settings > System > ✍️ Logs](https://my.home-assistant.io/redirect/logs) > 🔍 Filter `pandora_cas`
+  - type: textarea
+    attributes:
+      label: Дополнительные сведения / Additional context
