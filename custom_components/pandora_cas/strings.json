@@ -640,9 +640,17 @@
           "mileage_can_miles": "CAN mileage is in miles",
           "mileage_miles": "System mileage is in miles",
           "coordinates_debounce": "Coordinates debouncing",
+          "disable_cursor_rotation": "Disable cursor rotation",
           "rpm_coefficient": "RPM coefficient",
           "rpm_offset": "RPM offset",
-          "engine_state_by_rpm": "Engine state by RPM"
+          "engine_state_by_rpm": "Engine state by RPM",
+          "moto": "Motorcycle",
+          "rocket": "Rocket",
+          "truck": "Truck",
+          "car": "Car (sedan)",
+          "pierced_heart": "Pierced heart",
+          "arrow": "Arrow (archery)",
+          "bird": "Bird"
         }
       }
     }

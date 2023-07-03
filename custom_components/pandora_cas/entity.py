@@ -13,7 +13,6 @@ from typing import (
     Any,
     Union,
     Mapping,
-    Dict,
     final,
     List,
     Awaitable,
@@ -45,7 +44,6 @@ from custom_components.pandora_cas.const import (
     DOMAIN,
     ATTR_COMMAND_ID,
     CONF_OFFLINE_AS_UNAVAILABLE,
-    CONF_IGNORE_WS_COORDINATES,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -205,7 +203,7 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
-        attr: Dict[str, StateType] = dict()
+        attr: dict[str, StateType] = dict()
         if super_attr := super().extra_state_attributes:
             attr.update(super_attr)
 

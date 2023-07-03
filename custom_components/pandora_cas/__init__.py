@@ -12,13 +12,14 @@ __all__ = (
     "async_setup",
     "async_setup_entry",
     "async_unload_entry",
+    "event_enum_to_type",
 )
 
 import asyncio
 import logging
 from datetime import timedelta
 from functools import partial
-from typing import Any, Mapping, Type, TypeVar, Awaitable, Dict, Tuple, Literal
+from typing import Any, Mapping, Type, TypeVar, Awaitable, Tuple, Literal
 
 import aiohttp
 import voluptuous as vol
@@ -105,6 +106,7 @@ DEVICE_OPTIONS_SCHEMA: Final = vol.Schema(
                 *sorted(IMAGE_REGISTRY.keys()),
             )
         ),
+        vol.Optional(CONF_DISABLE_CURSOR_ROTATION, default=False): cv.boolean,
     },
     extra=vol.ALLOW_EXTRA,
 )

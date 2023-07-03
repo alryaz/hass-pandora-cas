@@ -353,7 +353,7 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
-        attributes: Dict[str, StateType] = dict()
+        attributes: dict[str, StateType] = dict()
         if super_attr := super().extra_state_attributes:
             attributes.update(super_attr)
 

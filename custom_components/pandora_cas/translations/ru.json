@@ -357,7 +357,7 @@
         }
       },
       "exterior_temperature": {
-        "name": "Exterior Temperature",
+        "name": "Температура за бортом",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -365,7 +365,7 @@
         }
       },
       "battery_temperature": {
-        "name": "Battery Temperature",
+        "name": "Температура аккумулятора",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -373,7 +373,7 @@
         }
       },
       "balance_secondary": {
-        "name": "Balance Secondary",
+        "name": "Баланс второй SIM-карты",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -384,7 +384,7 @@
         }
       },
       "right_front_tire_pressure": {
-        "name": "Right Front Tire Pressure",
+        "name": "Давление передней правой шины",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -392,7 +392,7 @@
         }
       },
       "left_back_tire_pressure": {
-        "name": "Left Back Tire Pressure",
+        "name": "Давление задней левой шины",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -400,7 +400,7 @@
         }
       },
       "right_back_tire_pressure": {
-        "name": "Right Back Tire Pressure",
+        "name": "Давление задней правой шины",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -424,7 +424,7 @@
         }
       },
       "last_settings_change": {
-        "name": "Last Settings Change",
+        "name": "Последнее изменение настроек",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -432,7 +432,7 @@
         }
       },
       "last_command_execution": {
-        "name": "Last Command Execution",
+        "name": "Последнее выполнение команды",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -604,8 +604,8 @@
   },
   "device_automation": {
     "trigger_type": {
-      "locking_enabled": "Событие: Locking Enabled",
-      "locking_disabled": "Событие: Locking Disabled",
+      "locking_enabled": "Событие: Постановка на охрану",
+      "locking_disabled": "Событие: Снятие с охраны",
       "alert": "Событие: Тревога",
       "engine_started": "Событие: Двигатель запущен",
       "engine_stopped": "Событие: Двигатель остановлен",
@@ -622,11 +622,11 @@
       "system_power_loss": "Событие: Система потеряла питание",
       "secure_trunk_open": "Событие: Secure Trunk Open",
       "factory_testing": "Событие: Factory Testing",
-      "power_dip": "Событие: Power Dip",
+      "power_dip": "Событие: Просадка по питанию",
       "check_received": "Событие: Получена команда CHECK",
       "system_login": "Событие: System Login",
-      "active_security_enabled": "Событие: Active Security Enabled",
-      "active_security_disabled": "Событие: Режим активной защиты выключен",
+      "active_security_enabled": "Событие: Выключение режима Активной Защиты",
+      "active_security_disabled": "Событие: Включение режима Активной Защиты",
       "active_security_alert": "Событие: Тревога в режиме активной защиты",
       "block_heater_enabled": "Событие: Включение предпускового подогревателя",
       "block_heater_disabled": "Событие: Отключение предпускового подогревателя",
@@ -666,11 +666,15 @@
       },
       "integration_options": {
         "title": "Настройки интеграции",
-        "description": "Параметры:\n- _Проверять сертификаты SSL_ — выполнять проверку на безопасность соединения с серверами AlarmTrade.\n- _Отключить WebSockets_ — отключение получения данных посредством канала WebSockets.\n- _Отключить периодический опрос_ — отключение периодического опроса устройств, участвующих в обновлении.",
         "data": {
           "verify_ssl": "Проверять сертификаты SSL",
           "disable_websockets": "Отключить WebSockets",
           "disable_polling": "Отключить периодический опрос"
+        },
+        "data_description": {
+          "verify_ssl": "Выполнять проверку на безопасность соединения с серверами AlarmTrade.",
+          "disable_websockets": "Отключение получения событий и обновлений состояний устройств посредством WebSockets.",
+          "disable_polling": "Отключение периодического опроса сервера AlarmTrade на наличие новых событий и/или обновлений состояний устройств."
         }
       },
       "device_options": {
@@ -683,9 +687,17 @@
           "mileage_can_miles": "Пробег по CAN в милях",
           "mileage_miles": "Системный пробег в милях",
           "coordinates_debounce": "Сглаживание координат",
+          "disable_cursor_rotation": "Отключить вращение курсора",
           "rpm_coefficient": "Коэффициент оборотов",
           "rpm_offset": "Сдвиг оборотов",
-          "engine_state_by_rpm": "Состояние двигателя по оборотам"
+          "engine_state_by_rpm": "Состояние двигателя по оборотам",
+          "moto": "Мотоцикл",
+          "rocket": "Ракета",
+          "truck": "Грузовик",
+          "car": "Автомобиль",
+          "pierced_heart": "Поражённое сердце",
+          "arrow": "Стрела для лука",
+          "bird": "Птица"
         }
       }
     }

@@ -42,11 +42,12 @@ from typing import (
     Final,
     Iterable,
     Mapping,
-    Optional,
     Tuple,
     TypeVar,
     Union,
     List,
+    SupportsFloat,
+    SupportsInt,
 )
 
 import aiohttp
@@ -244,9 +245,7 @@ class Features(Flag):
     NAV = auto()
 
     @classmethod
-    def from_dict(
-        cls, features_dict: Dict[str, Union[bool, int]]
-    ) -> Optional["Features"]:
+    def from_dict(cls, features_dict: dict[str, Union[bool, int]]):
         result = None
         for key, flag in {
             "active_security": cls.ACTIVE_SECURITY,
@@ -290,7 +289,7 @@ class BalanceState:
         return round(self.value, n)
 
     @classmethod
-    def from_dict(cls, data: Optional[Mapping[str, Any]]):
+    def from_dict(cls, data: Mapping[str, Any | None]):
         try:
             if data:
                 return cls(
@@ -305,8 +304,8 @@ class BalanceState:
 class FuelTank:
     id: int = attr.ib()
     value: float = attr.ib()
-    ras: Optional[float] = attr.ib(default=None)
-    ras_t: Optional[float] = attr.ib(default=None)
+    ras: float | None = attr.ib(default=None)
+    ras_t: float | None = attr.ib(default=None)
 
     def __float__(self) -> float:
         return self.value
@@ -321,8 +320,32 @@ class FuelTank:
 _T = TypeVar("_T")
 
 
-def _empty_is_none(x: _T) -> Optional[_T]:
+def _e(x: _T) -> _T | None:
     return x or None
+
+
+def _f(x: SupportsFloat | None) -> float | None:
+    try:
+        return None if x is None else float(x)
+    except (TypeError, ValueError):
+        _LOGGER.warning(
+            f"Could not convert value '{x}' to float, returning None"
+        )
+        return None
+
+
+def _b(x: Any) -> bool | None:
+    return None if x is None else bool(x)
+
+
+def _i(x: SupportsInt | None) -> int | None:
+    try:
+        return None if x is None else int(x)
+    except (TypeError, ValueError):
+        _LOGGER.warning(
+            f"Could not convert value '{x}' to int, returning None"
+        )
+        return None
 
 
 def _degrees_to_direction(degrees: float):
@@ -350,83 +373,276 @@ def _degrees_to_direction(degrees: float):
 @attr.s(kw_only=True, frozen=True, slots=True)
 class CurrentState:
     identifier: int = attr.ib()
-    is_online: bool = attr.ib(converter=bool, default=True)
-    latitude: float = attr.ib()
-    longitude: float = attr.ib()
-    speed: float = attr.ib()
-    bit_state: BitStatus = attr.ib()
-    engine_rpm: int = attr.ib()
-    engine_temperature: float = attr.ib(converter=float)
-    interior_temperature: float = attr.ib(converter=float)
-    exterior_temperature: float = attr.ib(converter=float)
-    fuel: float = attr.ib(converter=float)
-    voltage: float = attr.ib(converter=float)
-    gsm_level: int = attr.ib()
-    balance: Optional[BalanceState] = attr.ib(default=None)
-    balance_other: Optional[BalanceState] = attr.ib(default=None)
-    mileage: float = attr.ib(converter=float)
-    can_mileage: float = attr.ib(converter=float)
-    tag_number: int = attr.ib()
-    key_number: int = attr.ib()
-    relay: int = attr.ib()
-    is_moving: bool = attr.ib(converter=bool)
-    is_evacuating: bool = attr.ib(converter=bool)
-    lock_latitude: Optional[float] = attr.ib(default=None)
-    lock_longitude: Optional[float] = attr.ib(default=None)
-    rotation: Optional[float] = attr.ib(default=None)
-    phone: Optional[str] = attr.ib(default=None, converter=_empty_is_none)
-    imei: Optional[int] = attr.ib(default=None, converter=_empty_is_none)
-    phone_other: Optional[str] = attr.ib(
-        default=None, converter=_empty_is_none
-    )
-    active_sim: int = attr.ib()
-    tracking_remaining: Optional[float] = attr.ib(
-        default=None, converter=_empty_is_none
-    )
+    is_online: bool | None = attr.ib(default=None)
+    latitude: float | None = attr.ib(default=None, converter=_f)
+    longitude: float | None = attr.ib(default=None, converter=_f)
+    speed: float | None = attr.ib(default=None, converter=_f)
+    bit_state: BitStatus | None = attr.ib(default=None)
+    engine_rpm: int | None = attr.ib(default=None, converter=_i)
+    engine_temperature: float | None = attr.ib(default=None, converter=_f)
+    interior_temperature: float | None = attr.ib(default=None, converter=_f)
+    exterior_temperature: float | None = attr.ib(default=None, converter=_f)
+    fuel: float | None = attr.ib(default=None, converter=_f)
+    voltage: float | None = attr.ib(default=None, converter=_f)
+    gsm_level: int | None = attr.ib(default=None, converter=_i)
+    balance: BalanceState | None = attr.ib(default=None)
+    balance_other: BalanceState | None = attr.ib(default=None)
+    mileage: float | None = attr.ib(default=None, converter=_f)
+    can_mileage: float | None = attr.ib(default=None, converter=_f)
+    tag_number: int | None = attr.ib(default=None, converter=_i)
+    key_number: int | None = attr.ib(default=None, converter=_i)
+    relay: int | None = attr.ib(default=None, converter=_i)
+    is_moving: bool | None = attr.ib(default=None, converter=_b)
+    is_evacuating: bool | None = attr.ib(default=None, converter=_b)
+    lock_latitude: float | None = attr.ib(default=None, converter=_f)
+    lock_longitude: float | None = attr.ib(default=None, converter=_f)
+    rotation: float | None = attr.ib(default=None, converter=_f)
+    phone: str | None = attr.ib(default=None, converter=_e)
+    imei: int | None = attr.ib(default=None, converter=_e)
+    phone_other: str | None = attr.ib(default=None, converter=_e)
+    active_sim: int | None = attr.ib(default=None)
+    tracking_remaining: float | None = attr.ib(default=None, converter=_e)
 
-    can_seat_taken: Optional[bool] = attr.ib(default=None)
-    can_average_speed: Optional[float] = attr.ib(default=None)
-    can_tpms_front_left: Optional[float] = attr.ib(default=None)
-    can_tpms_front_right: Optional[float] = attr.ib(default=None)
-    can_tpms_back_left: Optional[float] = attr.ib(default=None)
-    can_tpms_back_right: Optional[float] = attr.ib(default=None)
-    can_tpms_reserve: Optional[float] = attr.ib(default=None)
-    can_glass_driver: Optional[bool] = attr.ib(default=None)
-    can_glass_passenger: Optional[bool] = attr.ib(default=None)
-    can_glass_back_left: Optional[bool] = attr.ib(default=None)
-    can_glass_back_right: Optional[bool] = attr.ib(default=None)
-    can_belt_driver: Optional[bool] = attr.ib(default=None)
-    can_belt_passenger: Optional[bool] = attr.ib(default=None)
-    can_belt_back_left: Optional[bool] = attr.ib(default=None)
-    can_belt_back_right: Optional[bool] = attr.ib(default=None)
-    can_low_liquid: Optional[bool] = attr.ib(default=None)
-    can_mileage_by_battery: Optional[float] = attr.ib(default=None)
-    can_mileage_to_empty: Optional[float] = attr.ib(default=None)
-    can_mileage_to_maintenance: Optional[float] = attr.ib(default=None)
+    can_seat_taken: bool | None = attr.ib(default=None)
+    can_average_speed: float | None = attr.ib(default=None)
+    can_tpms_front_left: float | None = attr.ib(default=None)
+    can_tpms_front_right: float | None = attr.ib(default=None)
+    can_tpms_back_left: float | None = attr.ib(default=None)
+    can_tpms_back_right: float | None = attr.ib(default=None)
+    can_tpms_reserve: float | None = attr.ib(default=None)
+    can_glass_driver: bool | None = attr.ib(default=None)
+    can_glass_passenger: bool | None = attr.ib(default=None)
+    can_glass_back_left: bool | None = attr.ib(default=None)
+    can_glass_back_right: bool | None = attr.ib(default=None)
+    can_belt_driver: bool | None = attr.ib(default=None)
+    can_belt_passenger: bool | None = attr.ib(default=None)
+    can_belt_back_left: bool | None = attr.ib(default=None)
+    can_belt_back_right: bool | None = attr.ib(default=None)
+    can_low_liquid: bool | None = attr.ib(default=None)
+    can_mileage_by_battery: float | None = attr.ib(default=None)
+    can_mileage_to_empty: float | None = attr.ib(default=None)
+    can_mileage_to_maintenance: float | None = attr.ib(default=None)
 
-    ev_state_of_charge: Optional[float] = attr.ib(default=None)
-    ev_state_of_health: Optional[float] = attr.ib(default=None)
-    ev_charging_connected: Optional[bool] = attr.ib(default=None)
-    ev_charging_slow: Optional[bool] = attr.ib(default=None)
-    ev_charging_fast: Optional[bool] = attr.ib(default=None)
-    ev_status_ready: Optional[bool] = attr.ib(default=None)
-    battery_temperature: Optional[int] = attr.ib(default=None)
+    ev_state_of_charge: float | None = attr.ib(default=None)
+    ev_state_of_health: float | None = attr.ib(default=None)
+    ev_charging_connected: bool | None = attr.ib(default=None)
+    ev_charging_slow: bool | None = attr.ib(default=None)
+    ev_charging_fast: bool | None = attr.ib(default=None)
+    ev_status_ready: bool | None = attr.ib(default=None)
+    battery_temperature: int | None = attr.ib(default=None)
 
     # undecoded parameters
-    smeter: Optional[int] = attr.ib(default=None)
-    tconsum: Optional[int] = attr.ib(default=None)
+    smeter: int | None = attr.ib(default=None)
+    tconsum: int | None = attr.ib(default=None)
     loadaxis: Any = attr.ib(default=None)
-    land: Optional[int] = attr.ib(default=None)
-    bunker: Optional[int] = attr.ib(default=None)
-    ex_status: Optional[int] = attr.ib(default=None)
+    land: int | None = attr.ib(default=None)
+    bunker: int | None = attr.ib(default=None)
+    ex_status: int | None = attr.ib(default=None)
     fuel_tanks: Collection[FuelTank] = attr.ib(default=None)
 
-    state_timestamp: Optional[int] = attr.ib(default=None)
-    state_timestamp_utc: Optional[int] = attr.ib(default=None)
-    online_timestamp: Optional[int] = attr.ib(default=None)
-    online_timestamp_utc: Optional[int] = attr.ib(default=None)
-    settings_timestamp_utc: Optional[int] = attr.ib(default=None)
-    command_timestamp_utc: Optional[int] = attr.ib(default=None)
+    state_timestamp: int | None = attr.ib(default=None)
+    state_timestamp_utc: int | None = attr.ib(default=None)
+    online_timestamp: int | None = attr.ib(default=None)
+    online_timestamp_utc: int | None = attr.ib(default=None)
+    settings_timestamp_utc: int | None = attr.ib(default=None)
+    command_timestamp_utc: int | None = attr.ib(default=None)
+
+    @classmethod
+    def get_common_dict_args(
+        cls, data: Mapping[str, Any], **kwargs
+    ) -> dict[str, Any]:
+        if "identifier" not in kwargs:
+            try:
+                device_id = data["dev_id"]
+            except KeyError:
+                device_id = data["id"]
+            kwargs["identifier"] = int(device_id)
+        if "active_sim" not in kwargs and "active_sim" in data:
+            kwargs["active_sim"] = data["active_sim"]
+        if "balance" not in kwargs and "balance" in data:
+            kwargs["balance"] = BalanceState.from_dict(data["balance"])
+        if "balance_other" not in kwargs and "balance1" in data:
+            kwargs["balance_other"] = BalanceState.from_dict(data["balance"])
+        if "bit_state" not in kwargs and "bit_state_1" in data:
+            kwargs["bit_state"] = data["bit_state_1"]
+        if "key_number" not in kwargs and "brelok" in data:
+            kwargs["key_number"] = data["brelok"]
+        if "bunker" not in kwargs and "bunker" in data:
+            kwargs["bunker"] = data["bunker"]
+        if "interior_temperature" not in kwargs and "cabin_temp" in data:
+            kwargs["interior_temperature"] = data["cabin_temp"]
+        # dtime
+        # dtime_rec
+        if "engine_rpm" not in kwargs and "engine_rpm" in data:
+            kwargs["engine_rpm"] = data["engine_rpm"]
+        if "engine_temperature" not in kwargs and "engine_temp" in data:
+            kwargs["engine_temperature"] = data["engine_temp"]
+        if "is_evacuating" not in kwargs and "evaq" in data:
+            kwargs["is_evacuating"] = data["evaq"]
+        if "ex_status" not in kwargs and "ex_status" in data:
+            kwargs["ex_status"] = data["ex_status"]
+        if "fuel" not in kwargs and "fuel" in data:
+            kwargs["fuel"] = data["fuel"]
+        # land
+        # liquid_sensor
+        if "gsm_level" not in kwargs and "gsm_level" in data:
+            kwargs["gsm_level"] = data["gsm_level"]
+        if "tag_number" not in kwargs and "metka" in data:
+            kwargs["tag_number"] = data["metka"]
+        if "mileage" not in kwargs and "mileage" in data:
+            kwargs["mileage"] = data["mileage"]
+        if "can_mileage" not in kwargs and "mileage_CAN" in data:
+            kwargs["can_mileage"] = data["mileage_CAN"]
+        if "is_moving" not in kwargs and "move" in data:
+            kwargs["is_moving"] = data["move"]
+        # online -- different on HTTP, value not timestamp
+        if "exterior_temperature" not in kwargs and "out_temp" in data:
+            kwargs["exterior_temperature"] = data["out_temp"]
+        if "relay" not in kwargs and "relay" in data:
+            kwargs["relay"] = data["relay"]
+        if "rotation" not in kwargs and "rot" in data:
+            kwargs["rotation"] = data["rot"]
+        # smeter
+        if "speed" not in kwargs and "speed" in data:
+            kwargs["speed"] = data["speed"]
+        # tanks -- unknown for http
+        if "voltage" not in kwargs and "voltage" in data:
+            kwargs["voltage"] = data["voltage"]
+        if "latitude" not in kwargs and "x" in data:
+            kwargs["latitude"] = data["x"]
+        if "longitude" not in kwargs and "y" in data:
+            kwargs["longitude"] = data["y"]
+        return kwargs
+
+    @classmethod
+    def get_ws_dict_args(
+        cls, data: Mapping[str, Any], **kwargs
+    ) -> dict[str, Any]:
+        if "is_online" not in kwargs and "online_mode" in data:
+            kwargs["is_online"] = bool(data["online_mode"])
+        if "state_timestamp" not in kwargs and "state" in data:
+            kwargs["state_timestamp"] = data["state"]
+        if "state_timestamp_utc" not in kwargs and "state_utc" in data:
+            kwargs["state_timestamp_utc"] = data["state_utc"]
+        if "online_timestamp" not in kwargs and "online" in data:
+            kwargs["online_timestamp"] = data["online"]
+        if "online_timestamp_utc" not in kwargs and "online_utc" in data:
+            kwargs["online_timestamp_utc"] = data["online_utc"]
+        if "settings_timestamp_utc" not in kwargs and "setting_utc" in data:
+            kwargs["settings_timestamp_utc"] = data["setting_utc"]
+        if "command_timestamp_utc" not in kwargs and "command_utc" in data:
+            kwargs["command_timestamp_utc"] = data["command_utc"]
+        if "active_sim" not in kwargs and "active_sim" in data:
+            kwargs["active_sim"] = data["active_sim"]
+        if "tracking_remaining" not in kwargs and "track_remains" in data:
+            kwargs["tracking_remaining"] = data["track_remains"]
+        if "lock_latitude" not in kwargs and "lock_x" in data:
+            if (lock_x := data["lock_x"]) is not None:
+                lock_x = float(lock_x) / 1000000
+            kwargs["lock_latitude"] = lock_x
+        if "lock_longitude" not in kwargs and "lock_y" in data:
+            if (lock_y := data["lock_y"]) is not None:
+                lock_y = float(lock_y) / 1000000
+            kwargs["lock_longitude"] = lock_y / 1000000
+        if "can_average_speed" not in kwargs and "CAN_average_speed" in data:
+            kwargs["can_average_speed"] = data["CAN_average_speed"]
+        if (
+            "can_tpms_front_left" not in kwargs
+            and "CAN_TMPS_forvard_left" in data
+        ):
+            kwargs["can_tpms_front_left"] = data["CAN_TMPS_forvard_left"]
+        if (
+            "can_tpms_front_right" not in kwargs
+            and "CAN_TMPS_forvard_right" in data
+        ):
+            kwargs["can_tpms_front_right"] = data["CAN_TMPS_forvard_right"]
+        if "can_tpms_back_left" not in kwargs and "CAN_TMPS_back_left" in data:
+            kwargs["can_tpms_back_left"] = data["CAN_TMPS_back_left"]
+        if (
+            "can_tpms_back_right" not in kwargs
+            and "CAN_TMPS_back_right" in data
+        ):
+            kwargs["can_tpms_back_right"] = data["CAN_TMPS_back_right"]
+        if "can_tpms_reserve" not in kwargs and "CAN_TMPS_reserve" in data:
+            kwargs["can_tpms_reserve"] = data["CAN_TMPS_reserve"]
+        if "can_glass_driver" not in kwargs and "CAN_driver_glass" in data:
+            kwargs["can_glass_driver"] = data["CAN_driver_glass"]
+        if (
+            "can_glass_passenger" not in kwargs
+            and "CAN_passenger_glass" in data
+        ):
+            kwargs["can_glass_passenger"] = data["CAN_passenger_glass"]
+        if (
+            "can_glass_back_left" not in kwargs
+            and "CAN_back_left_glass" in data
+        ):
+            kwargs["can_glass_back_left"] = data["CAN_back_left_glass"]
+        if (
+            "can_glass_back_right" not in kwargs
+            and "CAN_back_right_glass" in data
+        ):
+            kwargs["can_glass_back_right"] = data["CAN_back_right_glass"]
+        if "can_belt_driver" not in kwargs and "CAN_driver_belt" in data:
+            kwargs["can_belt_driver"] = data["CAN_driver_belt"]
+        if "can_belt_passenger" not in kwargs and "CAN_passenger_belt" in data:
+            kwargs["can_belt_passenger"] = data["CAN_passenger_belt"]
+        if "can_belt_back_left" not in kwargs and "CAN_back_left_belt" in data:
+            kwargs["can_belt_back_left"] = data["CAN_back_left_belt"]
+        if (
+            "can_belt_back_right" not in kwargs
+            and "CAN_back_right_belt" in data
+        ):
+            kwargs["can_belt_back_right"] = data["CAN_back_right_belt"]
+        if "can_low_liquid" not in kwargs and "CAN_low_liquid" in data:
+            kwargs["can_low_liquid"] = data["CAN_low_liquid"]
+        if "can_seat_taken" not in kwargs and "CAN_seat_taken" in data:
+            kwargs["can_seat_taken"] = data["CAN_seat_taken"]
+        if (
+            "can_mileage_by_battery" not in kwargs
+            and "CAN_mileage_by_battery" in data
+        ):
+            kwargs["can_mileage_by_battery"] = data["CAN_mileage_by_battery"]
+        if (
+            "can_mileage_to_empty" not in kwargs
+            and "CAN_mileage_to_empty" in data
+        ):
+            kwargs["can_mileage_to_empty"] = data["CAN_mileage_to_empty"]
+        if (
+            "can_mileage_to_maintenance" not in kwargs
+            and "CAN_mileage_to_maintenance" in data
+        ):
+            kwargs["can_mileage_to_maintenance"] = data[
+                "CAN_mileage_to_maintenance"
+            ]
+        if (
+            "ev_charging_connected" not in kwargs
+            and "charging_connect" in data
+        ):
+            kwargs["ev_charging_connected"] = data["charging_connect"]
+        if "ev_charging_slow" not in kwargs and "charging_slow" in data:
+            kwargs["ev_charging_slow"] = data["charging_slow"]
+        if "ev_charging_fast" not in kwargs and "charging_fast" in data:
+            kwargs["ev_charging_fast"] = data["charging_fast"]
+        if "ev_state_of_charge" not in kwargs and "SOC" in data:
+            kwargs["ev_state_of_charge"] = data["SOC"]
+        if "ev_state_of_health" not in kwargs and "SOH" in data:
+            kwargs["ev_state_of_health"] = data["SOH"]
+        if "ev_status_ready" not in kwargs and "ev_status_ready" in data:
+            kwargs["ev_status_ready"] = data["ev_status_ready"]
+        if (
+            "battery_temperature" not in kwargs
+            and "battery_temperature" in data
+        ):
+            kwargs["battery_temperature"] = data["battery_temperature"]
+        # if "tanks" in data:
+        #     kwargs["fuel_tanks"] = FuelTank.parse_fuel_tanks(data["tanks"])
+        return cls.get_common_dict_args(data, **kwargs)
+
+    @classmethod
+    def get_http_dict_args(
+        cls, data: Mapping[str, Any], **kwargs
+    ) -> dict[str, Any]:
+        return cls.get_common_dict_args(data, **kwargs)
 
     @property
     def direction(self) -> str:
@@ -514,7 +730,7 @@ class TrackingEvent:
         return PrimaryEventID(self.event_id_primary)
 
     @classmethod
-    def from_dict(cls, data: Mapping[str, Any], **kwargs):
+    def get_dict_args(cls, data: Mapping[str, Any], **kwargs):
         if "identifier" not in kwargs:
             kwargs["identifier"] = int(data["id"])
         if "bit_state" not in kwargs:
@@ -545,7 +761,11 @@ class TrackingEvent:
             kwargs["latitude"] = data["x"]
         if "longitude" not in kwargs:
             kwargs["longitude"] = data["y"]
-        return cls(**kwargs)
+        return kwargs
+
+    @classmethod
+    def from_dict(cls, data: Mapping[str, Any], **kwargs):
+        return cls(**cls.get_dict_args(data, **kwargs))
 
 
 @attr.s(kw_only=True, frozen=True, slots=True)
@@ -553,12 +773,12 @@ class TrackingPoint:
     device_id: int = attr.ib()
     latitude: float = attr.ib()
     longitude: float = attr.ib()
-    track_id: Optional[int] = attr.ib(default=None)
+    track_id: int | None = attr.ib(default=None)
     timestamp: float = attr.ib(default=time)
-    fuel: Optional[int] = attr.ib(default=None)
-    speed: Optional[float] = attr.ib(default=None)
-    max_speed: Optional[float] = attr.ib(default=None)
-    length: Optional[float] = attr.ib(default=None)
+    fuel: int | None = attr.ib(default=None)
+    speed: float | None = attr.ib(default=None)
+    max_speed: float | None = attr.ib(default=None)
+    length: float | None = attr.ib(default=None)
 
 
 class PandoraOnlineAccount:
@@ -571,8 +791,8 @@ class PandoraOnlineAccount:
         session: aiohttp.ClientSession,
         username: str,
         password: str,
-        access_token: Optional[str] = None,
-        utc_offset: Optional[int] = None,
+        access_token: str | None = None,
+        utc_offset: int | None = None,
     ) -> None:
         """
         Instantiate Pandora Online account object.
@@ -593,14 +813,14 @@ class PandoraOnlineAccount:
         self._username = username
         self._password = password
         self.access_token = access_token
-        self._user_id: Optional[int] = None
+        self._user_id: int | None = None
         self._session = session
 
         #: last update timestamp
         self._last_update = -1
 
         #: list of vehicles associated with this account.
-        self._devices: Dict[int, PandoraOnlineDevice] = {}
+        self._devices: dict[int, PandoraOnlineDevice] = {}
 
     def __repr__(self):
         """Retrieve representation of account object"""
@@ -620,7 +840,7 @@ class PandoraOnlineAccount:
         return self._utc_offset
 
     @property
-    def user_id(self) -> Optional[int]:
+    def user_id(self) -> int | None:
         return self._user_id
 
     @property
@@ -683,7 +903,7 @@ class PandoraOnlineAccount:
         return data
 
     async def async_check_access_token(
-        self, access_token: Optional[str] = None
+        self, access_token: str | None = None
     ) -> None:
         """
         Validate access token against API.
@@ -791,7 +1011,7 @@ class PandoraOnlineAccount:
         _LOGGER.info(f"[{self}] Access token authentication successful")
 
     async def async_authenticate(
-        self, access_token: Optional[str] = None
+        self, access_token: str | None = None
     ) -> None:
         if access_token:
             try:
@@ -961,8 +1181,8 @@ class PandoraOnlineAccount:
 
     @staticmethod
     def parse_fuel_tanks(
-        fuel_tanks_data: Optional[Iterable[Mapping[str, Any]]],
-        existing_fuel_tanks: Optional[Collection[FuelTank]] = None,
+        fuel_tanks_data: Iterable[Mapping[str, Any | None]],
+        existing_fuel_tanks: Collection[FuelTank | None] = None,
     ) -> Tuple[FuelTank, ...]:
         fuel_tanks = []
 
@@ -1002,79 +1222,10 @@ class PandoraOnlineAccount:
 
         return tuple(fuel_tanks)
 
-    @classmethod
-    def parse_common_state_args(
-        cls, data: Mapping[str, Any], **kwargs
-    ) -> Dict[str, Any]:
-        if "identifier" not in kwargs:
-            kwargs["identifier"] = cls.parse_device_id(data)
-        if "active_sim" in data:
-            kwargs.setdefault("active_sim", data["active_sim"])
-        if "balance" in data:
-            kwargs.setdefault(
-                "balance",
-                BalanceState.from_dict(data.get("balance")),
-            )
-        if "balance1" in data:
-            kwargs.setdefault(
-                "balance_other",
-                BalanceState.from_dict(data.get("balance")),
-            )
-        if "bit_state_1" in data:
-            kwargs.setdefault("bit_state", BitStatus(int(data["bit_state_1"])))
-        if "brelok" in data:
-            kwargs.setdefault("key_number", data["brelok"])
-        if "bunker" in data:
-            kwargs.setdefault("bunker", data["bunker"])
-        if "cabin_temp" in data:
-            kwargs.setdefault("interior_temperature", data["cabin_temp"])
-        # dtime
-        # dtime_rec
-        if "engine_rpm" in data:
-            kwargs.setdefault("engine_rpm", data["engine_rpm"])
-        if "engine_temp" in data:
-            kwargs.setdefault("engine_temperature", data["engine_temp"])
-        if "evaq" in data:
-            kwargs.setdefault("is_evacuating", data["evaq"])
-        if "ex_status" in data:
-            kwargs.setdefault("ex_status", data["ex_status"])
-        if "fuel" in data:
-            kwargs.setdefault("fuel", data["fuel"])
-        # land
-        # liquid_sensor
-        if "gsm_level" in data:
-            kwargs.setdefault("gsm_level", data["gsm_level"])
-        if "metka" in data:
-            kwargs.setdefault("tag_number", data["metka"])
-        if "mileage" in data:
-            kwargs.setdefault("mileage", data["mileage"])
-        if "mileage_CAN" in data:
-            kwargs.setdefault("can_mileage", data["mileage_CAN"])
-        if "move" in data:
-            kwargs.setdefault("is_moving", data["move"])
-        # online -- different on HTTP, value not timestamp
-        if "out_temp" in data:
-            kwargs.setdefault("exterior_temperature", data["out_temp"])
-        if "relay" in data:
-            kwargs.setdefault("relay", data["relay"])
-        if "rot" in data:
-            kwargs.setdefault("rotation", data["rot"])
-        # smeter
-        if "speed" in data:
-            kwargs.setdefault("speed", data["speed"])
-        # tanks -- unknown for http
-        if "voltage" in data:
-            kwargs.setdefault("voltage", data["voltage"])
-        if "x" in data:
-            kwargs.setdefault("latitude", data["x"])
-        if "y" in data:
-            kwargs.setdefault("longitude", data["y"])
-        return kwargs
-
     @staticmethod
     def _update_device_current_state(
         device: "PandoraOnlineDevice", **state_args
-    ) -> Tuple[CurrentState, Dict[str, Any]]:
+    ) -> Tuple[CurrentState, dict[str, Any]]:
         # Extract UTC offset
         if (utc_offset := device._utc_offset) is None:
             for prefix in ("online", "state"):
@@ -1116,10 +1267,10 @@ class PandoraOnlineAccount:
 
     def _process_http_stats(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
-    ) -> Tuple[CurrentState, Dict[str, Any]]:
+    ) -> Tuple[CurrentState, dict[str, Any]]:
         return self._update_device_current_state(
             device,
-            **self.parse_common_state_args(
+            **CurrentState.get_common_dict_args(
                 data,
                 identifier=device.device_id,
             ),
@@ -1128,20 +1279,20 @@ class PandoraOnlineAccount:
 
     def _process_http_times(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
-    ) -> Tuple[CurrentState, Dict[str, Any]]:
+    ) -> Tuple[CurrentState, dict[str, Any]]:
         # @TODO: unknown timestamp format
 
         return self._update_device_current_state(
             device,
-            online_timestamp=data["onlined"],
-            online_timestamp_utc=data["online"],
-            command_timestamp_utc=data["command"],
-            settings_timestamp_utc=data["setting"],
+            online_timestamp=data.get("onlined"),
+            online_timestamp_utc=data.get("online"),
+            command_timestamp_utc=data.get("command"),
+            settings_timestamp_utc=data.get("setting"),
         )
 
     async def async_request_updates(
-        self, timestamp: Optional[int] = None
-    ) -> Tuple[Dict[int, Dict[str, Any]], List[TrackingEvent]]:
+        self, timestamp: int | None = None
+    ) -> Tuple[dict[int, Dict[str, Any]], List[TrackingEvent]]:
         """
         Fetch the latest changes from update server.
         :param timestamp: Timestamp to fetch updates since (optional, uses
@@ -1163,7 +1314,7 @@ class PandoraOnlineAccount:
         ) as response:
             data = await self._handle_dict_response(response)
 
-        device_new_attrs: Dict[int, Dict[str, Any]] = {}
+        device_new_attrs: dict[int, Dict[str, Any]] = {}
 
         # Stats / time updates
         for key, meth in (
@@ -1238,64 +1389,22 @@ class PandoraOnlineAccount:
 
     def _process_ws_initial_state(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
-    ) -> Tuple[CurrentState, Dict[str, Any]]:
+    ) -> Tuple[CurrentState, dict[str, Any]]:
         _LOGGER.debug(
             f"[{self}] Initializing state for {device.device_id} from {data}"
         )
 
         return self._update_device_current_state(
             device,
-            **self.parse_common_state_args(
+            **CurrentState.get_ws_dict_args(
                 data,
                 identifier=device.device_id,
             ),
-            is_online=bool(data["online_mode"]),
-            state_timestamp=data["state"],
-            state_timestamp_utc=data["state_utc"],
-            online_timestamp=data["online"],
-            online_timestamp_utc=data["online_utc"],
-            settings_timestamp_utc=data["setting_utc"],
-            command_timestamp_utc=data["command_utc"],
-            tracking_remaining=data["track_remains"],
-            lock_latitude=float(data["lock_x"]) / 1000000,
-            lock_longitude=float(data["lock_y"]) / 1000000,
-            fuel_tanks=self.parse_fuel_tanks(data.get("tanks")),
-            # CAN data about wheel pressure
-            can_tpms_front_left=data.get("CAN_TMPS_forvard_left"),
-            can_tpms_front_right=data.get("CAN_TMPS_forvard_right"),
-            can_tpms_back_left=data.get("CAN_TMPS_back_left"),
-            can_tpms_back_right=data.get("CAN_TMPS_back_right"),
-            can_tpms_reserve=data.get("CAN_TPMS_reserve"),
-            # CAN data about glass up/down
-            can_glass_driver=data.get("CAN_driver_glass"),
-            can_glass_passenger=data.get("CAN_passenger_glass"),
-            can_glass_back_left=data.get("CAN_back_left_glass"),
-            can_glass_back_right=data.get("CAN_back_right_glass"),
-            # CAN data about belt buckling
-            can_belt_driver=data.get("CAN_driver_belt"),
-            can_belt_passenger=data.get("CAN_passenger_belt"),
-            can_belt_back_left=data.get("CAN_back_left_belt"),
-            can_belt_back_right=data.get("CAN_back_right_belt"),
-            # Other CAN parameters
-            can_average_speed=data.get("CAN_average_speed"),
-            can_low_liquid=data.get("CAN_low_liquid"),
-            # CAN mileage values
-            can_mileage_by_battery=data.get("CAN_mileage_by_battery"),
-            can_mileage_to_empty=data.get("CAN_mileage_to_empty"),
-            can_mileage_to_maintenance=data.get("CAN_mileage_to_maintenance"),
-            # EV vehicle status
-            ev_state_of_charge=data.get("SOC"),
-            ev_state_of_health=data.get("SOH"),
-            ev_charging_connected=data.get("charging_connect"),
-            ev_charging_slow=data.get("charging_slow"),
-            ev_charging_fast=data.get("charging_fast"),
-            ev_status_ready=data.get("ev_status_ready"),
-            battery_temperature=data.get("battery_temperature"),
         )
 
     def _process_ws_state(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
-    ) -> Optional[Tuple[CurrentState, Dict[str, Any]]]:
+    ) -> Tuple[CurrentState, dict[str, Any | None]]:
         device_state = device.state
         # if device_state is None:
         #     _LOGGER.warning(
@@ -1307,86 +1416,9 @@ class PandoraOnlineAccount:
 
         _LOGGER.debug(f"[{self}] Updating state for {device.device_id}")
 
-        args = self.parse_common_state_args(data, identifier=device.device_id)
-
-        if "online_mode" in data:
-            args["is_online"] = bool(data["online_mode"])
-        if "state" in data:
-            args["state_timestamp"] = data["state"]
-        if "state_utc" in data:
-            args["state_timestamp_utc"] = data["state_utc"]
-        if "online" in data:
-            args["online_timestamp"] = data["online"]
-        if "online_utc" in data:
-            args["online_timestamp_utc"] = data["online_utc"]
-        if "setting_utc" in data:
-            args["settings_timestamp_utc"] = data["setting_utc"]
-        if "command_utc" in data:
-            args["command_timestamp_utc"] = data["command_utc"]
-        if "active_sim" in data:
-            args["active_sim"] = data["active_sim"]
-        if "track_remains" in data:
-            args["tracking_remaining"] = data["track_remains"]
-        if "lock_x" in data:
-            args["lock_latitude"] = float(data["lock_x"]) / 1000000
-        if "lock_y" in data:
-            args["lock_longitude"] = float(data["lock_y"]) / 1000000
-        if "CAN_average_speed" in data:
-            args["can_average_speed"] = data["CAN_average_speed"]
-        if "CAN_TMPS_forvard_left" in data:
-            args["can_tpms_front_left"] = data["CAN_TMPS_forvard_left"]
-        if "CAN_TMPS_forvard_right" in data:
-            args["can_tpms_front_right"] = data["CAN_TMPS_forvard_right"]
-        if "CAN_TMPS_back_left" in data:
-            args["can_tpms_back_left"] = data["CAN_TMPS_back_left"]
-        if "CAN_TMPS_back_right" in data:
-            args["can_tpms_back_right"] = data["CAN_TMPS_back_right"]
-        if "CAN_TMPS_reserve" in data:
-            args["can_tpms_reserve"] = data["CAN_TMPS_reserve"]
-        if "CAN_driver_glass" in data:
-            args["can_glass_driver"] = data["CAN_driver_glass"]
-        if "CAN_passenger_glass" in data:
-            args["can_glass_passenger"] = data["CAN_passenger_glass"]
-        if "CAN_back_left_glass" in data:
-            args["can_glass_back_left"] = data["CAN_back_left_glass"]
-        if "CAN_back_right_glass" in data:
-            args["can_glass_back_right"] = data["CAN_back_right_glass"]
-        if "CAN_driver_belt" in data:
-            args["can_belt_driver"] = data["CAN_driver_belt"]
-        if "CAN_passenger_belt" in data:
-            args["can_belt_passenger"] = data["CAN_passenger_belt"]
-        if "CAN_back_left_belt" in data:
-            args["can_belt_back_left"] = data["CAN_back_left_belt"]
-        if "CAN_back_right_belt" in data:
-            args["can_belt_back_right"] = data["CAN_back_right_belt"]
-        if "CAN_low_liquid" in data:
-            args["can_low_liquid"] = data["CAN_low_liquid"]
-        if "CAN_seat_taken" in data:
-            args["can_seat_taken"] = data["CAN_seat_taken"]
-        if "CAN_mileage_by_battery" in data:
-            args["can_mileage_by_battery"] = data["CAN_mileage_by_battery"]
-        if "CAN_mileage_to_empty" in data:
-            args["can_mileage_to_empty"] = data["CAN_mileage_to_empty"]
-        if "CAN_mileage_to_maintenance" in data:
-            args["can_mileage_to_maintenance"] = data[
-                "CAN_mileage_to_maintenance"
-            ]
-        if "charging_connect" in data:
-            args["ev_charging_connected"] = data["charging_connect"]
-        if "charging_slow" in data:
-            args["ev_charging_slow"] = data["charging_slow"]
-        if "charging_fast" in data:
-            args["ev_charging_fast"] = data["charging_fast"]
-        if "SOC" in data:
-            args["ev_state_of_charge"] = data["SOC"]
-        if "SOH" in data:
-            args["ev_state_of_health"] = data["SOH"]
-        if "ev_status_ready" in data:
-            args["ev_status_ready"] = data["ev_status_ready"]
-        if "battery_temperature" in data:
-            args["battery_temperature"] = data["battery_temperature"]
-        if "tanks" in data:
-            args["fuel_tanks"] = self.parse_fuel_tanks(data["tanks"])
+        args = CurrentState.get_common_dict_args(
+            data, identifier=device.device_id
+        )
 
         return self._update_device_current_state(device, **args)
 
@@ -1548,42 +1580,37 @@ class PandoraOnlineAccount:
     async def async_listen_for_updates(
         self,
         *,
-        state_callback: Optional[
-            Callable[
-                ["PandoraOnlineDevice", CurrentState, Mapping[str, Any]],
-                Union[Awaitable[None], None],
-            ]
-        ] = None,
-        command_callback: Optional[
-            Callable[
-                ["PandoraOnlineDevice", int, int, Any],
-                Union[Awaitable[None], None],
-            ]
-        ] = None,
-        event_callback: Optional[
-            Callable[
-                ["PandoraOnlineDevice", TrackingEvent],
-                Union[Awaitable[None], None],
-            ]
-        ] = None,
-        point_callback: Optional[
-            Callable[
-                ["PandoraOnlineDevice", TrackingPoint],
-                Union[Awaitable[None], None],
-            ]
-        ] = None,
-        update_settings_callback: Optional[
-            Callable[
-                ["PandoraOnlineDevice", Mapping[str, Any]],
-                Union[Awaitable[None], None],
-            ]
-        ] = None,
+        state_callback: Callable[
+            ["PandoraOnlineDevice", CurrentState, Mapping[str, Any]],
+            Union[Awaitable[None], None],
+        ]
+        | None = None,
+        command_callback: Callable[
+            ["PandoraOnlineDevice", int, int, Any | None],
+            Union[Awaitable[None], None],
+        ]
+        | None = None,
+        event_callback: Callable[
+            ["PandoraOnlineDevice", TrackingEvent | None],
+            Union[Awaitable[None], None],
+        ]
+        | None = None,
+        point_callback: Callable[
+            ["PandoraOnlineDevice", TrackingPoint | None],
+            Union[Awaitable[None], None],
+        ]
+        | None = None,
+        update_settings_callback: Callable[
+            ["PandoraOnlineDevice", Mapping[str, Any | None]],
+            Union[Awaitable[None], None],
+        ]
+        | None = None,
         reconnect_on_device_online: bool = True,
         **kwargs,
     ) -> None:
         async def _handle_ws_message(
             contents: Mapping[str, Any]
-        ) -> Optional[bool]:
+        ) -> bool | None:
             """
             Handle WebSockets message.
             :returns: True = keep running, None = restart, False = stop
@@ -1728,9 +1755,9 @@ class PandoraOnlineDevice:
         self,
         account: PandoraOnlineAccount,
         attributes: Mapping[str, Any],
-        current_state: Optional[CurrentState] = None,
+        current_state: CurrentState | None = None,
         control_timeout: float = DEFAULT_CONTROL_TIMEOUT,
-        utc_offset: Optional[int] = None,
+        utc_offset: int | None = None,
     ) -> None:
         """
         Instantiate vehicle object.
@@ -1740,12 +1767,12 @@ class PandoraOnlineDevice:
             raise ValueError("utc offset cannot be greater than 24 hours")
 
         self._account = account
-        self._control_future: Optional[asyncio.Future] = None
+        self._control_future: asyncio.Future | None = None
         self._features = None
         self._attributes = attributes
         self._current_state = current_state
-        self._last_point: Optional[TrackingPoint] = None
-        self._last_event: Optional[TrackingEvent] = None
+        self._last_point: TrackingPoint | None = None
+        self._last_event: TrackingEvent | None = None
         self._utc_offset = utc_offset
 
         # Control timeout setting
@@ -1775,7 +1802,7 @@ class PandoraOnlineDevice:
         )
 
     @property
-    def state(self) -> Optional[CurrentState]:
+    def state(self) -> CurrentState | None:
         return self._current_state
 
     @state.setter
@@ -1798,11 +1825,11 @@ class PandoraOnlineDevice:
         self._current_state = value
 
     @property
-    def last_point(self) -> Optional[TrackingPoint]:
+    def last_point(self) -> TrackingPoint | None:
         return self._last_point
 
     @last_point.setter
-    def last_point(self, value: Optional[TrackingPoint]) -> None:
+    def last_point(self, value: TrackingPoint | None) -> None:
         if value is None:
             self._last_point = None
             return
@@ -1833,11 +1860,11 @@ class PandoraOnlineDevice:
         self._last_point = value
 
     @property
-    def last_event(self) -> Optional[TrackingEvent]:
+    def last_event(self) -> TrackingEvent | None:
         return self._last_event
 
     @last_event.setter
-    def last_event(self, value: Optional[TrackingEvent]) -> None:
+    def last_event(self, value: TrackingEvent | None) -> None:
         self._last_event = value
 
     # Remote command execution section
@@ -1989,7 +2016,7 @@ class PandoraOnlineDevice:
             self._control_future is None or self._control_future.done()
         )
 
-    def release_control_lock(self, error: Optional[Any] = None) -> None:
+    def release_control_lock(self, error: Any | None = None) -> None:
         if self._control_future is None:
             raise ValueError("control lock is not in effect")
 
@@ -2033,7 +2060,7 @@ class PandoraOnlineDevice:
         self._features = None
 
     @property
-    def features(self) -> Optional[Features]:
+    def features(self) -> Features | None:
         if self._features is None and isinstance(
             self._attributes.get("features"), Mapping
         ):
@@ -2041,7 +2068,7 @@ class PandoraOnlineDevice:
         return self._features
 
     @property
-    def type(self) -> Optional[str]:
+    def type(self) -> str | None:
         return self._attributes.get("type")
 
     @property
@@ -2063,15 +2090,15 @@ class PandoraOnlineDevice:
         return self._attributes["voice_version"]
 
     @property
-    def color(self) -> Optional[str]:
+    def color(self) -> str | None:
         return self._attributes.get("color")
 
     @property
-    def car_type_id(self) -> Optional[int]:
+    def car_type_id(self) -> int | None:
         return self._attributes.get("car_type")
 
     @property
-    def car_type(self) -> Optional[str]:
+    def car_type(self) -> str | None:
         car_type = self.car_type_id
         if car_type is None:
             return None
@@ -2082,11 +2109,11 @@ class PandoraOnlineDevice:
         return "car"
 
     @property
-    def photo_id(self) -> Optional[str]:
+    def photo_id(self) -> str | None:
         return self._attributes.get("photo")
 
     @property
-    def photo_url(self) -> Optional[str]:
+    def photo_url(self) -> str | None:
         photo_id = self.photo_id
         if not photo_id:
             return photo_id
@@ -2094,11 +2121,11 @@ class PandoraOnlineDevice:
         return f"/images/avatars/{photo_id}.jpg"
 
     @property
-    def phone(self) -> Optional[str]:
+    def phone(self) -> str | None:
         return self._attributes.get("phone") or None
 
     @property
-    def phone_other(self) -> Optional[str]:
+    def phone_other(self) -> str | None:
         return self._attributes.get("phone1") or None
 
 

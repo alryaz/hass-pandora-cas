@@ -57,7 +57,7 @@ class ForProcessing:
     @classmethod
     def make_image_dict(
         cls, image: Union[bytes, BytesIO, Image.Image], **kwargs
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         return {
             "type": "image",
             "image": cls.image_as_data_uri(image),
@@ -66,7 +66,7 @@ class ForProcessing:
 
     def get_style(
         self, style: Optional[Mapping[str, Any]] = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         return (
             dict(self._base_style)
             if style is None
@@ -74,7 +74,7 @@ class ForProcessing:
         )
 
     def _merge_style_kwarg(
-        self, kwargs: Dict[str, Any], style: Optional[Mapping[str, Any]] = None
+        self, kwargs: dict[str, Any], style: Optional[Mapping[str, Any]] = None
     ) -> None:
         final_styles = dict(self._base_style)
         final_styles.update(style or {})
@@ -89,7 +89,7 @@ class ForProcessing:
         pandora_id: str,
         body_image: Image,
         **kwargs,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         raise NotImplementedError
 
 
@@ -111,7 +111,7 @@ class ForSimple(ForProcessing):
         pandora_id: str,
         body_image: Image,
         **kwargs,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         image = Image.open(os.path.join(src_path, self.file_name))
         self._merge_style_kwarg(kwargs)
 
@@ -146,7 +146,7 @@ class ForAnimation(ForProcessing):
         pandora_id: str,
         body_image: Image,
         **kwargs,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         frames = [
             Image.open(os.path.join(src_path, file_name)).convert("RGBA")
             for file_name in self.file_names
@@ -205,7 +205,7 @@ class ForTrimming(ForAnimation):
         super().__init__(*args, use_full_width=True, **kwargs)
 
 
-_TImage = Optional[Union[ForProcessing, str, Dict[str, Any]]]
+_TImage = Optional[Union[ForProcessing, str, dict[str, Any]]]
 _TBinary = Tuple[_TImage, _TImage]
 
 
@@ -231,9 +231,9 @@ class CarType:
 
     @staticmethod
     def condition_elements(
-        elements: Union[List[Dict[str, Any]], Dict[str, Any]],
-        condition_1: Dict[str, Any],
-        *conditions: Dict[str, Any],
+        elements: Union[List[dict[str, Any]], dict[str, Any]],
+        condition_1: dict[str, Any],
+        *conditions: dict[str, Any],
     ):
         return {
             "type": "conditional",
@@ -243,9 +243,9 @@ class CarType:
 
     @staticmethod
     def condition_card(
-        card: Dict[str, Any],
-        condition_1: Dict[str, Any],
-        *conditions: Dict[str, Any],
+        card: dict[str, Any],
+        condition_1: dict[str, Any],
+        *conditions: dict[str, Any],
     ):
         return {
             "type": "conditional",

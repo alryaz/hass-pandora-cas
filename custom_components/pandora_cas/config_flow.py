@@ -2,11 +2,7 @@
 __all__ = ("PandoraCASConfigFlow",)
 
 import logging
-from typing import (
-    Any,
-    Dict,
-    Optional,
-)
+from typing import Any
 
 from homeassistant import config_entries
 from homeassistant.const import (
@@ -67,10 +63,10 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     def __init__(self) -> None:
         """Init the config flow."""
-        self._reauth_entry: Optional[config_entries.ConfigEntry] = None
+        self._reauth_entry: config_entries.ConfigEntry | None = None
 
     async def async_step_user(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         if user_input is not None:
             account = PandoraOnlineAccount(
@@ -153,7 +149,7 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_reauth(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         self._reauth_entry = self.hass.config_entries.async_get_entry(
             self.context["entry_id"]
@@ -161,7 +157,7 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return await self.async_step_user()
 
     async def async_step_import(
-        self, user_input: Optional[Dict[str, Any]] = None
+        self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         if user_input is None:
             _LOGGER.error("Called import step without configuration")
@@ -191,7 +187,7 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-        self.device_options: Optional[dict[str, str]] = None
+        self.device_options: dict[str, str] | None = None
         self.current_pandora_id: str | None = None
         self.save_needed = False
         self.options[

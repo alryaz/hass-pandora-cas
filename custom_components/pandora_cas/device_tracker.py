@@ -3,7 +3,7 @@ __all__ = ("ENTITY_TYPES", "async_setup_entry")
 
 import base64
 import logging
-from typing import Mapping, Any, Dict, Optional
+from typing import Mapping, Any, Optional
 
 from haversine import haversine, Unit
 from homeassistant.components.device_tracker import (
@@ -16,6 +16,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 
+from custom_components.pandora_cas import PandoraCASUpdateCoordinator
 from custom_components.pandora_cas.const import *
 from custom_components.pandora_cas.entity import (
     PandoraCASEntity,
@@ -23,7 +24,6 @@ from custom_components.pandora_cas.entity import (
 from custom_components.pandora_cas.entity import (
     PandoraCASEntityDescription,
 )
-from custom_components.pandora_cas import PandoraCASUpdateCoordinator
 from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
 
 _LOGGER = logging.getLogger(__name__)
@@ -125,7 +125,7 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
-        attr: Dict[str, StateType] = dict()
+        attr: dict[str, StateType] = dict()
         if super_attr := super().extra_state_attributes:
             attr.update(super_attr)
 
@@ -180,7 +180,15 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
                 IMAGE_REGISTRY.get_image(
                     cursor,
                     device.color,
-                    (device.state.rotation if device.state else None) or 0,
+                    (
+                        device.state.rotation
+                        if device.state
+                        and not self._device_config[
+                            CONF_DISABLE_CURSOR_ROTATION
+                        ]
+                        else None
+                    )
+                    or 0,
                 ).encode()
             ).decode()
         )
