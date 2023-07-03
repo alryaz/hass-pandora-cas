@@ -444,7 +444,7 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
             if native_value:
                 return int(
                     native_value * self._device_config[CONF_RPM_COEFFICIENT]
-                    + CONF_RPM_OFFSET
+                    + self._device_config[CONF_RPM_OFFSET]
                 )
             return 0
         return native_value
