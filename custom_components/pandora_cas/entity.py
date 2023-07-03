@@ -1,7 +1,6 @@
 import asyncio
 import dataclasses
 import logging
-from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Flag
@@ -18,17 +17,11 @@ from typing import (
     final,
     List,
     Awaitable,
-    TypeVar,
-    Final,
 )
 
-import aiohttp
-import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_USERNAME, ATTR_DEVICE_ID, CONF_DEVICES
+from homeassistant.const import CONF_USERNAME, ATTR_DEVICE_ID
 from homeassistant.core import HomeAssistant, callback, Event
-from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
-from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity import EntityDescription, DeviceInfo
 from homeassistant.helpers.entity_platform import (
     AddEntitiesCallback,
@@ -37,33 +30,23 @@ from homeassistant.helpers.entity_platform import (
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import (
-    DataUpdateCoordinator,
     CoordinatorEntity,
-    UpdateFailed,
 )
 from homeassistant.util import slugify
 
+from custom_components.pandora_cas import PandoraCASUpdateCoordinator
 from custom_components.pandora_cas.api import (
     PandoraOnlineDevice,
     Features,
     CommandID,
     PandoraDeviceTypes,
-    PandoraOnlineAccount,
-    AuthenticationError,
-    MalformedResponseError,
 )
 from custom_components.pandora_cas.const import (
     DOMAIN,
     ATTR_COMMAND_ID,
     CONF_OFFLINE_AS_UNAVAILABLE,
-    CONF_FUEL_IS_LITERS,
-    CONF_MILEAGE_MILES,
-    CONF_MILEAGE_CAN_MILES,
-    CONF_CUSTOM_CURSOR_TYPE,
-    DEFAULT_CURSOR_TYPE,
-    DISABLED_CURSOR_TYPE,
+    CONF_IGNORE_WS_COORDINATES,
 )
-from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -132,58 +115,6 @@ async def async_platform_setup_entry(
         )
 
     return True
-
-
-class PandoraCASUpdateCoordinator(
-    DataUpdateCoordinator[Mapping[int, Mapping[str, Any]]]
-):
-    def __init__(
-        self,
-        hass: HomeAssistant,
-        account: PandoraOnlineAccount,
-    ) -> None:
-        self.account = account
-        self._device_configs = {}
-        super().__init__(
-            hass,
-            _LOGGER,
-            name=DOMAIN,  # update_interval=timedelta(seconds=5)
-        )
-
-    def get_device_config(self, device_id: str | int) -> Dict[str, Any]:
-        device_id = str(device_id)
-        try:
-            return self._device_configs[device_id]
-        except KeyError:
-            config = DEVICE_OPTIONS_SCHEMA(
-                self.config_entry.options.get(CONF_DEVICES, {}).get(
-                    device_id, {}
-                )
-            )
-            self._device_configs[device_id] = config
-            return config
-
-    async def _async_update_data(self) -> Mapping[int, Mapping[str, Any]]:
-        """Fetch data for sub-entities."""
-        # @TODO: manual polling updates!
-        try:
-            try:
-                updates, events = await self.account.async_request_updates()
-            except AuthenticationError:
-                try:
-                    await self.account.async_authenticate()
-                    (
-                        updates,
-                        events,
-                    ) = await self.account.async_request_updates()
-                except AuthenticationError as exc:
-                    raise ConfigEntryAuthFailed(
-                        "Authentication failed during fetching"
-                    ) from exc
-        except MalformedResponseError as exc:
-            raise UpdateFailed("Malformed response retrieved") from exc
-
-        return updates
 
 
 @dataclass
@@ -329,7 +260,12 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
         """Handle updated data from the coordinator."""
 
         # Do not issue update if coordinator data is empty
-        if not (data := self.coordinator.data):
+        if not (coordinator_data := self.coordinator.data):
+            return
+
+        # Ignore WS coordinates if required
+        is_ws, data = coordinator_data
+        if is_ws and self._device_config[CONF_IGNORE_WS_COORDINATES]:
             return
 
         # Do not issue update if device id within list of data
@@ -522,37 +458,3 @@ class PandoraCASBooleanEntity(PandoraCASEntity):
         await super().async_added_to_hass()
         self._add_command_listener(self.entity_description.command_on)
         self._add_command_listener(self.entity_description.command_off)
-
-
-_T = TypeVar("_T")
-
-
-async def async_run_pandora_coro(coro: Awaitable[_T]) -> _T:
-    try:
-        return await coro
-    except AuthenticationError as exc:
-        raise ConfigEntryAuthFailed("Authentication failed") from exc
-    except MalformedResponseError as exc:
-        raise ConfigEntryNotReady("Server responds erroneously") from exc
-    except (OSError, aiohttp.ClientError, TimeoutError) as exc:
-        raise ConfigEntryNotReady("Timed out while authenticating") from exc
-
-
-DEVICE_OPTIONS_SCHEMA: Final = vol.Schema(
-    {
-        vol.Optional(CONF_FUEL_IS_LITERS, default=False): cv.boolean,
-        vol.Optional(CONF_MILEAGE_MILES, default=False): cv.boolean,
-        vol.Optional(CONF_MILEAGE_CAN_MILES, default=False): cv.boolean,
-        vol.Optional(CONF_OFFLINE_AS_UNAVAILABLE, default=False): cv.boolean,
-        vol.Optional(
-            CONF_CUSTOM_CURSOR_TYPE, default=DEFAULT_CURSOR_TYPE
-        ): vol.In(
-            (
-                DEFAULT_CURSOR_TYPE,
-                DISABLED_CURSOR_TYPE,
-                *sorted(IMAGE_REGISTRY.keys()),
-            )
-        ),
-    },
-    extra=vol.ALLOW_EXTRA,
-)

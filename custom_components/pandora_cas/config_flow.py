@@ -5,7 +5,6 @@ import logging
 from typing import (
     Any,
     Dict,
-    Final,
     Optional,
 )
 
@@ -30,16 +29,14 @@ from homeassistant.helpers.schema_config_entry_flow import (
     SchemaCommonFlowHandler,
 )
 
-from custom_components.pandora_cas.entity import async_run_pandora_coro
-from custom_components.pandora_cas.entity import DEVICE_OPTIONS_SCHEMA
-from custom_components.pandora_cas.api import PandoraOnlineAccount
-from custom_components.pandora_cas.const import (
-    DOMAIN,
-    CONF_CUSTOM_CURSORS,
-    CONF_CUSTOM_CURSOR_DEVICES,
-    CONF_CUSTOM_CURSOR_TYPE,
-    DEFAULT_CURSOR_TYPE,
+from custom_components.pandora_cas import (
+    async_run_pandora_coro,
+    DEVICE_OPTIONS_SCHEMA,
+    BASE_CONFIG_ENTRY_SCHEMA,
+    INTEGRATION_OPTIONS_SCHEMA,
 )
+from custom_components.pandora_cas.api import PandoraOnlineAccount
+from custom_components.pandora_cas.const import *
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,15 +58,6 @@ async def async_options_flow_init_step_validate(
                 custom_cursors[device_id] = cursor_type
 
     return user_input
-
-
-STEP_USER_DATA_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_USERNAME): str,
-        vol.Required(CONF_PASSWORD): str,
-        vol.Optional(CONF_VERIFY_SSL, default=True): bool,
-    }
-)
 
 
 class PandoraCASConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -165,18 +153,18 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             errors = {"base": error}
             schema = self.add_suggested_values_to_schema(
-                STEP_USER_DATA_SCHEMA,
+                BASE_CONFIG_ENTRY_SCHEMA,
                 user_input,
             )
         elif entry := self._reauth_entry:
             errors = {"base": "invalid_auth"}
             schema = self.add_suggested_values_to_schema(
-                STEP_USER_DATA_SCHEMA,
+                BASE_CONFIG_ENTRY_SCHEMA,
                 {**entry.data, **entry.options, CONF_PASSWORD: ""},
             )
         else:
             errors = None
-            schema = STEP_USER_DATA_SCHEMA
+            schema = BASE_CONFIG_ENTRY_SCHEMA
 
         return self.async_show_form(
             step_id="user",
@@ -214,7 +202,8 @@ class PandoraCASConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return PandoraCASOptionsFlow(config_entry)
 
 
-STEP_INTEGRATION: Final = "integration"
+STEP_DEVICE_OPTIONS: Final = "device_options"
+STEP_INTEGRATION_OPTIONS: Final = "integration_options"
 STEP_SAVE: Final = "save"
 
 
@@ -224,6 +213,7 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
 
         self.device_options: Optional[dict[str, str]] = None
         self.current_pandora_id: str | None = None
+        self.save_needed = False
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -244,9 +234,9 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
                     str(pandora_id), f"<unknown> ({pandora_id})"
                 )
 
-        menu_options = {STEP_INTEGRATION: STEP_INTEGRATION}
+        menu_options = {STEP_INTEGRATION_OPTIONS: STEP_INTEGRATION_OPTIONS}
         menu_options.update(self.device_options)
-        if self.current_pandora_id is not None:
+        if self.save_needed:
             menu_options[STEP_SAVE] = STEP_SAVE
         return self.async_show_menu(step_id="init", menu_options=menu_options)
 
@@ -271,10 +261,27 @@ class PandoraCASOptionsFlow(config_entries.OptionsFlowWithConfigEntry):
             self.options.setdefault(CONF_DEVICES, {}).setdefault(
                 pandora_id, {}
             ).update(user_input)
+            self.save_needed = True
             return await self.async_step_init()
 
         return self.async_show_form(
-            step_id="device_options", data_schema=schema
+            step_id=STEP_DEVICE_OPTIONS, data_schema=schema
+        )
+
+    async def async_step_integration_options(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        schema = INTEGRATION_OPTIONS_SCHEMA
+
+        if user_input is None:
+            schema = self.add_suggested_values_to_schema(schema, self.options)
+        else:
+            self.options.update(user_input)
+            self.save_needed = True
+            return await self.async_step_init()
+
+        return self.async_show_form(
+            step_id=STEP_INTEGRATION_OPTIONS, data_schema=schema
         )
 
     def __getattr__(self, attribute):

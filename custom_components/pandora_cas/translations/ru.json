@@ -656,23 +656,30 @@
   "options": {
     "step": {
       "init": {
-        "data": {
-          "integration": "Настройки интеграции",
+        "menu_options": {
+          "integration_options": "Настройки интеграции",
           "save": "Сохранить изменения"
         }
       },
-      "integration": {
+      "integration_options": {
+        "title": "Настройки интеграции",
         "data": {
-          "verify_ssl": "Verify SSL certificates"
+          "verify_ssl": "Verify SSL certificates",
+          "disable_websockets": "Отключить WebSockets"
         }
       },
       "device_options": {
+        "title": "Настройки устройства",
         "data": {
+          "ignore_ws_coordinates": "Игнорировать обновления координат WS",
           "offline_as_unavailable": "Оффлайн делает объекты недоступными",
           "fuel_is_liters": "Топливный бак в литрах",
           "custom_cursor_type": "Вид курсора трекера",
           "mileage_can_miles": "Пробег по CAN в милях",
-          "mileage_miles": "Системный пробег в милях"
+          "mileage_miles": "Системный пробег в милях",
+          "coordinates_debounce": "Сглаживание координат",
+          "rpm_coefficient": "Коэффициент оборотов",
+          "rpm_offset": "Сдвиг оборотов"
         }
       }
     }

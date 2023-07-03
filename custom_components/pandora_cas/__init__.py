@@ -1,23 +1,24 @@
 """Initialization script for Pandora Car Alarm System component."""
 
 __all__ = (
+    "BASE_CONFIG_ENTRY_SCHEMA",
+    "CONFIG_SCHEMA",
+    "DEVICE_OPTIONS_SCHEMA",
+    "INTEGRATION_OPTIONS_SCHEMA",
+    "SERVICE_REMOTE_COMMAND",
+    "async_migrate_entry",
+    "async_run_pandora_coro",
     "async_setup",
     "async_setup_entry",
     "async_unload_entry",
-    "async_migrate_entry",
-    "CONFIG_SCHEMA",
-    "SERVICE_REMOTE_COMMAND",
 )
 
 import asyncio
 import logging
 from functools import partial
-from typing import (
-    Any,
-    Mapping,
-    Type,
-)
+from typing import Any, Mapping, Type, TypeVar, Awaitable, Dict, Tuple, Literal
 
+import aiohttp
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
 from homeassistant.const import (
@@ -31,6 +32,7 @@ from homeassistant.const import (
     CONF_DEVICES,
 )
 from homeassistant.core import ServiceCall, HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import (
@@ -38,6 +40,10 @@ from homeassistant.helpers.device_registry import (
     async_entries_for_config_entry,
 )
 from homeassistant.helpers.typing import ConfigType
+from homeassistant.helpers.update_coordinator import (
+    DataUpdateCoordinator,
+    UpdateFailed,
+)
 from homeassistant.loader import bind_hass
 from homeassistant.util import slugify
 
@@ -56,31 +62,58 @@ from custom_components.pandora_cas.api import (
     PrimaryEventID,
 )
 from custom_components.pandora_cas.const import *
-from custom_components.pandora_cas.entity import (
-    PandoraCASEntity,
-    PandoraCASUpdateCoordinator,
-    async_run_pandora_coro,
-)
 from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
 
 _LOGGER = logging.getLogger(__name__)
 
-_BASE_CONFIG_ENTRY_SCHEMA = vol.Schema(
+INTEGRATION_OPTIONS_SCHEMA: Final = vol.Schema(
+    {
+        vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
+        vol.Optional(CONF_DISABLE_WEBSOCKETS, default=False): cv.boolean,
+    }
+)
+
+BASE_CONFIG_ENTRY_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
-        vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
     }
+).extend(INTEGRATION_OPTIONS_SCHEMA.schema)
+
+DEVICE_OPTIONS_SCHEMA: Final = vol.Schema(
+    {
+        vol.Optional(CONF_FUEL_IS_LITERS, default=False): cv.boolean,
+        vol.Optional(CONF_MILEAGE_MILES, default=False): cv.boolean,
+        vol.Optional(CONF_MILEAGE_CAN_MILES, default=False): cv.boolean,
+        vol.Optional(CONF_OFFLINE_AS_UNAVAILABLE, default=False): cv.boolean,
+        vol.Optional(CONF_IGNORE_WS_COORDINATES, default=False): cv.boolean,
+        vol.Optional(CONF_RPM_COEFFICIENT, default=1.0): cv.positive_float,
+        vol.Optional(CONF_RPM_OFFSET, default=0.0): vol.Coerce(float),
+        vol.Optional(
+            CONF_COORDINATES_DEBOUNCE, default=DEFAULT_COORDINATES_SMOOTHING
+        ): cv.positive_float,
+        vol.Optional(
+            CONF_CUSTOM_CURSOR_TYPE, default=DEFAULT_CURSOR_TYPE
+        ): vol.In(
+            (
+                DEFAULT_CURSOR_TYPE,
+                DISABLED_CURSOR_TYPE,
+                *sorted(IMAGE_REGISTRY.keys()),
+            )
+        ),
+    },
+    extra=vol.ALLOW_EXTRA,
 )
+
 
 CONFIG_ENTRY_SCHEMA = vol.All(
     *(
         cv.removed(platform_id, raise_if_present=False)
         for platform_id in PLATFORMS
     ),
-    cv.removed("rpm_coefficient", raise_if_present=False),
-    cv.removed("rpm_offset", raise_if_present=False),
-    _BASE_CONFIG_ENTRY_SCHEMA,
+    cv.removed(CONF_RPM_COEFFICIENT, raise_if_present=False),
+    cv.removed(CONF_RPM_OFFSET, raise_if_present=False),
+    BASE_CONFIG_ENTRY_SCHEMA,
 )
 
 CONFIG_SCHEMA: Final = vol.Schema(
@@ -296,7 +329,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 f"device {device.device_id}: {new_state_values}"
             )
             coordinator.async_set_updated_data(
-                {device.device_id: new_state_values}
+                (True, {device.device_id: new_state_values})
             )
 
         # noinspection PyTypeChecker
@@ -353,19 +386,29 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "options": (new_options := {**entry.options}),
     }
 
+    devices_conf = new_options.setdefault(CONF_DEVICES, {})
+
+    def _add_new_devices_option(option_name: str, default_value: Any = None):
+        for _device in async_entries_for_config_entry(
+            async_get_device_registry(hass), entry.entry_id
+        ):
+            try:
+                _domain, _pandora_id = next(iter(_device.identifiers))
+            except (StopIteration, TypeError, ValueError):
+                continue
+            else:
+                devices_conf.setdefault(str(_pandora_id), {})[
+                    option_name
+                ] = default_value
+
     if entry.version < 3:
         for src in (new_data, new_options):
-            for key in ("polling_interval", "user_agent"):
-                if key in src:
-                    del src[key]
+            src.pop("polling_interval", None)
+            src.pop("user_agent", None)
         entry.version = 3
 
-    if entry.version < 4:
-        new_options.setdefault(CONF_VERIFY_SSL, True)
-        # new_unique_id = entry.unique_id or entry.data[CONF_USERNAME]
-        entry.version = 4
-
     if entry.version < 5:
+        # Update unique ID to user ID
         account = PandoraOnlineAccount(
             username=new_data[CONF_USERNAME],
             password=new_data[CONF_PASSWORD],
@@ -383,11 +426,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.version = 5
 
     if entry.version < 6:
-        # Migrate websocket disabling
-        disable_websockets = new_options.pop("disable_websockets", False)
-        if not entry.pref_disable_polling:
-            args["pref_disable_polling"] = not disable_websockets
-
+        # Remove / migrate old device entry
         dev_reg = async_get_device_registry(hass)
         entries_to_update: dict[str | int, str] = {}
         for device_entry in tuple(dev_reg.devices.values()):
@@ -433,26 +472,16 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         entry.version = 6
 
-    if entry.version < 7:
-        new_options.setdefault(CONF_OFFLINE_AS_UNAVAILABLE, False)
-
-        entry.version = 7
-
-    if entry.version < 9:
+    if entry.version < 10:
         # Transition per-entity options
-        devices_conf = new_options.setdefault(CONF_DEVICES, {})
-        for key in (
-            CONF_MILEAGE_MILES,
-            CONF_MILEAGE_CAN_MILES,
-            CONF_FUEL_IS_LITERS,
-        ):
-            if key in new_options:
-                for pandora_id in map(str, new_options.pop(key) or ()):
-                    devices_conf.setdefault(pandora_id, {})[key] = True
+        _add_new_devices_option(CONF_MILEAGE_MILES, False)
+        _add_new_devices_option(CONF_MILEAGE_CAN_MILES, False)
+        _add_new_devices_option(CONF_FUEL_IS_LITERS, False)
 
         # Transition cursors
+        devices_conf = new_options.setdefault(CONF_DEVICES)
         for pandora_id, cursor_type in (
-            new_options.pop(CONF_CUSTOM_CURSORS) or {}
+            new_options.pop(CONF_CUSTOM_CURSORS, None) or {}
         ).items():
             devices_conf.setdefault(str(pandora_id), {})[
                 CONF_CUSTOM_CURSOR_TYPE
@@ -462,23 +491,28 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if (
             v := new_options.pop(CONF_OFFLINE_AS_UNAVAILABLE, None)
         ) is not None:
-            for device in async_entries_for_config_entry(
-                async_get_device_registry(hass), entry.entry_id
-            ):
-                try:
-                    domain, pandora_id = next(iter(device.identifiers))
-                except (StopIteration, TypeError, ValueError):
-                    continue
-                else:
-                    devices_conf.setdefault(str(pandora_id), {})[
-                        CONF_OFFLINE_AS_UNAVAILABLE
-                    ] = v
+            _add_new_devices_option(CONF_OFFLINE_AS_UNAVAILABLE, v)
 
         entry.version = 9
 
-    hass.config_entries.async_update_entry(
-        entry, **args, pref_disable_polling=True
-    )
+    if entry.version < 10:
+        args["pref_disable_polling"] = True
+
+        # Remove junk values
+        new_options.pop(CONF_MILEAGE_CAN_MILES, None)
+        new_options.pop(CONF_MILEAGE_MILES, None)
+        new_options.pop(CONF_FUEL_IS_LITERS, None)
+
+        # Add new integration config
+        new_options.setdefault(CONF_DISABLE_WEBSOCKETS, False)
+
+        # Add new device config
+        _add_new_devices_option(CONF_IGNORE_WS_COORDINATES, False)
+        _add_new_devices_option(
+            CONF_COORDINATES_DEBOUNCE, DEFAULT_COORDINATES_SMOOTHING
+        )
+
+    hass.config_entries.async_update_entry(entry, **args)
 
     _LOGGER.info(f"Upgraded configuration entry to version {entry.version}")
 
@@ -541,9 +575,9 @@ def async_update_settings_delegator(
     hass.bus.async_fire(
         EVENT_TYPE_EVENT,
         {
-            "event_type": event_enum_to_type(PrimaryEventID.SETTINGS_CHANGES),
+            "event_type": event_enum_to_type(PrimaryEventID.SETTINGS_CHANGED),
             ATTR_DEVICE_ID: device.device_id,
-            "event_id_primary": int(PrimaryEventID.SETTINGS_CHANGES),
+            "event_id_primary": int(PrimaryEventID.SETTINGS_CHANGED),
             "event_id_secondary": event.event_id_secondary,
         },
     )
@@ -567,3 +601,71 @@ def async_point_delegator(
             "length": point.length,
         },
     )
+
+
+_T = TypeVar("_T")
+
+
+async def async_run_pandora_coro(coro: Awaitable[_T]) -> _T:
+    try:
+        return await coro
+    except AuthenticationError as exc:
+        raise ConfigEntryAuthFailed("Authentication failed") from exc
+    except MalformedResponseError as exc:
+        raise ConfigEntryNotReady("Server responds erroneously") from exc
+    except (OSError, aiohttp.ClientError, TimeoutError) as exc:
+        raise ConfigEntryNotReady("Timed out while authenticating") from exc
+
+
+class PandoraCASUpdateCoordinator(
+    DataUpdateCoordinator[Tuple[bool, Mapping[int, Mapping[str, Any]]]]
+):
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        account: PandoraOnlineAccount,
+    ) -> None:
+        self.account = account
+        self._device_configs = {}
+        super().__init__(
+            hass,
+            _LOGGER,
+            name=DOMAIN,  # update_interval=timedelta(seconds=5)
+        )
+
+    def get_device_config(self, device_id: str | int) -> dict[str, Any]:
+        device_id = str(device_id)
+        try:
+            return self._device_configs[device_id]
+        except KeyError:
+            config = DEVICE_OPTIONS_SCHEMA(
+                self.config_entry.options.get(CONF_DEVICES, {}).get(
+                    device_id, {}
+                )
+            )
+            self._device_configs[device_id] = config
+            return config
+
+    async def _async_update_data(
+        self,
+    ) -> Tuple[Literal[False], Mapping[int, Mapping[str, Any]]]:
+        """Fetch data for sub-entities."""
+        # @TODO: manual polling updates!
+        try:
+            try:
+                updates, events = await self.account.async_request_updates()
+            except AuthenticationError:
+                try:
+                    await self.account.async_authenticate()
+                    (
+                        updates,
+                        events,
+                    ) = await self.account.async_request_updates()
+                except AuthenticationError as exc:
+                    raise ConfigEntryAuthFailed(
+                        "Authentication failed during fetching"
+                    ) from exc
+        except MalformedResponseError as exc:
+            raise UpdateFailed("Malformed response retrieved") from exc
+
+        return False, updates

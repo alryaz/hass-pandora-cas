@@ -24,7 +24,13 @@ CONF_CUSTOM_CURSOR_DEVICES: Final = "custom_cursor_devices"
 CONF_CUSTOM_CURSOR_TYPE: Final = "custom_cursor_type"
 CONF_MILEAGE_MILES: Final = "mileage_miles"
 CONF_MILEAGE_CAN_MILES: Final = "mileage_can_miles"
+CONF_DISABLE_WEBSOCKETS: Final = "disable_websockets"
+CONF_IGNORE_WS_COORDINATES: Final = "ignore_ws_coordinates"
+CONF_COORDINATES_DEBOUNCE: Final = "coordinates_debounce"
+CONF_RPM_COEFFICIENT: Final = "rpm_coefficient"
+CONF_RPM_OFFSET: Final = "rpm_offset"
 
+DEFAULT_COORDINATES_SMOOTHING: Final = 10.0
 DEFAULT_CURSOR_TYPE: Final = "default"
 DISABLED_CURSOR_TYPE: Final = "disabled"
 
@@ -39,6 +45,6 @@ ATTR_TAG_NUMBER: Final = "tag_number"
 ATTR_PHONE_NUMBER: Final = "phone_number"
 
 # Home Assistant bus event identifiers
-EVENT_TYPE_COMMAND: Final = f"{DOMAIN}_command"
-EVENT_TYPE_EVENT: Final = f"{DOMAIN}_event"
-EVENT_TYPE_POINT: Final = f"{DOMAIN}_point"
+EVENT_TYPE_COMMAND: Final = DOMAIN + "_command"
+EVENT_TYPE_EVENT: Final = DOMAIN + "_event"
+EVENT_TYPE_POINT: Final = DOMAIN + "_point"

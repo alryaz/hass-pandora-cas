@@ -21,9 +21,9 @@ from custom_components.pandora_cas.entity import (
     PandoraCASEntity,
 )
 from custom_components.pandora_cas.entity import (
-    PandoraCASUpdateCoordinator,
     PandoraCASEntityDescription,
 )
+from custom_components.pandora_cas import PandoraCASUpdateCoordinator
 from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
 
 _LOGGER = logging.getLogger(__name__)
@@ -75,30 +75,50 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
         self._last_latitude = None
         self._last_longitude = None
 
+        self._received_latitude = None
+        self._received_longitude = None
+
         super().__init__(*args, **kwargs)
 
     @property
     def name(self) -> str | None:
         return self.pandora_device.name
 
-    def update_native_value(self) -> bool:
+    def update_native_value(self) -> None:
         super().update_native_value()
 
         if not self.available:
-            return True
+            return
 
         state = self.pandora_device.state
         old_ll = (self._last_latitude, self._last_longitude)
         if not all(old_ll):
             self._last_latitude = state.latitude
             self._last_longitude = state.longitude
-            return True
+            return
 
-        new_ll = (state.latitude, state.longitude)
-        if haversine(old_ll, new_ll, unit=Unit.METERS) >= 10.0:
+        device_data = self.coordinator.data.get(self.pandora_device.device_id)
+        if not device_data:
+            return
+
+        # Debounce updates with a single coordinate
+        if "latitude" in device_data:
+            self._received_latitude = device_data["latitude"]
+        if "longitude" in device_data:
+            self._received_longitude = device_data["longitude"]
+
+        new_ll = (self._received_latitude, self._received_longitude)
+        if None in new_ll:
+            return
+
+        self._received_latitude = None
+        self._received_longitude = None
+        # Update if no coordinates yet exist, or difference is above threshold
+        if not all(old_ll := (self._last_latitude, self._last_longitude)) or (
+            haversine(old_ll, new_ll, unit=Unit.METERS)
+            >= self._device_config[CONF_COORDINATES_DEBOUNCE]
+        ):
             self._last_latitude, self._last_longitude = new_ll
-            return True
-        return False
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
