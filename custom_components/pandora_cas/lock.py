@@ -61,7 +61,7 @@ class PandoraCASLock(PandoraCASBooleanEntity, LockEntity):
         pandora_device: PandoraOnlineDevice,
         entity_description: "PandoraCASLockEntityDescription",
         *args,
-        **kwargs
+        **kwargs,
     ) -> None:
         if coordinator.config_entry.options.get(CONF_FORCE_LOCK_ICONS):
             entity_description = dataclasses.replace(
