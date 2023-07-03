@@ -22,12 +22,7 @@
 > [![Репозиторий GitHub](https://img.shields.io/badge/GitHub-turbulator%2Fpandora--cas-blue?style=for-the-badge)](https://github.com/turbulator/pandora-cas)
 > [![Donate](https://img.shields.io/badge/Donate-Yandex-orange.svg?style=for-the-badge)](https://money.yandex.ru/to/41001690673042)
 
-Автомобиль тоже может быть частью умного дома. С помощью этого компонента вы
-сможете отслеживать состояние, управлять
-и автоматизировать свой автомобиль, если он оборудован охранной системой
-Pandora. После настройки ваши
-устройства Pandora™ и PanDECT<sup>®</sup> автоматически добавятся в _Home
-Assistant_.
+Автомобиль тоже может быть частью умного дома. С помощью этого компонента вы сможете отслеживать состояние, управлять и автоматизировать свой автомобиль, если он оборудован охранной системой Pandora. После настройки ваши устройства Pandora™ и PanDECT<sup>®</sup> автоматически добавятся в _Home Assistant_.
 
 Компонент реализует доступ к API официального приложения Pandora, _Pandora
 Connect_, и реализует

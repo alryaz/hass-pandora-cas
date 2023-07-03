@@ -263,7 +263,7 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
         if not (devices_data := coordinator_data[1]):
             return
 
-        return devices_data[self.pandora_device.device_id]
+        return devices_data.get(self.pandora_device.device_id)
 
     @final
     @callback

@@ -1099,7 +1099,7 @@ class PandoraOnlineAccount:
         if (state := device.state) is None:
             device.state = state = CurrentState(**state_args)
         else:
-            attr.evolve(state, **state_args)
+            device.state = attr.evolve(state, **state_args)
 
         # noinspection PyTypeChecker
         return state, state_args
@@ -1388,10 +1388,7 @@ class PandoraOnlineAccount:
         if "tanks" in data:
             args["fuel_tanks"] = self.parse_fuel_tanks(data["tanks"])
 
-        new_state = attr.evolve(device_state, **args)
-        device.state = new_state
-
-        return new_state, args
+        return self._update_device_current_state(device, **args)
 
     # The routines are virtually the same
     _process_ws_event = _process_http_event
