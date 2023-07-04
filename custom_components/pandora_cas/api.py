@@ -1422,9 +1422,7 @@ class PandoraOnlineAccount:
 
         return self._update_device_current_state(
             device,
-            **CurrentState.get_ws_dict_args(
-                data, identifier=device.device_id
-            ),
+            **CurrentState.get_ws_dict_args(data, identifier=device.device_id),
         )
 
     def _process_ws_state(
@@ -1443,9 +1441,7 @@ class PandoraOnlineAccount:
 
         return self._update_device_current_state(
             device,
-            **CurrentState.get_ws_dict_args(
-                data, identifier=device.device_id
-            )
+            **CurrentState.get_ws_dict_args(data, identifier=device.device_id),
         )
 
     # The routines are virtually the same
@@ -1554,7 +1550,9 @@ class PandoraOnlineAccount:
                                     f"[{self}] Unknown message data: {message}"
                                 )
                             if isinstance(contents, Mapping):
-                                _LOGGER.debug(f'[{self}] Received WS message: {contents}')
+                                _LOGGER.debug(
+                                    f"[{self}] Received WS message: {contents}"
+                                )
                                 yield contents
                             else:
                                 _LOGGER.warning(
