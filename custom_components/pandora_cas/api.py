@@ -1554,6 +1554,7 @@ class PandoraOnlineAccount:
                                     f"[{self}] Unknown message data: {message}"
                                 )
                             if isinstance(contents, Mapping):
+                                _LOGGER.debug(f'[{self}] Received WS message: {contents}')
                                 yield contents
                             else:
                                 _LOGGER.warning(
