@@ -1423,8 +1423,7 @@ class PandoraOnlineAccount:
         return self._update_device_current_state(
             device,
             **CurrentState.get_ws_dict_args(
-                data,
-                identifier=device.device_id,
+                data, identifier=device.device_id
             ),
         )
 
@@ -1442,11 +1441,12 @@ class PandoraOnlineAccount:
 
         _LOGGER.debug(f"[{self}] Updating state for {device.device_id}")
 
-        args = CurrentState.get_common_dict_args(
-            data, identifier=device.device_id
+        return self._update_device_current_state(
+            device,
+            **CurrentState.get_ws_dict_args(
+                data, identifier=device.device_id
+            )
         )
-
-        return self._update_device_current_state(device, **args)
 
     # The routines are virtually the same
     _process_ws_event = _process_http_event
