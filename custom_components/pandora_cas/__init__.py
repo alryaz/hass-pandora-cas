@@ -87,6 +87,9 @@ INTEGRATION_OPTIONS_SCHEMA: Final = vol.Schema(
         vol.Optional(CONF_DISABLE_WEBSOCKETS, default=False): cv.boolean,
         vol.Optional(CONF_DISABLE_POLLING, default=False): cv.boolean,
         vol.Optional(CONF_FORCE_LOCK_ICONS, default=False): cv.boolean,
+        vol.Optional(
+            CONF_EFFECTIVE_READ_TIMEOUT, default=DEFAULT_EFFECTIVE_READ_TIMEOUT
+        ): cv.positive_time_period_dict,
     }
 )
 
@@ -361,6 +364,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 update_settings_callback=partial(
                     async_update_settings_delegator, hass
                 ),
+                effective_read_timeout=max(
+                    MIN_EFFECTIVE_READ_TIMEOUT,
+                    entry.options[CONF_EFFECTIVE_READ_TIMEOUT],
+                ),
                 auto_restart=True,
             ),
             name=f"Pandora CAS entry {entry.entry_id} listener",
@@ -530,6 +537,12 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             CONF_COORDINATES_DEBOUNCE, DEFAULT_COORDINATES_SMOOTHING
         )
 
+    if entry.version < 11:
+        new_options[
+            CONF_EFFECTIVE_READ_TIMEOUT
+        ] = DEFAULT_EFFECTIVE_READ_TIMEOUT
+
+        entry.version = 11
     hass.config_entries.async_update_entry(entry, **args)
 
     _LOGGER.info(f"Upgraded configuration entry to version {entry.version}")

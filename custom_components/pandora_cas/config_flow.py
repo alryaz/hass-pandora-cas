@@ -65,7 +65,7 @@ async def async_options_flow_init_step_validate(
 class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Pandora Car Alarm System config entries."""
 
-    VERSION: Final[int] = 10
+    VERSION: Final[int] = 11
 
     def __init__(self) -> None:
         """Init the config flow."""
@@ -278,15 +278,36 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         schema = INTEGRATION_OPTIONS_SCHEMA
+        errors = {}
 
         if user_input is None:
-            schema = self.add_suggested_values_to_schema(schema, self.options)
+            suggested_values = dict(self.options)
+
+            current_value = self.options[CONF_EFFECTIVE_READ_TIMEOUT]
+            suggested_values[CONF_EFFECTIVE_READ_TIMEOUT] = {
+                "hours": current_value // 3600,
+                "minutes": (current_value % 3600) // 60,
+                "seconds": current_value % 60,
+            }
+
+            schema = self.add_suggested_values_to_schema(
+                schema, suggested_values
+            )
         else:
-            self.options.update(user_input)
-            return await self.async_step_init()
+            current_value = user_input[
+                CONF_EFFECTIVE_READ_TIMEOUT
+            ].total_seconds()
+
+            if current_value < MIN_EFFECTIVE_READ_TIMEOUT:
+                errors[CONF_EFFECTIVE_READ_TIMEOUT] = "interval_too_short"
+
+            if not errors:
+                user_input[CONF_EFFECTIVE_READ_TIMEOUT] = current_value
+                self.options.update(user_input)
+                return await self.async_step_init()
 
         return self.async_show_form(
-            step_id=STEP_INTEGRATION_OPTIONS, data_schema=schema
+            step_id=STEP_INTEGRATION_OPTIONS, data_schema=schema, errors=errors
         )
 
     async def async_step_device_settings(

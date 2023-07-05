@@ -616,6 +616,9 @@
     }
   },
   "options": {
+    "error": {
+      "interval_too_short": "Interval too short"
+    },
     "step": {
       "init": {
         "menu_options": {
@@ -629,7 +632,8 @@
           "verify_ssl": "Verify SSL certificates",
           "disable_websockets": "Disable WebSockets",
           "disable_polling": "Disable polling",
-          "force_lock_icons": "Use lock icons"
+          "force_lock_icons": "Use lock icons",
+          "effective_read_timeout": "Timeout for WebSockets responses"
         }
       },
       "device_options": {

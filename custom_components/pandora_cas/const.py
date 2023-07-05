@@ -16,6 +16,10 @@ PLATFORMS: Final = (
 # Global data placeholders
 DATA_LISTENERS: Final = DOMAIN + "_listeners"
 
+MIN_EFFECTIVE_READ_TIMEOUT: Final = 60.0
+
+DEFAULT_EFFECTIVE_READ_TIMEOUT: Final = 180.0
+
 # Configuration parameters
 CONF_COORDINATES_DEBOUNCE: Final = "coordinates_debounce"
 CONF_CUSTOM_CURSORS: Final = "custom_cursors"
@@ -24,6 +28,7 @@ CONF_CUSTOM_CURSOR_TYPE: Final = "custom_cursor_type"
 CONF_DISABLE_CURSOR_ROTATION: Final = "disable_cursor_rotation"
 CONF_DISABLE_POLLING: Final = "disable_polling"
 CONF_DISABLE_WEBSOCKETS: Final = "disable_websockets"
+CONF_EFFECTIVE_READ_TIMEOUT: Final = "effective_read_timeout"
 CONF_ENGINE_STATE_BY_RPM: Final = "engine_state_by_rpm"
 CONF_FUEL_IS_LITERS: Final = "fuel_is_liters"
 CONF_IGNORE_WS_COORDINATES: Final = "ignore_ws_coordinates"

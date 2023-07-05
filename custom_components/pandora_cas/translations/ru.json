@@ -656,6 +656,9 @@
     }
   },
   "options": {
+    "error": {
+      "interval_too_short": "Слишком короткий интервал"
+    },
     "step": {
       "init": {
         "menu_options": {
@@ -670,7 +673,8 @@
           "verify_ssl": "Проверять сертификаты SSL",
           "disable_websockets": "Отключить WebSockets",
           "disable_polling": "Отключить периодический опрос",
-          "force_lock_icons": "Использовать иконки замка"
+          "force_lock_icons": "Использовать иконки замка",
+          "effective_read_timeout": "Таймаут ответов WebSockets"
         },
         "data_description": {
           "verify_ssl": "Выполнять проверку на безопасность соединения с серверами AlarmTrade.",
