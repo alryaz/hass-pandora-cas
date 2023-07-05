@@ -1557,7 +1557,9 @@ class PandoraOnlineAccount:
             "device_id": device.device_id,
         }
 
-    async def async_listen_websockets(self, auto_restart: bool = False, effective_read_timeout: float = 180.0):
+    async def async_listen_websockets(
+        self, auto_restart: bool = False, effective_read_timeout: float = 180.0
+    ):
         if not (access_token := self.access_token):
             raise MissingAccessTokenError
 
@@ -1574,7 +1576,10 @@ class PandoraOnlineAccount:
                     while not ws.closed:
                         message = None
                         async with timeout(effective_read_timeout):
-                            while message is None or message.type != aiohttp.WSMsgType.text:
+                            while (
+                                message is None
+                                or message.type != aiohttp.WSMsgType.text
+                            ):
                                 if (message := await ws.receive()).type in (
                                     aiohttp.WSMsgType.CLOSED,
                                     aiohttp.WSMsgType.CLOSING,
@@ -1817,7 +1822,7 @@ class PandoraOnlineAccount:
                 async for message in self.async_listen_websockets(
                     auto_restart=auto_restart,
                     effective_read_timeout=effective_read_timeout,
-                    **kwargs
+                    **kwargs,
                 ):
                     if not (response := await _handle_ws_message(message)):
                         break
