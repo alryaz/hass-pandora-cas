@@ -50,6 +50,7 @@ from typing import (
     SupportsInt,
     Optional,
 )
+from async_timeout import timeout
 
 import aiohttp
 import attr
@@ -1556,7 +1557,7 @@ class PandoraOnlineAccount:
             "device_id": device.device_id,
         }
 
-    async def async_listen_websockets(self, auto_restart: bool = False):
+    async def async_listen_websockets(self, auto_restart: bool = False, effective_read_timeout: float = 180.0):
         if not (access_token := self.access_token):
             raise MissingAccessTokenError
 
@@ -1571,31 +1572,36 @@ class PandoraOnlineAccount:
                 ) as ws:
                     _LOGGER.debug(f"[{self}] WebSockets connected")
                     while not ws.closed:
-                        message = await ws.receive()
-                        if message.type in (
-                            aiohttp.WSMsgType.CLOSED,
-                            aiohttp.WSMsgType.CLOSING,
-                            aiohttp.WSMsgType.ERROR,
-                            aiohttp.WSMsgType.CLOSE,
-                        ):
+                        message = None
+                        async with timeout(effective_read_timeout):
+                            while message is None or message.type != aiohttp.WSMsgType.text:
+                                if (message := await ws.receive()).type in (
+                                    aiohttp.WSMsgType.CLOSED,
+                                    aiohttp.WSMsgType.CLOSING,
+                                    aiohttp.WSMsgType.ERROR,
+                                    aiohttp.WSMsgType.CLOSE,
+                                ):
+                                    break
+
+                        if message.type != aiohttp.WSMsgType.text:
                             break
-                        if message.type == aiohttp.WSMsgType.text:
-                            try:
-                                contents = message.json()
-                            except json.JSONDecodeError:
-                                _LOGGER.warning(
-                                    f"[{self}] Unknown message data: {message}"
-                                )
-                            if isinstance(contents, Mapping):
-                                _LOGGER.debug(
-                                    f"[{self}] Received WS message: {contents}"
-                                )
-                                yield contents
-                            else:
-                                _LOGGER.warning(
-                                    f"[{self}] Received message is not "
-                                    f"a mapping (dict): {message}"
-                                )
+
+                        try:
+                            contents = message.json()
+                        except json.JSONDecodeError:
+                            _LOGGER.warning(
+                                f"[{self}] Unknown message data: {message}"
+                            )
+                        if isinstance(contents, Mapping):
+                            _LOGGER.debug(
+                                f"[{self}] Received WS message: {contents}"
+                            )
+                            yield contents
+                        else:
+                            _LOGGER.warning(
+                                f"[{self}] Received message is not "
+                                f"a mapping (dict): {message}"
+                            )
 
             except TimeoutError as exc:
                 known_exception = exc
@@ -1673,6 +1679,8 @@ class PandoraOnlineAccount:
         ]
         | None = None,
         reconnect_on_device_online: bool = True,
+        auto_restart: bool = False,
+        effective_read_timeout: float = 180.0,
         **kwargs,
     ) -> None:
         async def _handle_ws_message(
@@ -1806,7 +1814,11 @@ class PandoraOnlineAccount:
 
             # On empty (none) responses, reconnect WS
             while response is not False:
-                async for message in self.async_listen_websockets(**kwargs):
+                async for message in self.async_listen_websockets(
+                    auto_restart=auto_restart,
+                    effective_read_timeout=effective_read_timeout,
+                    **kwargs
+                ):
                     if not (response := await _handle_ws_message(message)):
                         break
 
