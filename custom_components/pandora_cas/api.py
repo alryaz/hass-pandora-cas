@@ -516,7 +516,7 @@ class CurrentState:
         return kwargs
 
     @classmethod
-    def get_ws_dict_args(
+    def get_ws_state_args(
         cls, data: Mapping[str, Any], **kwargs
     ) -> dict[str, Any]:
         if "is_online" not in kwargs and "online_mode" in data:
@@ -637,6 +637,16 @@ class CurrentState:
             kwargs["battery_temperature"] = data["battery_temperature"]
         # if "tanks" in data:
         #     kwargs["fuel_tanks"] = FuelTank.parse_fuel_tanks(data["tanks"])
+        return cls.get_common_dict_args(data, **kwargs)
+
+    @classmethod
+    def get_ws_point_args(
+        cls, data: Mapping[str, Any], **kwargs
+    ) -> dict[str, Any]:
+        # flags ...
+        # max_speed ...
+        # timezone ...
+        # Lbs_coords ...
         return cls.get_common_dict_args(data, **kwargs)
 
     @classmethod
@@ -1422,7 +1432,9 @@ class PandoraOnlineAccount:
 
         return self._update_device_current_state(
             device,
-            **CurrentState.get_ws_dict_args(data, identifier=device.device_id),
+            **CurrentState.get_ws_state_args(
+                data, identifier=device.device_id
+            ),
         )
 
     def _process_ws_state(
@@ -1441,15 +1453,21 @@ class PandoraOnlineAccount:
 
         return self._update_device_current_state(
             device,
-            **CurrentState.get_ws_dict_args(data, identifier=device.device_id),
+            **CurrentState.get_ws_state_args(
+                data, identifier=device.device_id
+            ),
         )
 
     # The routines are virtually the same
     _process_ws_event = _process_http_event
 
     def _process_ws_point(
-        self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
-    ) -> TrackingPoint:
+        self,
+        device: "PandoraOnlineDevice",
+        data: Mapping[str, Any],
+    ) -> Tuple[
+        TrackingPoint, Optional[CurrentState], Optional[dict[str, Any]]
+    ]:
         try:
             fuel = data["fuel"]
         except KeyError:
@@ -1482,16 +1500,35 @@ class PandoraOnlineAccount:
             if length is not None:
                 length = float(length)
 
-        return TrackingPoint(
-            device_id=device.device_id,
-            track_id=data["track_id"],
-            latitude=data["x"],
-            longitude=data["y"],
-            timestamp=data.get("dtime") or time(),
-            fuel=fuel,
-            speed=speed,
-            max_speed=max_speed,
-            length=length,
+        timestamp = data.get("dtime") or time()
+
+        # Update state since point is newer
+        if (state := device.state) and state.state_timestamp <= timestamp:
+            state, state_args = self._update_device_current_state(
+                device,
+                **CurrentState.get_ws_point_args(
+                    data,
+                    identifier=device.device_id,
+                    state_timestamp=timestamp,
+                ),
+            )
+        else:
+            state_args = None
+
+        return (
+            TrackingPoint(
+                device_id=device.device_id,
+                track_id=data["track_id"],
+                latitude=data["x"],
+                longitude=data["y"],
+                timestamp=timestamp,
+                fuel=fuel,
+                speed=speed,
+                max_speed=max_speed,
+                length=length,
+            ),
+            state,
+            state_args,
         )
 
     def _process_ws_command(
@@ -1616,17 +1653,22 @@ class PandoraOnlineAccount:
         ]
         | None = None,
         event_callback: Callable[
-            ["PandoraOnlineDevice", TrackingEvent | None],
+            ["PandoraOnlineDevice", TrackingEvent],
             Union[Awaitable[None], None],
         ]
         | None = None,
         point_callback: Callable[
-            ["PandoraOnlineDevice", TrackingPoint | None],
+            [
+                "PandoraOnlineDevice",
+                TrackingPoint,
+                CurrentState | None,
+                Mapping[str, Any] | None,
+            ],
             Union[Awaitable[None], None],
         ]
         | None = None,
         update_settings_callback: Callable[
-            ["PandoraOnlineDevice", Mapping[str, Any | None]],
+            ["PandoraOnlineDevice", Mapping[str, Any]],
             Union[Awaitable[None], None],
         ]
         | None = None,
@@ -1705,7 +1747,7 @@ class PandoraOnlineAccount:
                 elif type_ == WSMessageType.POINT:
                     result = self._process_ws_point(device, data)
                     if point_callback:
-                        callback_coro = point_callback(device, result)
+                        callback_coro = point_callback(device, *result)
 
                 elif type_ == WSMessageType.COMMAND:
                     (

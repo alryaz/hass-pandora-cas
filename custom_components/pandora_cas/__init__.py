@@ -27,6 +27,7 @@ from typing import (
     Awaitable,
     Tuple,
     Literal,
+    Optional,
 )
 
 import aiohttp
@@ -42,7 +43,7 @@ from homeassistant.const import (
     ATTR_LONGITUDE,
     CONF_DEVICES,
 )
-from homeassistant.core import ServiceCall, HomeAssistant
+from homeassistant.core import ServiceCall, HomeAssistant, callback
 from homeassistant.exceptions import (
     ConfigEntryAuthFailed,
     ConfigEntryNotReady,
@@ -348,29 +349,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Start listening for updates if enabled
     if not entry.options[CONF_DISABLE_WEBSOCKETS]:
-
-        def _state_changes_listener(
-            device: PandoraOnlineDevice,
-            _: CurrentState,
-            new_state_values: Mapping[str, Any],
-        ) -> None:
-            _LOGGER.debug(
-                f"Received WebSockets state update for "
-                f"device {device.device_id}: {new_state_values}"
-            )
-            coordinator.async_set_updated_data(
-                (True, {device.device_id: new_state_values})
-            )
-
         # noinspection PyTypeChecker
         hass.data.setdefault(DATA_LISTENERS, {})[
             entry.entry_id
         ] = hass.loop.create_task(
             account.async_listen_for_updates(
-                state_callback=_state_changes_listener,
-                command_callback=partial(async_command_delegator, hass),
-                event_callback=partial(async_event_delegator, hass),
-                point_callback=partial(async_point_delegator, hass),
+                state_callback=partial(async_state_delegator, hass, entry),
+                command_callback=partial(async_command_delegator, hass, entry),
+                event_callback=partial(async_event_delegator, hass, entry),
+                point_callback=partial(async_point_delegator, hass, entry),
                 update_settings_callback=partial(
                     async_update_settings_delegator, hass
                 ),
@@ -557,8 +544,32 @@ def event_enum_to_type(
     return slugify(primary_event_id.name.lower())
 
 
+@callback
+def async_state_delegator(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    device: PandoraOnlineDevice,
+    _: CurrentState,
+    state_args: Mapping[str, Any],
+) -> None:
+    _LOGGER.debug(
+        f"Received WebSockets state update for "
+        f"device {device.device_id}: {state_args}"
+    )
+    try:
+        coordinator = hass.data[DOMAIN][entry.entry_id]
+    except LookupError:
+        _LOGGER.error(f"[{entry.entry_id}] Coordinator not found")
+    else:
+        coordinator.async_set_updated_data(
+            (True, {device.device_id: state_args})
+        )
+
+
+@callback
 def async_command_delegator(
     hass: HomeAssistant,
+    entry: ConfigEntry,
     device: PandoraOnlineDevice,
     command_id: int,
     result: int,
@@ -576,8 +587,10 @@ def async_command_delegator(
     )
 
 
+@callback
 def async_event_delegator(
     hass: HomeAssistant,
+    entry: ConfigEntry,
     device: PandoraOnlineDevice,
     event: TrackingEvent,
 ) -> None:
@@ -601,8 +614,10 @@ def async_event_delegator(
     # @TODO: add time_fired parameter
 
 
+@callback
 def async_update_settings_delegator(
     hass: HomeAssistant,
+    entry: ConfigEntry,
     device: PandoraOnlineDevice,
     event: TrackingEvent,
 ) -> None:
@@ -623,8 +638,11 @@ def async_update_settings_delegator(
 # noinspection PyUnusedLocal
 def async_point_delegator(
     hass: HomeAssistant,
+    entry: ConfigEntry,
     device: PandoraOnlineDevice,
     point: TrackingPoint,
+    state: Optional[CurrentState],
+    state_args: Optional[Mapping[str, Any]],
 ) -> None:
     hass.bus.async_fire(
         EVENT_TYPE_POINT,
@@ -638,6 +656,10 @@ def async_point_delegator(
             "length": point.length,
         },
     )
+
+    if state_args:
+        _LOGGER.debug(f"[{entry.entry_id}] Updating state through point")
+        async_state_delegator(hass, entry, device, state, state_args)
 
 
 _T = TypeVar("_T")

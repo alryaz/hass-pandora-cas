@@ -75,9 +75,6 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
         self._last_latitude = None
         self._last_longitude = None
 
-        self._received_latitude = None
-        self._received_longitude = None
-
         super().__init__(*args, **kwargs)
 
     @property
@@ -98,19 +95,13 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
             _LOGGER.debug(f"[{self.entity_id}] Ignored WS coordinates update")
             return
 
-        # Debounce updates with a single coordinate
+        # Ignore updates with a single coordinate
         device_data = self.coordinator_device_data
-        if "latitude" in device_data:
-            self._received_latitude = device_data["latitude"]
-        if "longitude" in device_data:
-            self._received_longitude = device_data["longitude"]
-
-        new_ll = (self._received_latitude, self._received_longitude)
-        if None in new_ll:
+        try:
+            new_ll = (device_data["latitude"], device_data["longitude"])
+        except KeyError:
             return
 
-        self._received_latitude = None
-        self._received_longitude = None
         # Update if no coordinates yet exist, or difference is above threshold
         if not all(old_ll := (self._last_latitude, self._last_longitude)) or (
             haversine(old_ll, new_ll, unit=Unit.METERS)
