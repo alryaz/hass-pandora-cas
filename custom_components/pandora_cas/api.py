@@ -466,7 +466,7 @@ class CurrentState:
         if "balance_other" not in kwargs and "balance1" in data:
             kwargs["balance_other"] = BalanceState.from_dict(data["balance"])
         if "bit_state" not in kwargs and "bit_state_1" in data:
-            kwargs["bit_state"] = data["bit_state_1"]
+            kwargs["bit_state"] = BitStatus(int(data["bit_state_1"])) 
         if "key_number" not in kwargs and "brelok" in data:
             kwargs["key_number"] = data["brelok"]
         if "bunker" not in kwargs and "bunker" in data:
