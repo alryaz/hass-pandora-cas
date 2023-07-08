@@ -1818,6 +1818,7 @@ class PandoraOnlineAccount:
             response = None
 
             # On empty (none) responses, reconnect WS
+            # On False response, stop WS
             while response is not False:
                 async for message in self.async_listen_websockets(
                     auto_restart=auto_restart,
@@ -1826,6 +1827,8 @@ class PandoraOnlineAccount:
                 ):
                     if not (response := await _handle_ws_message(message)):
                         break
+
+        _LOGGER.info(f"[{self}] WS updates listener stopped")
 
 
 class PandoraOnlineDevice:
