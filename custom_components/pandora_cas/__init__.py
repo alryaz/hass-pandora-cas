@@ -281,7 +281,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     for user_cfg in domain_config:
         username = user_cfg[CONF_USERNAME]
         try:
-            entry = configured_users[user_cfg]
+            entry = configured_users[username]
         except KeyError:
             _LOGGER.debug(f"Creating new entry for {username}")
             hass.async_create_task(
