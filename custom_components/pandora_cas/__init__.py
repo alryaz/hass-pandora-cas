@@ -352,11 +352,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Start listening for updates if enabled
     if not entry.options[CONF_DISABLE_WEBSOCKETS]:
-        # noinspection PyTypeChecker
-        hass.data.setdefault(DATA_LISTENERS, {})[
-            entry.entry_id
-        ] = hass.loop.create_task(
-            account.async_listen_for_updates(
+
+        async def _listen_configuration_entry():
+            callback_args = dict(
                 state_callback=partial(async_state_delegator, hass, entry),
                 command_callback=partial(async_command_delegator, hass, entry),
                 event_callback=partial(async_event_delegator, hass, entry),
@@ -369,8 +367,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     entry.options[CONF_EFFECTIVE_READ_TIMEOUT],
                 ),
                 auto_restart=True,
-            ),
-            name=f"Pandora CAS entry {entry.entry_id} listener",
+                auto_reauth=True,
+            )
+            while True:
+                try:
+                    await account.async_listen_for_updates(**callback_args)
+                except asyncio.CancelledError:
+                    raise
+                except AuthenticationError as exc:
+                    raise ConfigEntryAuthFailed(str(exc)) from exc
+                except BaseException as exc:
+                    _LOGGER.warning(
+                        f"Exception occurred on WS listener "
+                        f"for entry {entry.entry_id}: {exc}",
+                        exc_info=exc,
+                    )
+                    continue
+
+        # noinspection PyTypeChecker
+        entry.async_create_background_task(
+            hass,
+            _listen_configuration_entry(),
+            f"Pandora CAS entry {entry.entry_id} listener",
         )
 
     # Forward entry setup to sensor platform
@@ -390,16 +408,7 @@ async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload configuration entry."""
-    if unload_ok := await hass.config_entries.async_unload_platforms(
-        entry, PLATFORMS
-    ):
-        # Cancel WebSockets listener
-        if listener := hass.data.get(DATA_LISTENERS, {}).pop(
-            entry.entry_id, None
-        ):
-            listener.cancel()
-
-    return unload_ok
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -579,6 +588,7 @@ def async_state_delegator(
         )
 
 
+# noinspection PyUnusedLocal
 @callback
 def async_command_delegator(
     hass: HomeAssistant,
@@ -600,6 +610,7 @@ def async_command_delegator(
     )
 
 
+# noinspection PyUnusedLocal
 @callback
 def async_event_delegator(
     hass: HomeAssistant,
@@ -627,6 +638,7 @@ def async_event_delegator(
     # @TODO: add time_fired parameter
 
 
+# noinspection PyUnusedLocal
 @callback
 def async_update_settings_delegator(
     hass: HomeAssistant,
@@ -685,7 +697,9 @@ async def async_run_pandora_coro(coro: Awaitable[_T]) -> _T:
         raise ConfigEntryAuthFailed("Authentication failed") from exc
     except MalformedResponseError as exc:
         raise ConfigEntryNotReady("Server responds erroneously") from exc
-    except (OSError, aiohttp.ClientError, TimeoutError) as exc:
+    except aiohttp.ClientError as exc:
+        raise ConfigEntryNotReady("Server error while authenticating") from exc
+    except (OSError, TimeoutError) as exc:
         raise ConfigEntryNotReady("Timed out while authenticating") from exc
 
 

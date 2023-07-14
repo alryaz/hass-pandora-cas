@@ -21,7 +21,7 @@ from typing import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_USERNAME, ATTR_DEVICE_ID
 from homeassistant.core import HomeAssistant, callback, Event
-from homeassistant.helpers.entity import EntityDescription, DeviceInfo
+from homeassistant.helpers.entity import EntityDescription, DeviceInfo, Entity
 from homeassistant.helpers.entity_platform import (
     AddEntitiesCallback,
     async_get_current_platform,
@@ -138,11 +138,37 @@ CommandType = Union[CommandID, int, Callable[[PandoraOnlineDevice], Awaitable]]
 CommandOptions = Union[CommandType, Mapping[str, CommandType]]
 
 
-class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
+class BasePandoraCASEntity(Entity):
+    ENTITY_ID_FORMAT: ClassVar[str] = NotImplemented
+
+    def __init__(self, pandora_device: PandoraOnlineDevice) -> None:
+        self.pandora_device = pandora_device
+
+        self._attr_unique_id = f"{DOMAIN}_{pandora_device.device_id}"
+        slugified_middle = slugify(str(pandora_device.device_id))
+        if self.entity_description:
+            slugified_middle += "_" + slugify(self.entity_description.key)
+            self._attr_unique_id += f"_{self.entity_description.key}"
+        self.entity_id = self.ENTITY_ID_FORMAT.format(slugified_middle)
+
+    @property
+    def device_info(self) -> DeviceInfo | None:
+        d = self.pandora_device
+        return DeviceInfo(
+            identifiers={(DOMAIN, str(d.device_id))},
+            default_name=d.name,
+            manufacturer="Pandora",
+            model=d.model,
+            sw_version=f"{d.firmware_version} / {d.voice_version}",
+        )
+
+
+class PandoraCASEntity(
+    BasePandoraCASEntity, CoordinatorEntity[PandoraCASUpdateCoordinator]
+):
     ENTITY_TYPES: ClassVar[
         Collection[PandoraCASEntityDescription]
     ] = NotImplemented
-    ENTITY_ID_FORMAT: ClassVar[str] = NotImplemented
 
     entity_description: PandoraCASEntityDescription
     _attr_native_value: Any
@@ -157,29 +183,20 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
         extra_identifier: Any = None,
         context: Any = None,
     ) -> None:
-        super().__init__(coordinator, context)
-        self.pandora_device = pandora_device
         self.entity_description = entity_description
+
+        BasePandoraCASEntity.__init__(self, pandora_device)
+        CoordinatorEntity.__init__(self, coordinator, context)
+
         self._device_config = self.coordinator.get_device_config(
             self.pandora_device.device_id
         )
 
         # Set unique ID based on entity type
-        unique_id = (
-            f"{DOMAIN}_{pandora_device.device_id}_{entity_description.key}"
-        )
         if extra_identifier is not None:
-            unique_id += f"_{extra_identifier}"
-        self._attr_unique_id = unique_id
+            self._attr_unique_id += f"_{extra_identifier}"
+            self.entity_id += f"_{extra_identifier}"
         self._extra_identifier = extra_identifier
-
-        # Generate appropriate entity ID
-        entity_id = self.ENTITY_ID_FORMAT.format(
-            f"{slugify(str(pandora_device.device_id))}_{slugify(entity_description.key)}"
-        )
-        if extra_identifier is not None:
-            entity_id += "_" + slugify(str(extra_identifier))
-        self.entity_id = entity_id
 
         # Command execution management
         self._last_command_failed = False
@@ -189,17 +206,6 @@ class PandoraCASEntity(CoordinatorEntity[PandoraCASUpdateCoordinator]):
         # First attributes update
         self._attr_native_value = None
         self.update_native_value()
-
-    @property
-    def device_info(self) -> DeviceInfo | None:
-        d = self.pandora_device
-        return DeviceInfo(
-            identifiers={(DOMAIN, str(d.device_id))},
-            default_name=d.name,
-            manufacturer="Pandora",
-            model=d.model,
-            sw_version=f"{d.firmware_version} / {d.voice_version}",
-        )
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:

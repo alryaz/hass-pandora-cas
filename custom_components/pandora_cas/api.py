@@ -30,6 +30,7 @@ import asyncio
 import json
 import logging
 from contextlib import suppress
+from datetime import datetime, timedelta
 from enum import Flag, IntEnum, IntFlag, auto, StrEnum
 from time import time
 from types import MappingProxyType
@@ -45,7 +46,6 @@ from typing import (
     Tuple,
     TypeVar,
     Union,
-    List,
     SupportsFloat,
     SupportsInt,
     Optional,
@@ -745,6 +745,8 @@ class TrackingEvent:
     def get_dict_args(cls, data: Mapping[str, Any], **kwargs):
         if "identifier" not in kwargs:
             kwargs["identifier"] = int(data["id"])
+        if "device_id" not in kwargs:
+            kwargs["device_id"] = int(data["dev_id"])
         if "bit_state" not in kwargs:
             kwargs["bit_state"] = BitStatus(int(data["bit_state_1"]))
         if "cabin_temperature" not in kwargs:
@@ -764,7 +766,11 @@ class TrackingEvent:
         if "exterior_temperature" not in kwargs:
             kwargs["exterior_temperature"] = data["out_temp"]
         if "timestamp" not in kwargs:
-            kwargs["timestamp"] = data["dtime"]
+            try:
+                timestamp = data["dtime"]
+            except KeyError:
+                timestamp = data["time"]
+            kwargs["timestamp"] = timestamp
         if "recorded_timestamp" not in kwargs:
             kwargs["recorded_timestamp"] = data["dtime_rec"]
         if "voltage" not in kwargs:
@@ -871,21 +877,18 @@ class PandoraOnlineAccount:
 
     # Requests
     @staticmethod
-    async def _handle_json_response(
-        response: aiohttp.ClientResponse,
-    ) -> Any:
+    async def _handle_json_response(response: aiohttp.ClientResponse) -> Any:
+        given_exc, data = None, None
         try:
             data = await response.json(content_type=None)
         except json.JSONDecodeError as e:
-            # Raise for status first
-            response.raise_for_status()
-
-            # Seems to be an acceptable json response...
-            raise MalformedResponseError("bad JSON encoding") from e
+            given_exc = MalformedResponseError("bad JSON encoding")
+            given_exc.__cause__ = e
+            given_exc.__context__ = e
 
         if 400 <= response.status < 500:
             try:
-                auth_error = (
+                auth_error = str(
                     data.get("error_text")
                     or data.get("status")
                     or "unknown auth error"
@@ -896,6 +899,10 @@ class PandoraOnlineAccount:
 
         # Raise for status at this point
         response.raise_for_status()
+
+        # Raise exception for encoding if presented previously
+        if given_exc:
+            raise given_exc
 
         # Return data ready for consumption
         return data
@@ -1095,7 +1102,6 @@ class PandoraOnlineAccount:
         async with self._session.get(
             self.BASE_URL + "/api/devices",
             params={"access_token": access_token},
-            raise_for_status=True,
         ) as response:
             devices_data = await self._handle_list_response(response)
 
@@ -1327,9 +1333,49 @@ class PandoraOnlineAccount:
             settings_timestamp_utc=data.get("setting"),
         )
 
+    async def async_fetch_events(
+        self,
+        timestamp_from: int = 0,
+        timestamp_to: int | None = None,
+        limit: int = 20,
+        device_id: Optional[int] = None,
+    ) -> list[TrackingEvent]:
+        if timestamp_from < 0:
+            raise ValueError("timestamp_from must not be less than zero")
+        if timestamp_to is None:
+            # Request future to avoid timezone differences
+            timestamp_to = int(
+                (datetime.now() + timedelta(days=1)).timestamp()
+            )
+
+        log_postfix = f" between {timestamp_from} and {timestamp_to}"
+        _LOGGER.debug(f"[{self}] Fetching events{log_postfix}")
+        params = {
+            "access_token": self.access_token,
+            "from": str(timestamp_from),
+            "to": str(timestamp_to),
+        }
+        if device_id:
+            params["id"] = str(device_id)
+        if limit:
+            params["limit"] = str(limit)
+        async with self._session.get(
+            self.BASE_URL + "/api/lenta",
+            params=params,
+        ) as response:
+            data = await self._handle_dict_response(response)
+
+        events = []
+        for event_entry in data.get("lenta") or []:
+            if not (event_data := event_entry.get("obj")):
+                continue
+            events.append(TrackingEvent.from_dict(event_data))
+        _LOGGER.debug(f"[{self}] Received {len(events)} event{log_postfix}")
+        return events
+
     async def async_request_updates(
         self, timestamp: int | None = None
-    ) -> Tuple[dict[int, Dict[str, Any]], List[TrackingEvent]]:
+    ) -> Tuple[dict[int, Dict[str, Any]], list[TrackingEvent]]:
         """
         Fetch the latest changes from update server.
         :param timestamp: Timestamp to fetch updates since (optional, uses
@@ -1347,7 +1393,6 @@ class PandoraOnlineAccount:
         async with self._session.get(
             self.BASE_URL + "/api/updates",
             params={"ts": _timestamp, "access_token": access_token},
-            raise_for_status=True,
         ) as response:
             data = await self._handle_dict_response(response)
 
@@ -1557,78 +1602,120 @@ class PandoraOnlineAccount:
             "device_id": device.device_id,
         }
 
-    async def async_listen_websockets(
-        self, auto_restart: bool = False, effective_read_timeout: float = 180.0
+    async def _do_ws_auto_auth(self) -> bool:
+        try:
+            try:
+                _LOGGER.debug(f"[{self}][reauth] Checking WS access token")
+                await self.async_check_access_token()
+            except AuthenticationError:
+                _LOGGER.debug(f"[{self}][reauth] Performing authentication")
+                await self.async_authenticate()
+            else:
+                _LOGGER.debug(f"[{self}][reauth] WS access token still valid")
+        except asyncio.CancelledError:
+            raise
+        except AuthenticationError as exc:
+            _LOGGER.error(
+                f"[{self}][reauth] Severe authentication error: {exc}",
+                exc_info=exc,
+            )
+            raise
+        except (OSError, TimeoutError) as exc:
+            _LOGGER.error(
+                f"[{self}][reauth] Temporary authentication error, "
+                f"will check again later: {exc}",
+                exc_info=exc,
+            )
+        else:
+            # Successful authentication validation
+            return True
+        # Failed authentication validation
+        return False
+
+    async def _iterate_websockets(
+        self, effective_read_timeout: float | None = None
     ):
         if not (access_token := self.access_token):
             raise MissingAccessTokenError
 
+        # WebSockets session
+        async with self._session.ws_connect(
+            self.BASE_URL + f"/api/v4/updates/ws?access_token={access_token}",
+            heartbeat=15.0,
+        ) as ws:
+            _LOGGER.debug(f"[{self}] WebSockets connected")
+            while not ws.closed:
+                message = None
+                async with timeout(effective_read_timeout):
+                    while (
+                        message is None
+                        or message.type != aiohttp.WSMsgType.text
+                    ):
+                        if (message := await ws.receive()).type in (
+                            aiohttp.WSMsgType.CLOSED,
+                            aiohttp.WSMsgType.CLOSING,
+                            aiohttp.WSMsgType.ERROR,
+                            aiohttp.WSMsgType.CLOSE,
+                        ):
+                            break
+
+                if message.type != aiohttp.WSMsgType.text:
+                    break
+
+                try:
+                    contents = message.json()
+                except json.JSONDecodeError:
+                    _LOGGER.warning(
+                        f"[{self}] Unknown message data: {message}"
+                    )
+                if isinstance(contents, Mapping):
+                    _LOGGER.debug(f"[{self}] Received WS message: {contents}")
+                    yield contents
+                else:
+                    _LOGGER.warning(
+                        f"[{self}] Received message is not "
+                        f"a mapping (dict): {message}"
+                    )
+
+    async def async_listen_websockets(
+        self,
+        auto_restart: bool = False,
+        auto_reauth: bool = True,
+        effective_read_timeout: float | None = 180.0,
+    ):
         while True:
             known_exception = None
             try:
-                # WebSockets session
-                async with self._session.ws_connect(
-                    self.BASE_URL
-                    + f"/api/v4/updates/ws?access_token={access_token}",
-                    heartbeat=15.0,
-                ) as ws:
-                    _LOGGER.debug(f"[{self}] WebSockets connected")
-                    while not ws.closed:
-                        message = None
-                        async with timeout(effective_read_timeout):
-                            while (
-                                message is None
-                                or message.type != aiohttp.WSMsgType.text
-                            ):
-                                if (message := await ws.receive()).type in (
-                                    aiohttp.WSMsgType.CLOSED,
-                                    aiohttp.WSMsgType.CLOSING,
-                                    aiohttp.WSMsgType.ERROR,
-                                    aiohttp.WSMsgType.CLOSE,
-                                ):
-                                    break
+                async for message in self._iterate_websockets(
+                    effective_read_timeout
+                ):
+                    yield message
+            except asyncio.CancelledError:
+                _LOGGER.debug(f"[{self}] WS listener stopped gracefully")
+                raise
 
-                        if message.type != aiohttp.WSMsgType.text:
-                            break
-
-                        try:
-                            contents = message.json()
-                        except json.JSONDecodeError:
-                            _LOGGER.warning(
-                                f"[{self}] Unknown message data: {message}"
-                            )
-                        if isinstance(contents, Mapping):
-                            _LOGGER.debug(
-                                f"[{self}] Received WS message: {contents}"
-                            )
-                            yield contents
-                        else:
-                            _LOGGER.warning(
-                                f"[{self}] Received message is not "
-                                f"a mapping (dict): {message}"
-                            )
-
+            # Handle temporary exceptions
             except TimeoutError as exc:
                 known_exception = exc
-                _LOGGER.error(
-                    f"[{self}] Timed out (WS might have failed)", exc_info=exc
-                )
+                _LOGGER.error(f"[{self}] WS temporary error: {exc}")
 
             except OSError as exc:
                 known_exception = exc
-                _LOGGER.error(f"[{self}] OS Error: {exc}", exc_info=exc)
+                _LOGGER.error(f"[{self}] WS OS Error: {exc}")
 
             except aiohttp.ClientError as exc:
+                # @TODO: check if authentication is required
                 known_exception = exc
-                _LOGGER.error(f"[{self}] Client error: {exc}", exc_info=exc)
+                _LOGGER.error(f"[{self}] WS client error: {exc}")
 
-            except asyncio.CancelledError:
-                _LOGGER.debug(f"[{self}] WS listener stopped")
-                raise
+            except PandoraOnlineException as exc:
+                known_exception = exc
+                _LOGGER.error(f"[{self}] WS API error: {exc}")
 
             else:
                 _LOGGER.debug(f"[{self}] WS client closed")
 
+            # Raise exception
             if not auto_restart:
                 raise (
                     known_exception
@@ -1636,19 +1723,12 @@ class PandoraOnlineAccount:
                 )
 
             # Reauthenticate if required
-            try:
-                _LOGGER.debug(
-                    f"[{self}] Checking WS access token before reauth"
-                )
-                await self.async_check_access_token(access_token)
-            except AuthenticationError:
-                _LOGGER.debug(f"[{self}] Performing WS reauth")
-                await self.async_authenticate(access_token)
-            else:
-                _LOGGER.debug(f"[{self}] WS access token still valid")
+            while auto_reauth and not await self._do_ws_auto_auth():
+                await asyncio.sleep(3.0)
 
-            # Sleep just in case
-            await asyncio.sleep(3.0)
+            if not auto_reauth:
+                # Sleep for all else
+                await asyncio.sleep(3.0)
 
     async def async_listen_for_updates(
         self,
@@ -1685,8 +1765,8 @@ class PandoraOnlineAccount:
         | None = None,
         reconnect_on_device_online: bool = True,
         auto_restart: bool = False,
+        auto_reauth: bool = True,
         effective_read_timeout: float = 180.0,
-        **kwargs,
     ) -> None:
         async def _handle_ws_message(
             contents: Mapping[str, Any]
@@ -1814,19 +1894,17 @@ class PandoraOnlineAccount:
 
             return return_result
 
-        with suppress(asyncio.CancelledError):
-            response = None
-
-            # On empty (none) responses, reconnect WS
-            # On False response, stop WS
-            while response is not False:
-                async for message in self.async_listen_websockets(
-                    auto_restart=auto_restart,
-                    effective_read_timeout=effective_read_timeout,
-                    **kwargs,
-                ):
-                    if not (response := await _handle_ws_message(message)):
-                        break
+        # On empty (none) responses, reconnect WS
+        # On False response, stop WS
+        response = None
+        while response is not False:
+            async for message in self.async_listen_websockets(
+                auto_restart=auto_restart,
+                auto_reauth=auto_reauth,
+                effective_read_timeout=effective_read_timeout,
+            ):
+                if not (response := await _handle_ws_message(message)):
+                    break
 
         _LOGGER.info(f"[{self}] WS updates listener stopped")
 
@@ -1953,6 +2031,22 @@ class PandoraOnlineDevice:
     @last_event.setter
     def last_event(self, value: TrackingEvent | None) -> None:
         self._last_event = value
+
+    async def async_fetch_last_event(self) -> Optional[TrackingEvent]:
+        try:
+            return next(iter(await self.async_fetch_events(0, None, 1)))
+        except StopIteration:
+            return None
+
+    async def async_fetch_events(
+        self,
+        timestamp_from: int = 0,
+        timestamp_to: int | None = None,
+        limit: int = 20,
+    ) -> list[TrackingEvent]:
+        return await self.account.async_fetch_events(
+            timestamp_from, timestamp_to, limit
+        )
 
     # Remote command execution section
     async def async_remote_command(

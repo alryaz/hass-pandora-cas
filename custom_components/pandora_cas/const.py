@@ -13,9 +13,6 @@ PLATFORMS: Final = (
     Platform.SWITCH,
 )
 
-# Global data placeholders
-DATA_LISTENERS: Final = DOMAIN + "_listeners"
-
 MIN_EFFECTIVE_READ_TIMEOUT: Final = 60.0
 
 DEFAULT_EFFECTIVE_READ_TIMEOUT: Final = 180.0
