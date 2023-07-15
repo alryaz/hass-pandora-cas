@@ -65,7 +65,7 @@ async def async_options_flow_init_step_validate(
 class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Pandora Car Alarm System config entries."""
 
-    VERSION: Final[int] = 11
+    VERSION: Final[int] = 12
 
     def __init__(self) -> None:
         """Init the config flow."""
@@ -274,40 +274,55 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
             step_id=STEP_DEVICE_OPTIONS, data_schema=schema
         )
 
+    INTERVALS = {
+        CONF_POLLING_INTERVAL: (
+            MIN_POLLING_INTERVAL,
+            DEFAULT_POLLING_INTERVAL,
+        ),
+        CONF_EFFECTIVE_READ_TIMEOUT: (
+            MIN_EFFECTIVE_READ_TIMEOUT,
+            DEFAULT_EFFECTIVE_READ_TIMEOUT,
+        ),
+    }
+
     async def async_step_integration_options(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        schema = INTEGRATION_OPTIONS_SCHEMA
         errors = {}
 
         if user_input is None:
-            suggested_values = dict(self.options)
+            user_input = dict(self.options)
 
-            current_value = self.options[CONF_EFFECTIVE_READ_TIMEOUT]
-            suggested_values[CONF_EFFECTIVE_READ_TIMEOUT] = {
+            # @TODO: maybe not required
+            for key, (_, default) in self.INTERVALS.items():
+                user_input.setdefault(key, default)
+        else:
+            for key, (min_value, _) in self.INTERVALS.items():
+                user_input[key] = user_input[key].total_seconds()
+                if user_input[key] < min_value:
+                    errors[key] = "interval_too_short"
+
+            if not errors:
+                print(user_input)
+                print(self.options)
+                self.options.update(user_input)
+                print(self.options)
+                return await self.async_step_init()
+
+        for key in self.INTERVALS:
+            current_value = user_input[key]
+            user_input[key] = {
                 "hours": current_value // 3600,
                 "minutes": (current_value % 3600) // 60,
                 "seconds": current_value % 60,
             }
 
-            schema = self.add_suggested_values_to_schema(
-                schema, suggested_values
-            )
-        else:
-            current_value = user_input[
-                CONF_EFFECTIVE_READ_TIMEOUT
-            ].total_seconds()
-
-            if current_value < MIN_EFFECTIVE_READ_TIMEOUT:
-                errors[CONF_EFFECTIVE_READ_TIMEOUT] = "interval_too_short"
-
-            if not errors:
-                user_input[CONF_EFFECTIVE_READ_TIMEOUT] = current_value
-                self.options.update(user_input)
-                return await self.async_step_init()
-
         return self.async_show_form(
-            step_id=STEP_INTEGRATION_OPTIONS, data_schema=schema, errors=errors
+            step_id=STEP_INTEGRATION_OPTIONS,
+            data_schema=self.add_suggested_values_to_schema(
+                INTEGRATION_OPTIONS_SCHEMA, user_input
+            ),
+            errors=errors,
         )
 
     async def async_step_device_settings(

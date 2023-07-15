@@ -96,6 +96,9 @@ INTEGRATION_OPTIONS_SCHEMA: Final = vol.Schema(
         vol.Optional(
             CONF_EFFECTIVE_READ_TIMEOUT, default=DEFAULT_EFFECTIVE_READ_TIMEOUT
         ): cv.positive_time_period_dict,
+        vol.Optional(
+            CONF_POLLING_INTERVAL, default=DEFAULT_POLLING_INTERVAL
+        ): cv.positive_time_period_dict,
     }
 )
 
@@ -369,7 +372,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     update_interval = None
     if not entry.pref_disable_polling:
         update_interval = timedelta(
-            seconds=(5 if entry.options[CONF_DISABLE_WEBSOCKETS] else 30)
+            seconds=entry.options[CONF_POLLING_INTERVAL]
+        )
+        logger.debug(
+            f"Setting up polling to refresh at {update_interval} interval"
         )
 
     hass.data.setdefault(DOMAIN, {})[
@@ -434,6 +440,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Create options update listener
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
 
+    logger.info("Finished config entry setup")
+
     return True
 
 
@@ -474,7 +482,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if entry.version < 3:
         for src in (new_data, new_options):
-            src.pop("polling_interval", None)
+            # src.pop("polling_interval", None)
             src.pop("user_agent", None)
         entry.version = 3
 
@@ -586,6 +594,19 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         ] = DEFAULT_EFFECTIVE_READ_TIMEOUT
 
         entry.version = 11
+
+    if entry.version < 12:
+        if CONF_POLLING_INTERVAL in new_options:
+            new_options[CONF_POLLING_INTERVAL] = max(
+                MIN_POLLING_INTERVAL, new_options[CONF_POLLING_INTERVAL] or -1
+            )
+        else:
+            new_options[CONF_POLLING_INTERVAL] = DEFAULT_POLLING_INTERVAL * (
+                5 if new_options[CONF_DISABLE_WEBSOCKETS] else 1
+            )
+
+        entry.version = 12
+
     hass.config_entries.async_update_entry(entry, **args)
 
     _LOGGER.info(f"Upgraded configuration entry to version {entry.version}")

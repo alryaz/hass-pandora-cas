@@ -21,6 +21,59 @@
       }
     }
   },
+  "device_automation": {
+    "trigger_type": {
+      "locking_enabled": "Event: Locking Enabled",
+      "locking_disabled": "Event: Locking Disabled",
+      "alert": "Event: Alert",
+      "engine_started": "Event: Engine Started",
+      "engine_stopped": "Event: Engine Stopped",
+      "engine_locked": "Event: Engine Locked",
+      "service_mode_enabled": "Event: Service Mode Enabled",
+      "settings_changed": "Event: Settings Changed",
+      "refuel": "Event: Refuel",
+      "collision": "Event: Collision",
+      "gsm_connection": "Event: Gsm Connection",
+      "emergency_call": "Event: Emergency Call",
+      "failed_start_attempt": "Event: Failed Start Attempt",
+      "tracking_enabled": "Event: Tracking Enabled",
+      "tracking_disabled": "Event: Tracking Disabled",
+      "system_power_loss": "Event: System Power Loss",
+      "secure_trunk_open": "Event: Secure Trunk Open",
+      "factory_testing": "Event: Factory Testing",
+      "power_dip": "Event: Power Dip",
+      "check_received": "Event: Check Received",
+      "system_login": "Event: System Login",
+      "active_security_enabled": "Event: Active Security Enabled",
+      "active_security_disabled": "Event: Active Security Disabled",
+      "active_security_alert": "Event: Active Security Alert",
+      "block_heater_enabled": "Event: Block Heater Enabled",
+      "block_heater_disabled": "Event: Block Heater Disabled",
+      "rough_road_conditions": "Event: Rough Road Conditions",
+      "driving": "Event: Driving",
+      "engine_running_prolongation": "Event: Engine Running Prolongation",
+      "service_mode_disabled": "Event: Service Mode Disabled",
+      "gsm_channel_enabled": "Event: Gsm Channel Enabled",
+      "gsm_channel_disabled": "Event: Gsm Channel Disabled",
+      "nav_11_status": "Event: Nav 11 Status",
+      "dtc_read_request": "Event: Dtc Read Request",
+      "dtc_read_error": "Event: Dtc Read Error",
+      "dtc_read_active": "Event: Dtc Read Active",
+      "dtc_erase_request": "Event: Dtc Erase Request",
+      "dtc_erase_active": "Event: Dtc Erase Active",
+      "system_message": "Event: System Message",
+      "eco_mode_enabled": "Event: Eco Mode Enabled",
+      "eco_mode_disabled": "Event: Eco Mode Disabled",
+      "tire_pressure_low": "Event: Tire Pressure Low",
+      "bluetooth_status": "Event: Bluetooth Status",
+      "tag_requirement_enabled": "Event: Tag Requirement Enabled",
+      "tag_requirement_disabled": "Event: Tag Requirement Disabled",
+      "tag_polling_enabled": "Event: Tag Polling Enabled",
+      "tag_polling_disabled": "Event: Tag Polling Disabled",
+      "point": "Event: Point",
+      "unknown": "Event: Unknown"
+    }
+  },
   "entity": {
     "binary_sensor": {
       "connection_state": {
@@ -562,59 +615,6 @@
       }
     }
   },
-  "device_automation": {
-    "trigger_type": {
-      "locking_enabled": "Event: Locking Enabled",
-      "locking_disabled": "Event: Locking Disabled",
-      "alert": "Event: Alert",
-      "engine_started": "Event: Engine Started",
-      "engine_stopped": "Event: Engine Stopped",
-      "engine_locked": "Event: Engine Locked",
-      "service_mode_enabled": "Event: Service Mode Enabled",
-      "settings_changed": "Event: Settings Changed",
-      "refuel": "Event: Refuel",
-      "collision": "Event: Collision",
-      "gsm_connection": "Event: Gsm Connection",
-      "emergency_call": "Event: Emergency Call",
-      "failed_start_attempt": "Event: Failed Start Attempt",
-      "tracking_enabled": "Event: Tracking Enabled",
-      "tracking_disabled": "Event: Tracking Disabled",
-      "system_power_loss": "Event: System Power Loss",
-      "secure_trunk_open": "Event: Secure Trunk Open",
-      "factory_testing": "Event: Factory Testing",
-      "power_dip": "Event: Power Dip",
-      "check_received": "Event: Check Received",
-      "system_login": "Event: System Login",
-      "active_security_enabled": "Event: Active Security Enabled",
-      "active_security_disabled": "Event: Active Security Disabled",
-      "active_security_alert": "Event: Active Security Alert",
-      "block_heater_enabled": "Event: Block Heater Enabled",
-      "block_heater_disabled": "Event: Block Heater Disabled",
-      "rough_road_conditions": "Event: Rough Road Conditions",
-      "driving": "Event: Driving",
-      "engine_running_prolongation": "Event: Engine Running Prolongation",
-      "service_mode_disabled": "Event: Service Mode Disabled",
-      "gsm_channel_enabled": "Event: Gsm Channel Enabled",
-      "gsm_channel_disabled": "Event: Gsm Channel Disabled",
-      "nav_11_status": "Event: Nav 11 Status",
-      "dtc_read_request": "Event: Dtc Read Request",
-      "dtc_read_error": "Event: Dtc Read Error",
-      "dtc_read_active": "Event: Dtc Read Active",
-      "dtc_erase_request": "Event: Dtc Erase Request",
-      "dtc_erase_active": "Event: Dtc Erase Active",
-      "system_message": "Event: System Message",
-      "eco_mode_enabled": "Event: Eco Mode Enabled",
-      "eco_mode_disabled": "Event: Eco Mode Disabled",
-      "tire_pressure_low": "Event: Tire Pressure Low",
-      "bluetooth_status": "Event: Bluetooth Status",
-      "tag_requirement_enabled": "Event: Tag Requirement Enabled",
-      "tag_requirement_disabled": "Event: Tag Requirement Disabled",
-      "tag_polling_enabled": "Event: Tag Polling Enabled",
-      "tag_polling_disabled": "Event: Tag Polling Disabled",
-      "point": "Event: Point",
-      "unknown": "Event: Unknown"
-    }
-  },
   "options": {
     "error": {
       "interval_too_short": "Interval too short"
@@ -629,11 +629,12 @@
       },
       "integration_options": {
         "data": {
-          "verify_ssl": "Verify SSL certificates",
-          "disable_websockets": "Disable WebSockets",
           "disable_polling": "Disable polling",
+          "disable_websockets": "Disable WebSockets",
+          "effective_read_timeout": "Timeout for WebSockets responses",
           "force_lock_icons": "Use lock icons",
-          "effective_read_timeout": "Timeout for WebSockets responses"
+          "polling_interval": "Polling interval",
+          "verify_ssl": "Verify SSL certificates"
         }
       },
       "device_options": {

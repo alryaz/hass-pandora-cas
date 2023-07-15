@@ -14,8 +14,10 @@ PLATFORMS: Final = (
 )
 
 MIN_EFFECTIVE_READ_TIMEOUT: Final = 60.0
+MIN_POLLING_INTERVAL: Final = 3.0
 
 DEFAULT_EFFECTIVE_READ_TIMEOUT: Final = 180.0
+DEFAULT_POLLING_INTERVAL: Final = 6.0
 
 # Configuration parameters
 CONF_COORDINATES_DEBOUNCE: Final = "coordinates_debounce"
@@ -32,6 +34,7 @@ CONF_IGNORE_WS_COORDINATES: Final = "ignore_ws_coordinates"
 CONF_MILEAGE_CAN_MILES: Final = "mileage_can_miles"
 CONF_MILEAGE_MILES: Final = "mileage_miles"
 CONF_OFFLINE_AS_UNAVAILABLE: Final = "offline_as_unavailable"
+CONF_POLLING_INTERVAL: Final = "polling_interval"
 CONF_RPM_COEFFICIENT: Final = "rpm_coefficient"
 CONF_RPM_OFFSET: Final = "rpm_offset"
 CONF_FORCE_LOCK_ICONS: Final = "force_lock_icons"

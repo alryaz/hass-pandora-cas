@@ -1719,18 +1719,24 @@ class PandoraOnlineAccount:
             self.logger.debug("WebSockets connected")
             while not ws.closed:
                 message = None
-                async with timeout(effective_read_timeout):
-                    while (
-                        message is None
-                        or message.type != aiohttp.WSMsgType.text
-                    ):
-                        if (message := await ws.receive()).type in (
-                            aiohttp.WSMsgType.CLOSED,
-                            aiohttp.WSMsgType.CLOSING,
-                            aiohttp.WSMsgType.ERROR,
-                            aiohttp.WSMsgType.CLOSE,
+                if (
+                    effective_read_timeout is not None
+                    and effective_read_timeout > 0
+                ):
+                    async with timeout(effective_read_timeout):
+                        while (
+                            message is None
+                            or message.type != aiohttp.WSMsgType.text
                         ):
-                            break
+                            if (message := await ws.receive()).type in (
+                                aiohttp.WSMsgType.CLOSED,
+                                aiohttp.WSMsgType.CLOSING,
+                                aiohttp.WSMsgType.ERROR,
+                                aiohttp.WSMsgType.CLOSE,
+                            ):
+                                break
+                else:
+                    message = await ws.receive()
 
                 if message.type != aiohttp.WSMsgType.text:
                     break
@@ -1837,7 +1843,7 @@ class PandoraOnlineAccount:
         reconnect_on_device_online: bool = True,
         auto_restart: bool = False,
         auto_reauth: bool = True,
-        effective_read_timeout: float = 180.0,
+        effective_read_timeout: float | None = 180.0,
     ) -> None:
         async def _handle_ws_message(
             contents: Mapping[str, Any]

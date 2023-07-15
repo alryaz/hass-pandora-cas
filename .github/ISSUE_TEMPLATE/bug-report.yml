@@ -55,17 +55,6 @@ body:
     validations:
       required: true
     attributes:
-      label: Способ установки Home Assistant / Home Assistant install method
-      options:
-        - Home Assistant OS
-        - Supervised
-        - Container
-        - Core
-        - venv
-  - type: dropdown
-    validations:
-      required: true
-    attributes:
       label: Способ установки интеграции / Integration install method
       options:
         - HACS (Home Assistant Community Store)
@@ -84,17 +73,16 @@ body:
         > Кратко опишите возникшую проблему.  
         > Add a brief problem description.
   - type: textarea
+    validations:
+      required: true
     attributes:
       label: Способ воспроизведения / Steps to reproduce
       description: |
         > Перечислите последовательно шаги, приводящие к возникновению проблемы.
         > How do you trigger this bug? Please walk us through it step by step.
-      value: |
-        1.
-        2.
-        3.
-        
   - type: textarea
+    validations:
+      required: true
     attributes:
       label: Ожидаемый результат / Expected outcome
       description: |
@@ -102,7 +90,7 @@ body:
         > Insert a brief description of the expected outcome of actions described above.
   - type: textarea
     attributes:
-      label: Журнал отладки / Traceback and logging information
+      label: Журнал отладки и сообщения об ошибках / Traceback and logging information
       description: |
         > Включите отладку интеграции и загрузите результаты в это поле (или на pastebin.com).  
         > [⚙️ Настройки > Система > ✍️ Журнал сервера](https://my.home-assistant.io/redirect/logs) > 🔍 Фильтр `pandora_cas`
