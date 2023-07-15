@@ -905,24 +905,23 @@ class PandoraOnlineAccount:
         #     _LOGGER.debug(f"{response.method} {response.url.path} < {data}")
 
         try:
-            status_error = str(
+            status = (
                 data.get("error_text")
                 or data.get("status")
                 or data.get("action_result")
-                or "unknown auth error"
             )
         except AttributeError:
-            status_error = "malformed status error"
+            status = None
 
         if 400 <= response.status <= 403:
-            raise AuthenticationError(status_error)
+            raise AuthenticationError(status or "unknown auth error")
 
         try:
             # Raise for status at this point
             response.raise_for_status()
         except aiohttp.ClientResponseError as exc:
-            if status_error is not None:
-                raise PandoraOnlineException(status_error) from exc
+            if status is not None:
+                raise PandoraOnlineException(status) from exc
             raise
 
         # Raise exception for encoding if presented previously
