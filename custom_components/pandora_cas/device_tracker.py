@@ -92,14 +92,20 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
             self.coordinator.is_last_update_ws
             and self._device_config[CONF_IGNORE_WS_COORDINATES]
         ):
-            _LOGGER.debug(f"[{self.entity_id}] Ignored WS coordinates update")
+            self.logger.debug("Ignored WS coordinates update per setting")
+            return
+
+        # Ignore updates without data
+        if not (device_data := self.coordinator_device_data):
             return
 
         # Ignore updates with a single coordinate
-        device_data = self.coordinator_device_data
         try:
             new_ll = (device_data["latitude"], device_data["longitude"])
         except KeyError:
+            self.logger.debug(
+                "Ignored WS coordinates update as single coordinate received"
+            )
             return
 
         # Update if no coordinates yet exist, or difference is above threshold

@@ -13,6 +13,7 @@ __all__ = (
     "async_setup_entry",
     "async_unload_entry",
     "event_enum_to_type",
+    "ConfigEntryLoggerAdapter",
 )
 
 import asyncio
@@ -28,11 +29,16 @@ from typing import (
     Tuple,
     Literal,
     Optional,
+    MutableMapping,
 )
 
 import aiohttp
 import voluptuous as vol
-from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
+from homeassistant.config_entries import (
+    ConfigEntry,
+    SOURCE_IMPORT,
+    current_entry,
+)
 from homeassistant.const import (
     ATTR_ID,
     CONF_PASSWORD,
@@ -306,18 +312,41 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
+class ConfigEntryLoggerAdapter(logging.LoggerAdapter):
+    """Logger adapter that prefixes config entry ID."""
+
+    def __init__(
+        self,
+        logger: logging.Logger = _LOGGER,
+        config_entry: ConfigEntry | None = None,
+    ) -> None:
+        if (config_entry or (config_entry := current_entry.get())) is None:
+            raise RuntimeError("no context of config entry")
+        super().__init__(logger, {"config_entry": config_entry})
+        self.config_entry = config_entry
+
+    def process(
+        self, msg: Any, kwargs: MutableMapping[str, Any]
+    ) -> tuple[Any, MutableMapping[str, Any]]:
+        return "[%s] %s" % (self.config_entry.entry_id[-6:], msg), kwargs
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Setup configuration entry for Pandora Car Alarm System."""
-    _LOGGER.debug(f'Setting up entry "{entry.entry_id}"')
+    logger = ConfigEntryLoggerAdapter(_LOGGER)
+
+    username = entry.data[CONF_USERNAME]
+    logger.info(f"Setting up config entry")
 
     # Instantiate account object
     account = PandoraOnlineAccount(
-        username=entry.data[CONF_USERNAME],
+        username=username,
         password=entry.data[CONF_PASSWORD],
         access_token=entry.data.get(CONF_ACCESS_TOKEN),
         session=async_get_clientsession(
             hass, verify_ssl=entry.options[CONF_VERIFY_SSL]
         ),
+        logger=ConfigEntryLoggerAdapter,
     )
 
     # Perform authentication
@@ -346,7 +375,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})[
         entry.entry_id
     ] = coordinator = PandoraCASUpdateCoordinator(
-        hass, account, update_interval
+        hass, account, update_interval, logger=logger
     )
     await coordinator.async_config_entry_first_refresh()
 
@@ -355,12 +384,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         async def _listen_configuration_entry():
             callback_args = dict(
-                state_callback=partial(async_state_delegator, hass, entry),
-                command_callback=partial(async_command_delegator, hass, entry),
-                event_callback=partial(async_event_delegator, hass, entry),
-                point_callback=partial(async_point_delegator, hass, entry),
+                state_callback=partial(
+                    async_state_delegator, hass, entry, logger=logger
+                ),
+                command_callback=partial(
+                    async_command_delegator, hass, entry, logger=logger
+                ),
+                event_callback=partial(
+                    async_event_delegator, hass, entry, logger=logger
+                ),
+                point_callback=partial(
+                    async_point_delegator, hass, entry, logger=logger
+                ),
                 update_settings_callback=partial(
-                    async_update_settings_delegator, hass
+                    async_update_settings_delegator, hass, logger=logger
                 ),
                 effective_read_timeout=max(
                     MIN_EFFECTIVE_READ_TIMEOUT,
@@ -412,7 +449,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    _LOGGER.info(f"Upgrading configuration entry from version {entry.version}")
+    logger = ConfigEntryLoggerAdapter(_LOGGER, entry)
+    logger.info(f"Upgrading from version {entry.version}")
 
     args = {
         "data": (new_data := {**entry.data}),
@@ -478,26 +516,22 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 except KeyError:
                     entries_to_update[pandora_id] = device_entry.id
                 except (TypeError, ValueError):
-                    _LOGGER.warning(
+                    logger.warning(
                         f"[{entry.entry_id}] Device identifier {pandora_id} "
                         f"is not supported. Did it come from another "
                         f"integration?"
                     )
                 else:
                     # Remove obsolete device if both found
-                    _LOGGER.info(
-                        f"[{entry.entry_id}] Removing obsolete device"
-                        f"entry for {pandora_id}"
+                    logger.info(
+                        f"Removing obsolete device entry for {pandora_id}"
                     )
                     dev_reg.async_remove_device(remove_id)
 
         for pandora_id, device_id in entries_to_update.items():
             if isinstance(pandora_id, str):
                 continue
-            _LOGGER.info(
-                f"[{entry.entry_id}] Updating obsolete device entry"
-                f"for {pandora_id}"
-            )
+            logger.info(f"Updating obsolete device entry for {pandora_id}")
             dev_reg.async_update_device(
                 device_id,
                 new_identifiers={(DOMAIN, str(pandora_id))},
@@ -573,15 +607,17 @@ def async_state_delegator(
     device: PandoraOnlineDevice,
     _: CurrentState,
     state_args: Mapping[str, Any],
+    *,
+    logger: logging.Logger | logging.LoggerAdapter = _LOGGER,
 ) -> None:
-    _LOGGER.debug(
+    logger.debug(
         f"Received WebSockets state update for "
         f"device {device.device_id}: {state_args}"
     )
     try:
         coordinator = hass.data[DOMAIN][entry.entry_id]
     except LookupError:
-        _LOGGER.error(f"[{entry.entry_id}] Coordinator not found")
+        logger.error("Coordinator not found")
     else:
         coordinator.async_set_updated_data(
             (True, {device.device_id: state_args})
@@ -597,6 +633,8 @@ def async_command_delegator(
     command_id: int,
     result: int,
     reply: Any,
+    *,
+    logger: logging.Logger | logging.LoggerAdapter = _LOGGER,
 ) -> None:
     """Pass command execution data to Home Assistant event bus."""
     hass.bus.async_fire(
@@ -617,8 +655,14 @@ def async_event_delegator(
     entry: ConfigEntry,
     device: PandoraOnlineDevice,
     event: TrackingEvent,
+    *,
+    logger: logging.Logger | logging.LoggerAdapter = _LOGGER,
 ) -> None:
     """Pass event data to Home Assistant event bus."""
+    logger.debug(
+        f"Firing event {EVENT_TYPE_EVENT}[{event.event_id_primary}/"
+        f"{event.event_id_secondary}] for device {event.device_id}"
+    )
     hass.bus.async_fire(
         EVENT_TYPE_EVENT,
         {
@@ -644,20 +688,32 @@ def async_update_settings_delegator(
     hass: HomeAssistant,
     entry: ConfigEntry,
     device: PandoraOnlineDevice,
-    event: TrackingEvent,
+    update_settings: Mapping[str, Any],
+    *,
+    logger: logging.Logger | logging.LoggerAdapter = _LOGGER,
 ) -> None:
     """Pass event data to Home Assistant event bus."""
-    hass.bus.async_fire(
-        EVENT_TYPE_EVENT,
-        {
-            "event_type": event_enum_to_type(PrimaryEventID.SETTINGS_CHANGED),
-            ATTR_DEVICE_ID: device.device_id,
-            "event_id_primary": int(PrimaryEventID.SETTINGS_CHANGED),
-            "event_id_secondary": event.event_id_secondary,
-        },
+    # logger.debug(
+    #     f"Firing event {EVENT_TYPE_EVENT}[{event.event_id_primary}/"
+    #     f"{event.event_id_secondary}] for device {event.device_id}"
+    # )
+    # hass.bus.async_fire(
+    #     EVENT_TYPE_EVENT,
+    #     {
+    #         "event_type": event_enum_to_type(PrimaryEventID.SETTINGS_CHANGED),
+    #         ATTR_DEVICE_ID: device.device_id,
+    #         "event_id_primary": int(PrimaryEventID.SETTINGS_CHANGED),
+    #         "event_id_secondary": event.event_id_secondary,
+    #     },
+    # )
+
+    logger.debug(
+        "Update-Settings event received from WS, but I don't yet"
+        "know what to do with it. Pls suggest."
     )
 
     # @TODO: add time_fired parameter
+    pass
 
 
 # noinspection PyUnusedLocal
@@ -668,7 +724,13 @@ def async_point_delegator(
     point: TrackingPoint,
     state: Optional[CurrentState],
     state_args: Optional[Mapping[str, Any]],
+    *,
+    logger: logging.Logger | logging.LoggerAdapter = _LOGGER,
 ) -> None:
+    logger.debug(
+        f"Firing event {EVENT_TYPE_POINT}[{point.track_id}/"
+        f"{point.timestamp}] for device {point.device_id}"
+    )
     hass.bus.async_fire(
         EVENT_TYPE_POINT,
         {
@@ -683,8 +745,10 @@ def async_point_delegator(
     )
 
     if state_args:
-        _LOGGER.debug(f"[{entry.entry_id}] Updating state through point")
-        async_state_delegator(hass, entry, device, state, state_args)
+        logger.debug(f"Updating device {point.device_id} state through point")
+        async_state_delegator(
+            hass, entry, device, state, state_args, logger=logger
+        )
 
 
 _T = TypeVar("_T")
@@ -711,11 +775,12 @@ class PandoraCASUpdateCoordinator(
         hass: HomeAssistant,
         account: PandoraOnlineAccount,
         update_interval: timedelta | None = None,
+        logger: logging.Logger | logging.LoggerAdapter = _LOGGER,
     ) -> None:
         self.account = account
         self._device_configs = {}
         super().__init__(
-            hass, _LOGGER, name=DOMAIN, update_interval=update_interval
+            hass, logger, name=DOMAIN, update_interval=update_interval
         )
 
     @property

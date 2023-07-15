@@ -93,8 +93,6 @@ body:
         1.
         2.
         3.
-        ...
-      render: bash
         
   - type: textarea
     attributes:

@@ -19,7 +19,6 @@ __all__ = [
     # Exceptions
     "PandoraOnlineException",
     "AuthenticationError",
-    "CommandExecutionError",
     "MalformedResponseError",
     # Constants
     "DEFAULT_USER_AGENT",
@@ -29,7 +28,6 @@ __all__ = [
 import asyncio
 import json
 import logging
-from contextlib import suppress
 from datetime import datetime, timedelta
 from enum import Flag, IntEnum, IntFlag, auto, StrEnum
 from time import time
@@ -39,21 +37,19 @@ from typing import (
     Awaitable,
     Callable,
     Collection,
-    Dict,
     Final,
     Iterable,
     Mapping,
-    Tuple,
     TypeVar,
     Union,
     SupportsFloat,
     SupportsInt,
     Optional,
 )
-from async_timeout import timeout
 
 import aiohttp
 import attr
+from async_timeout import timeout
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -374,7 +370,7 @@ def _degrees_to_direction(degrees: float):
 
 @attr.s(kw_only=True, frozen=True, slots=True)
 class CurrentState:
-    identifier: int = attr.ib()
+    identifier: int = attr.ib(converter=int)
     is_online: bool | None = attr.ib(default=None)
     latitude: float | None = attr.ib(default=None, converter=_f)
     longitude: float | None = attr.ib(default=None, converter=_f)
@@ -440,7 +436,7 @@ class CurrentState:
     land: int | None = attr.ib(default=None)
     bunker: int | None = attr.ib(default=None)
     ex_status: int | None = attr.ib(default=None)
-    fuel_tanks: Collection[FuelTank] = attr.ib(default=None)
+    fuel_tanks: Collection[FuelTank] = attr.ib(default=())
 
     state_timestamp: int | None = attr.ib(default=None)
     state_timestamp_utc: int | None = attr.ib(default=None)
@@ -810,7 +806,13 @@ class PandoraOnlineAccount:
         username: str,
         password: str,
         access_token: str | None = None,
-        utc_offset: int | None = None,
+        utc_offset: int = 0,
+        *,
+        logger: (
+            logging.Logger
+            | logging.LoggerAdapter
+            | type[logging.LoggerAdapter]
+        ) = _LOGGER,
     ) -> None:
         """
         Instantiate Pandora Online account object.
@@ -839,6 +841,10 @@ class PandoraOnlineAccount:
 
         #: list of vehicles associated with this account.
         self._devices: dict[int, PandoraOnlineDevice] = {}
+
+        if isinstance(logger, type):
+            logger = logger(_LOGGER)
+        self.logger = logger
 
     def __repr__(self):
         """Retrieve representation of account object"""
@@ -878,6 +884,15 @@ class PandoraOnlineAccount:
     # Requests
     @staticmethod
     async def _handle_json_response(response: aiohttp.ClientResponse) -> Any:
+        """
+        Process aiohttp response into data decoded from JSON.
+
+        :param response: aiohttp.ClientResponse object.
+        :return: Decoded JSON data.
+        :raises PandoraOnlineException: Bad status, but server described it.
+        :raises MalformedResponseError: When bad JSON message encountered.
+        :raises aiohttp.ClientResponseError: When unexpected response status.
+        """
         given_exc, data = None, None
         try:
             data = await response.json(content_type=None)
@@ -885,20 +900,30 @@ class PandoraOnlineAccount:
             given_exc = MalformedResponseError("bad JSON encoding")
             given_exc.__cause__ = e
             given_exc.__context__ = e
+        # else:
+        #     # When making a pull request, make sure not to remove this section.
+        #     _LOGGER.debug(f"{response.method} {response.url.path} < {data}")
 
-        if 400 <= response.status < 500:
-            try:
-                auth_error = str(
-                    data.get("error_text")
-                    or data.get("status")
-                    or "unknown auth error"
-                )
-            except AttributeError:
-                auth_error = "malformed auth error"
-            raise AuthenticationError(auth_error)
+        try:
+            status_error = str(
+                data.get("error_text")
+                or data.get("status")
+                or data.get("action_result")
+                or "unknown auth error"
+            )
+        except AttributeError:
+            status_error = "malformed status error"
 
-        # Raise for status at this point
-        response.raise_for_status()
+        if 400 <= response.status <= 403:
+            raise AuthenticationError(status_error)
+
+        try:
+            # Raise for status at this point
+            response.raise_for_status()
+        except aiohttp.ClientResponseError as exc:
+            if status_error is not None:
+                raise PandoraOnlineException(status_error) from exc
+            raise
 
         # Raise exception for encoding if presented previously
         if given_exc:
@@ -909,6 +934,7 @@ class PandoraOnlineAccount:
 
     @staticmethod
     async def _handle_dict_response(response: aiohttp.ClientResponse) -> dict:
+        """Process aiohttp response into a dictionary decoded from JSON."""
         data = await PandoraOnlineAccount._handle_json_response(response)
         if not isinstance(data, dict):
             raise MalformedResponseError("response is not a mapping")
@@ -916,6 +942,7 @@ class PandoraOnlineAccount:
 
     @staticmethod
     async def _handle_list_response(response: aiohttp.ClientResponse) -> list:
+        """Process aiohttp response into a list decoded from JSON."""
         data = await PandoraOnlineAccount._handle_json_response(response)
         if not isinstance(data, list):
             raise MalformedResponseError("response is not a list")
@@ -953,17 +980,14 @@ class PandoraOnlineAccount:
             try:
                 response = await request.json(content_type=None)
             except json.JSONDecodeError as e:
-                _LOGGER.error(
-                    f"[{self}] Malformed access token checking "
+                self.logger.error(
+                    f"Malformed access token checking "
                     f"response: {await response.text()}",
                     exc_info=e,
                 )
                 raise MalformedResponseError("Malformed checking response")
 
-        _LOGGER.debug(
-            f"[{self}] Received error response for "
-            f"access token check: {response}"
-        )
+        self.logger.debug(f"Received error for access token check: {response}")
 
         # Extract status code (description) from payload
         try:
@@ -1000,7 +1024,12 @@ class PandoraOnlineAccount:
                 raise MalformedResponseError("Access token not present") from e
 
     async def async_apply_access_token(self, access_token: str):
-        _LOGGER.debug(f"[{self}] Authenticating access token: {access_token}")
+        """
+        Attempt authentication using provided access token.
+        :param access_token: Access token for authentication
+        :raises MalformedResponseError: Issues related to user ID
+        """
+        self.logger.debug(f"Authenticating access token: {access_token}")
 
         async with self._session.post(
             self.BASE_URL + "/api/users/login",
@@ -1027,20 +1056,37 @@ class PandoraOnlineAccount:
         self._user_id = user_id
         self.access_token = access_token
 
-        _LOGGER.info(f"[{self}] Access token authentication successful")
+        self.logger.info("Access token authentication successful")
 
     async def async_authenticate(
         self, access_token: str | None = None
     ) -> None:
+        """
+        Perform authentication (optionally using provided access token).
+
+        Performs authentication in 4 steps at max:
+        - Attempt authentication using provided token
+        - Attempt authentication using existing token
+        - Attempt fetching new access token
+        - Attempt authentication using new token
+
+        At most three different access tokens may circulate within
+        this method.
+
+        Raises all exceptions from `async_fetch_access_token` and
+        `async_apply_access_token`.
+        :param access_token: Optional access token to use.
+        :raises MalformedResponseError: Issues related to user ID.
+        """
+        self.logger.debug(f"Authenticating access token: {access_token}")
         if access_token:
             try:
                 await self.async_apply_access_token(access_token)
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
-                _LOGGER.warning(
-                    f"[{self}] Authentication with "
-                    f"provided access token failed: {exc}",
+                self.logger.warning(
+                    f"Authentication with provided access token failed: {exc}",
                     exc_info=exc,
                 )
             else:
@@ -1055,9 +1101,8 @@ class PandoraOnlineAccount:
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
-                _LOGGER.warning(
-                    f"[{self}] Authentication with "
-                    f"existing access token failed: {exc}",
+                self.logger.warning(
+                    f"Authentication with existing access token failed: {exc}",
                     exc_info=exc,
                 )
             else:
@@ -1068,8 +1113,8 @@ class PandoraOnlineAccount:
         except asyncio.CancelledError:
             raise
         except Exception as exc:
-            _LOGGER.error(
-                f"[{self}] Could not retrieve access token: {exc}",
+            self.logger.error(
+                f"Could not retrieve access token: {exc}",
                 exc_info=exc,
             )
             raise
@@ -1079,9 +1124,8 @@ class PandoraOnlineAccount:
         except asyncio.CancelledError:
             raise
         except BaseException as exc:
-            _LOGGER.error(
-                f"[{self}] Authentication with fetched "
-                f"access token failed: {exc}",
+            self.logger.error(
+                f"Authentication with fetched access token failed: {exc}",
                 exc_info=exc,
             )
             raise
@@ -1097,7 +1141,7 @@ class PandoraOnlineAccount:
         if not (access_token := self.access_token):
             raise MissingAccessTokenError
 
-        _LOGGER.debug(f"[{self}] Retrieving devices")
+        self.logger.debug("Retrieving devices")
 
         async with self._session.get(
             self.BASE_URL + "/api/devices",
@@ -1105,34 +1149,36 @@ class PandoraOnlineAccount:
         ) as response:
             devices_data = await self._handle_list_response(response)
 
-        _LOGGER.debug(f"[{self}] Retrieved devices: {devices_data}")
+        self.logger.debug(f"Retrieved devices: {devices_data}")
 
         for device_attributes in devices_data:
             try:
                 device_id = self.parse_device_id(device_attributes)
             except (TypeError, ValueError, LookupError) as exc:
-                _LOGGER.error(
-                    f"[{self}] Error parsing device ID: {exc}", exc_info=exc
+                self.logger.error(
+                    f"Error parsing device ID: {exc}", exc_info=exc
                 )
             else:
                 try:
                     device_object = self._devices[device_id]
                 except LookupError:
-                    _LOGGER.debug(
-                        f"[{self}] Adding new device with ID {device_id}"
-                    )
+                    self.logger.debug(f"Adding new device with ID {device_id}")
                     self._devices[device_id] = PandoraOnlineDevice(
-                        self, device_attributes
+                        self, device_attributes, logger=self.logger
                     )
                 else:
                     device_object.attributes = device_attributes
 
     async def async_remote_command(
-        self, device_id: int, command_id: Union[int, "CommandID"]
+        self, device_id: int, command_id: int | CommandID
     ) -> None:
-        _LOGGER.debug(
-            f"[{self}] Sending command {command_id} to device {device_id}"
-        )
+        """
+        Execute remote command on target device.
+        :param device_id: Device ID to execute command on.
+        :param command_id: Identifier of the command to execute.
+        :raises PandoraOnlineException: Failed command execution with response.
+        """
+        self.logger.info(f"Sending command {command_id} to device {device_id}")
 
         async with self._session.post(
             self.BASE_URL + "/api/devices/command",
@@ -1141,26 +1187,22 @@ class PandoraOnlineAccount:
         ) as response:
             data = await self._handle_dict_response(response)
 
-            try:
-                status = data["action_result"][str(device_id)]
-            except (LookupError, AttributeError, TypeError):
-                status = "unknown error"
+        try:
+            status = data["action_result"][str(device_id)]
+        except (LookupError, AttributeError, TypeError):
+            status = "unknown error"
 
-            if status != "sent":
-                _LOGGER.error(
-                    f"[{self}] Error sending command {command_id} "
-                    f"to device {device_id}: {status}"
-                )
-                raise CommandExecutionError(status)
+        if status != "sent":
+            self.logger.error(
+                f"Error sending command {command_id} "
+                f"to device {device_id}: {status}"
+            )
+            raise PandoraOnlineException(status)
 
-            response.raise_for_status()
-
-        _LOGGER.debug(
-            f"[{self}] Command {command_id} sent to device {device_id}"
-        )
+        self.logger.info(f"Command {command_id} sent to device {device_id}")
 
     async def async_wake_up_device(self, device_id: int) -> None:
-        _LOGGER.debug(f"[{self}] Waking up device {device_id}")
+        self.logger.info(f"Waking up device {device_id}")
 
         async with self._session.post(
             self.BASE_URL + "/api/devices/wakeup",
@@ -1169,20 +1211,16 @@ class PandoraOnlineAccount:
         ) as response:
             data = await self._handle_dict_response(response)
 
-            try:
-                status = data["status"]
-            except (LookupError, AttributeError, TypeError):
-                status = "unknown error"
+        try:
+            status = data["status"]
+        except (LookupError, AttributeError, TypeError):
+            status = "unknown error"
 
-            if status != "success":
-                _LOGGER.error(
-                    f"[{self}] Error waking up device {device_id}: {status}"
-                )
-                raise CommandExecutionError(status)
+        if status != "success":
+            self.logger.error(f"Error waking up device {device_id}: {status}")
+            raise PandoraOnlineException(status)
 
-            response.raise_for_status()
-
-        _LOGGER.debug(f"[{self}] Sent wake up command to device {device_id}")
+        response.raise_for_status()
 
     async def async_fetch_device_settings(
         self, device_id: int | str
@@ -1197,13 +1235,11 @@ class PandoraOnlineAccount:
             devices_settings = data["device_settings"]
         except KeyError as exc:
             raise MalformedResponseError(
-                "device_settings not present in response"
+                "device_settings not retrieved"
             ) from exc
 
         if not (device_id is None or device_id in devices_settings):
-            raise MalformedResponseError(
-                "settings for requested device not present in response"
-            )
+            raise MalformedResponseError("settings not retrieved")
 
         return sorted(
             devices_settings[device_id], key=lambda x: x.get("dtime") or 0
@@ -1226,7 +1262,7 @@ class PandoraOnlineAccount:
     def parse_fuel_tanks(
         fuel_tanks_data: Iterable[Mapping[str, Any | None]],
         existing_fuel_tanks: Collection[FuelTank | None] = None,
-    ) -> Tuple[FuelTank, ...]:
+    ) -> tuple[FuelTank, ...]:
         fuel_tanks = []
 
         for fuel_tank_data in fuel_tanks_data or ():
@@ -1265,35 +1301,67 @@ class PandoraOnlineAccount:
 
         return tuple(fuel_tanks)
 
-    @staticmethod
     def _update_device_current_state(
-        device: "PandoraOnlineDevice", **state_args
-    ) -> Tuple[CurrentState, dict[str, Any]]:
+        self, device: "PandoraOnlineDevice", **state_args
+    ) -> tuple[CurrentState, dict[str, Any]]:
         # Extract UTC offset
-        if (utc_offset := device._utc_offset) is None:
-            for prefix in ("online", "state"):
-                utc = (non_utc := prefix + "_timestamp") + "_utc"
-                if utc in state_args and non_utc in state_args:
-                    device._utc_offset = utc_offset = (
-                        round((state_args[non_utc] - state_args[utc]) / 60)
-                        * 60
-                    )
-                    break
+        prefixes = ("online", "state")
+        utc_offset = device.utc_offset
+        for prefix in prefixes:
+            utc = (non_utc := prefix + "_timestamp") + "_utc"
+            if not (
+                (non_utc_val := state_args.get(non_utc)) is None
+                or (utc_val := state_args.get(utc)) is None
+            ):
+                device.utc_offset = utc_offset = (
+                    round((non_utc_val - utc_val) / 60) * 60
+                )
+                break
 
         # Adjust for two timestamps
-        for prefix in ("online", "state"):
+        for prefix in prefixes:
             utc = (non_utc := prefix + "_timestamp") + "_utc"
-            if utc in state_args:
-                if non_utc not in state_args:
-                    state_args[non_utc] = state_args[utc] + utc_offset
-            elif non_utc in state_args:
-                state_args[utc] = state_args[non_utc] - utc_offset
+            if (val := state_args.get(utc)) is not None:
+                if state_args.get(non_utc) is None:
+                    state_args[non_utc] = val + utc_offset
+            elif (val := state_args.get(non_utc)) is not None:
+                state_args[utc] = val - utc_offset
 
-        # Create new state or evolve existing
+        # Create new state if not present
         if (state := device.state) is None:
             device.state = state = CurrentState(**state_args)
+            self.logger.debug(
+                f"Setting new state object on device {device.device_id}"
+            )
         else:
-            device.state = attr.evolve(state, **state_args)
+            bad_timestamp = None
+            for postfix in ("", "_utc"):
+                for prefix in prefixes:
+                    if (
+                        getattr(
+                            state, key := (prefix + "_timestamp" + postfix)
+                        )
+                        is None
+                    ):
+                        continue
+                    if state_args.get(key) is None:
+                        continue
+                    if getattr(state, key) <= state_args.get(key):
+                        continue
+                    bad_timestamp = key
+                    break
+            if bad_timestamp is None:
+                device.state = attr.evolve(state, **state_args)
+                self.logger.debug(
+                    f"Updating state object on device {device.device_id}"
+                )
+            else:
+                self.logger.warning(
+                    f"State update for device {device.device_id} is "
+                    f"older than existing data (based on '{bad_timestamp}'), "
+                    f"this state update will be ignored completely!"
+                )
+                return state, {}
 
         # noinspection PyTypeChecker
         return state, state_args
@@ -1308,37 +1376,36 @@ class PandoraOnlineAccount:
 
         return event
 
-    def _process_http_stats(
-        self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
-    ) -> Tuple[CurrentState, dict[str, Any]]:
-        return self._update_device_current_state(
-            device,
-            **CurrentState.get_common_dict_args(
-                data,
-                identifier=device.device_id,
-            ),
-            is_online=bool(data.get("online")),
-        )
-
-    def _process_http_times(
-        self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
-    ) -> Tuple[CurrentState, dict[str, Any]]:
-        # @TODO: unknown timestamp format
-
-        return self._update_device_current_state(
-            device,
-            online_timestamp=data.get("onlined"),
-            online_timestamp_utc=data.get("online"),
-            command_timestamp_utc=data.get("command"),
-            settings_timestamp_utc=data.get("setting"),
-        )
+    def _process_http_state(
+        self,
+        device: "PandoraOnlineDevice",
+        data_stats: Mapping[str, Any] | None = None,
+        data_time: Mapping[str, Any] | None = None,
+    ) -> tuple[CurrentState, dict[str, Any]]:
+        update_args = {}
+        if data_stats:
+            update_args.update(
+                **CurrentState.get_common_dict_args(
+                    data_stats,
+                    identifier=device.device_id,
+                ),
+                is_online=bool(data_stats.get("online")),
+            )
+        if data_time:
+            update_args.update(
+                online_timestamp=data_time.get("onlined"),
+                online_timestamp_utc=data_time.get("online"),
+                command_timestamp_utc=data_time.get("command"),
+                settings_timestamp_utc=data_time.get("setting"),
+            )
+        return self._update_device_current_state(device, **update_args)
 
     async def async_fetch_events(
         self,
         timestamp_from: int = 0,
         timestamp_to: int | None = None,
         limit: int = 20,
-        device_id: Optional[int] = None,
+        device_id: int | None = None,
     ) -> list[TrackingEvent]:
         if timestamp_from < 0:
             raise ValueError("timestamp_from must not be less than zero")
@@ -1348,8 +1415,8 @@ class PandoraOnlineAccount:
                 (datetime.now() + timedelta(days=1)).timestamp()
             )
 
-        log_postfix = f" between {timestamp_from} and {timestamp_to}"
-        _LOGGER.debug(f"[{self}] Fetching events{log_postfix}")
+        log_postfix = f"between {timestamp_from} and {timestamp_to}"
+        self.logger.debug(f"Fetching events{log_postfix}")
         params = {
             "access_token": self.access_token,
             "from": str(timestamp_from),
@@ -1370,12 +1437,12 @@ class PandoraOnlineAccount:
             if not (event_data := event_entry.get("obj")):
                 continue
             events.append(TrackingEvent.from_dict(event_data))
-        _LOGGER.debug(f"[{self}] Received {len(events)} event{log_postfix}")
+        self.logger.debug(f"Received {len(events)} event{log_postfix}")
         return events
 
     async def async_request_updates(
         self, timestamp: int | None = None
-    ) -> Tuple[dict[int, Dict[str, Any]], list[TrackingEvent]]:
+    ) -> tuple[dict[int, dict[str, Any]], list[TrackingEvent]]:
         """
         Fetch the latest changes from update server.
         :param timestamp: Timestamp to fetch updates since (optional, uses
@@ -1388,7 +1455,7 @@ class PandoraOnlineAccount:
         # Select last timestamp if none provided
         _timestamp = self._last_update if timestamp is None else timestamp
 
-        _LOGGER.debug(f"[{self}] Fetching changes since {_timestamp}")
+        self.logger.info(f"Fetching changes since {_timestamp}")
 
         async with self._session.get(
             self.BASE_URL + "/api/updates",
@@ -1396,13 +1463,11 @@ class PandoraOnlineAccount:
         ) as response:
             data = await self._handle_dict_response(response)
 
-        device_new_attrs: dict[int, Dict[str, Any]] = {}
+        device_new_attrs: dict[int, dict[str, Any]] = {}
 
         # Stats / time updates
-        for key, meth in (
-            ("stats", self._process_http_stats),
-            ("time", self._process_http_times),
-        ):
+        updates: dict[int, dict[str, dict[str, Any]]] = {}
+        for key in ("stats", "time"):
             # Check if response contains necessary data
             if not (mapping := data.get(key)):
                 continue
@@ -1412,22 +1477,26 @@ class PandoraOnlineAccount:
                 try:
                     device = self._devices[int(device_id)]
                 except (TypeError, ValueError):
-                    _LOGGER.warning(
-                        f"[{self}] Bad device ID in {key} data: {device_id}"
+                    self.logger.warning(
+                        f"Bad device ID in {key} data: {device_id}"
                     )
                 except LookupError:
-                    _LOGGER.warning(
-                        f"[{self}] Received {key} data for "
+                    self.logger.warning(
+                        f"Received {key} data for "
                         f"uninitialized device {device_id}: {device_data}"
                     )
                     continue
                 else:
-                    # Process attributes and merge into final dict
-                    _, new_attrs = meth(device, device_data)
-                    try:
-                        device_new_attrs[device.device_id].update(new_attrs)
-                    except KeyError:
-                        device_new_attrs[device.device_id] = new_attrs
+                    # Two .setdefault-s just in case data is doubled
+                    updates.setdefault(device.device_id, {}).setdefault(
+                        "data_" + key, {}
+                    ).update(device_data)
+
+        # Process state update once the list has been compiled
+        for device_id, update_args in updates.items():
+            device_new_attrs[device_id] = self._process_http_state(
+                self._devices[device_id], **update_args
+            )[1]
 
         # Event updates
         events = []
@@ -1444,13 +1513,13 @@ class PandoraOnlineAccount:
             try:
                 device = self._devices[int(raw_device_id)]
             except (TypeError, ValueError):
-                _LOGGER.warning(
-                    f"[{self}] Bad device ID in event data: {raw_device_id}"
+                self.logger.warning(
+                    f"Bad device ID in event data: {raw_device_id}"
                 )
                 continue
             except LookupError:
-                _LOGGER.warning(
-                    f"[{self}] Received event data for "
+                self.logger.warning(
+                    "Received event data for "
                     f"uninitialized device {raw_device_id}: {event_obj}"
                 )
                 continue
@@ -1458,22 +1527,29 @@ class PandoraOnlineAccount:
             events.append(self._process_ws_event(device, event_obj))
 
         if device_new_attrs:
-            _LOGGER.debug(
-                f"[{self}] Received updates from HTTP: {device_new_attrs}"
+            self.logger.debug(
+                f"Received updates from HTTP: {device_new_attrs}"
             )
 
         try:
             self._last_update = int(data["ts"])
         except (LookupError, TypeError, ValueError):
-            _LOGGER.warning(f"[{self}] Response did not contain timestamp")
+            self.logger.warning("Response did not contain timestamp")
 
         return device_new_attrs, events
 
     def _process_ws_initial_state(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
-    ) -> Tuple[CurrentState, dict[str, Any]]:
-        _LOGGER.debug(
-            f"[{self}] Initializing state for {device.device_id} from {data}"
+    ) -> tuple[CurrentState, dict[str, Any]]:
+        """
+        Process WebSockets state initialization.
+        :param device: Device this update is designated for
+        :param data: Data containing update
+        :return: [Device state, Dictionary of real updates]
+        """
+
+        self.logger.debug(
+            f"Initializing state for {device.device_id} from {data}"
         )
 
         return self._update_device_current_state(
@@ -1485,17 +1561,14 @@ class PandoraOnlineAccount:
 
     def _process_ws_state(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
-    ) -> Tuple[CurrentState, dict[str, Any | None]]:
-        device_state = device.state
-        # if device_state is None:
-        #     _LOGGER.warning(
-        #         f"Device with ID '{device.device_id}' partial state data retrieved, "
-        #         f"but no initial data has yet been received. Skipping...",
-        #     )
-        #
-        #     return None
-
-        _LOGGER.debug(f"[{self}] Updating state for {device.device_id}")
+    ) -> tuple[CurrentState, dict[str, Any]]:
+        """
+        Process WebSockets state update.
+        :param device: Device this update is designated for
+        :param data: Data containing update
+        :return: [Device state, Dictionary of real updates]
+        """
+        self.logger.debug(f"Updating state for {device.device_id}")
 
         return self._update_device_current_state(
             device,
@@ -1511,9 +1584,7 @@ class PandoraOnlineAccount:
         self,
         device: "PandoraOnlineDevice",
         data: Mapping[str, Any],
-    ) -> Tuple[
-        TrackingPoint, Optional[CurrentState], Optional[dict[str, Any]]
-    ]:
+    ) -> tuple[TrackingPoint, CurrentState | None, dict[str, Any] | None]:
         try:
             fuel = data["fuel"]
         except KeyError:
@@ -1577,9 +1648,10 @@ class PandoraOnlineAccount:
             state_args,
         )
 
+    # noinspection PyMethodMayBeStatic
     def _process_ws_command(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
-    ) -> Tuple[int, int, int]:
+    ) -> tuple[int, int, int]:
         command_id, result, reply = (
             data["command"],
             data["result"],
@@ -1594,35 +1666,37 @@ class PandoraOnlineAccount:
 
         return command_id, result, reply
 
+    # noinspection PyMethodMayBeStatic
     def _process_ws_update_settings(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
     ) -> Mapping[str, Any]:
         # @TODO: do something?
         return {
+            **data,
             "device_id": device.device_id,
         }
 
     async def _do_ws_auto_auth(self) -> bool:
         try:
             try:
-                _LOGGER.debug(f"[{self}][reauth] Checking WS access token")
+                self.logger.debug("[reauth] Checking WS access token")
                 await self.async_check_access_token()
             except AuthenticationError:
-                _LOGGER.debug(f"[{self}][reauth] Performing authentication")
+                self.logger.debug("[reauth] Performing authentication")
                 await self.async_authenticate()
             else:
-                _LOGGER.debug(f"[{self}][reauth] WS access token still valid")
+                self.logger.debug("[reauth] WS access token still valid")
         except asyncio.CancelledError:
             raise
         except AuthenticationError as exc:
-            _LOGGER.error(
-                f"[{self}][reauth] Severe authentication error: {exc}",
+            self.logger.error(
+                f"[reauth] Severe authentication error: {exc}",
                 exc_info=exc,
             )
             raise
         except (OSError, TimeoutError) as exc:
-            _LOGGER.error(
-                f"[{self}][reauth] Temporary authentication error, "
+            self.logger.error(
+                "[reauth] Temporary authentication error, "
                 f"will check again later: {exc}",
                 exc_info=exc,
             )
@@ -1643,7 +1717,7 @@ class PandoraOnlineAccount:
             self.BASE_URL + f"/api/v4/updates/ws?access_token={access_token}",
             heartbeat=15.0,
         ) as ws:
-            _LOGGER.debug(f"[{self}] WebSockets connected")
+            self.logger.debug("WebSockets connected")
             while not ws.closed:
                 message = None
                 async with timeout(effective_read_timeout):
@@ -1665,15 +1739,13 @@ class PandoraOnlineAccount:
                 try:
                     contents = message.json()
                 except json.JSONDecodeError:
-                    _LOGGER.warning(
-                        f"[{self}] Unknown message data: {message}"
-                    )
+                    self.logger.warning(f"Unknown message data: {message}")
                 if isinstance(contents, Mapping):
-                    _LOGGER.debug(f"[{self}] Received WS message: {contents}")
+                    self.logger.debug(f"Received WS message: {contents}")
                     yield contents
                 else:
-                    _LOGGER.warning(
-                        f"[{self}] Received message is not "
+                    self.logger.warning(
+                        "Received message is not "
                         f"a mapping (dict): {message}"
                     )
 
@@ -1691,29 +1763,29 @@ class PandoraOnlineAccount:
                 ):
                     yield message
             except asyncio.CancelledError:
-                _LOGGER.debug(f"[{self}] WS listener stopped gracefully")
+                self.logger.debug("WS listener stopped gracefully")
                 raise
 
             # Handle temporary exceptions
             except TimeoutError as exc:
                 known_exception = exc
-                _LOGGER.error(f"[{self}] WS temporary error: {exc}")
+                self.logger.error(f"WS temporary error: {exc}")
 
             except OSError as exc:
                 known_exception = exc
-                _LOGGER.error(f"[{self}] WS OS Error: {exc}")
+                self.logger.error(f"WS OS Error: {exc}")
 
             except aiohttp.ClientError as exc:
                 # @TODO: check if authentication is required
                 known_exception = exc
-                _LOGGER.error(f"[{self}] WS client error: {exc}")
+                self.logger.error(f"WS client error: {exc}")
 
             except PandoraOnlineException as exc:
                 known_exception = exc
-                _LOGGER.error(f"[{self}] WS API error: {exc}")
+                self.logger.error(f"WS API error: {exc}")
 
             else:
-                _LOGGER.debug(f"[{self}] WS client closed")
+                self.logger.debug("WS client closed")
 
             # Raise exception
             if not auto_restart:
@@ -1735,17 +1807,17 @@ class PandoraOnlineAccount:
         *,
         state_callback: Callable[
             ["PandoraOnlineDevice", CurrentState, Mapping[str, Any]],
-            Union[Awaitable[None], None],
+            Awaitable[None] | None,
         ]
         | None = None,
         command_callback: Callable[
             ["PandoraOnlineDevice", int, int, Any | None],
-            Union[Awaitable[None], None],
+            Awaitable[None] | None,
         ]
         | None = None,
         event_callback: Callable[
             ["PandoraOnlineDevice", TrackingEvent],
-            Union[Awaitable[None], None],
+            Awaitable[None] | None,
         ]
         | None = None,
         point_callback: Callable[
@@ -1755,12 +1827,12 @@ class PandoraOnlineAccount:
                 CurrentState | None,
                 Mapping[str, Any] | None,
             ],
-            Union[Awaitable[None], None],
+            Awaitable[None] | None,
         ]
         | None = None,
         update_settings_callback: Callable[
             ["PandoraOnlineDevice", Mapping[str, Any]],
-            Union[Awaitable[None], None],
+            Awaitable[None] | None,
         ]
         | None = None,
         reconnect_on_device_online: bool = True,
@@ -1784,30 +1856,27 @@ class PandoraOnlineAccount:
                     contents["data"],
                 )
             except LookupError:
-                _LOGGER.error(f"[{self}] WS malformed data: {contents}")
+                self.logger.error(f"WS malformed data: {contents}")
                 return True
 
             # Extract device ID
             try:
                 device_id = self.parse_device_id(data)
             except (TypeError, ValueError):
-                _LOGGER.warning(
-                    f"[{self}] WS data with invalid "
-                    f"device ID: {data['dev_id']}"
+                self.logger.warning(
+                    f"WS data with invalid device ID: {data['dev_id']}"
                 )
                 return True
             except LookupError:
-                _LOGGER.warning(
-                    f"[{self}] WS {type_} with no " f"device ID: {data}"
-                )
+                self.logger.warning(f"WS {type_} with no device ID: {data}")
                 return True
 
             # Check presence of the device
             try:
                 device = self._devices[device_id]
             except LookupError:
-                _LOGGER.warning(
-                    f"[{self}] WS {type_} for unregistered "
+                self.logger.warning(
+                    f"WS {type_} for unregistered "
                     f"device ID {device_id}: {data}"
                 )
                 return True
@@ -1828,8 +1897,8 @@ class PandoraOnlineAccount:
                         and not prev_online
                         and device.is_online
                     ):
-                        _LOGGER.debug(
-                            f"[{self}] Will restart WS to fetch new state "
+                        self.logger.debug(
+                            "Will restart WS to fetch new state "
                             f"after device {device_id} went online"
                         )
                         # Force reconnection to retrieve initial state immediately
@@ -1870,14 +1939,14 @@ class PandoraOnlineAccount:
                         )
 
                 else:
-                    _LOGGER.warning(
-                        f"[{self}] WS data of unknown " f"type {type_}: {data}"
+                    self.logger.warning(
+                        f"WS data of unknown type {type_}: {data}"
                     )
             except BaseException as exc:
-                _LOGGER.warning(
-                    f"Error during preliminary response processing "
+                self.logger.warning(
+                    "Error during preliminary response processing "
                     f"with message type {type_}: {repr(exc)}\nPlease, "
-                    f"report this error to the developer immediately!",
+                    "report this error to the developer immediately!",
                     exc_info=exc,
                 )
                 return True
@@ -1888,8 +1957,8 @@ class PandoraOnlineAccount:
                 except asyncio.CancelledError:
                     raise
                 except BaseException as exc:
-                    _LOGGER.exception(
-                        f"[{self}] Error during " f"callback handling: {exc}"
+                    self.logger.exception(
+                        f"Error during callback handling: {exc}"
                     )
 
             return return_result
@@ -1906,7 +1975,7 @@ class PandoraOnlineAccount:
                 if not (response := await _handle_ws_message(message)):
                     break
 
-        _LOGGER.info(f"[{self}] WS updates listener stopped")
+        self.logger.info("WS updates listener stopped")
 
 
 class PandoraOnlineDevice:
@@ -1923,14 +1992,13 @@ class PandoraOnlineDevice:
         current_state: CurrentState | None = None,
         control_timeout: float = DEFAULT_CONTROL_TIMEOUT,
         utc_offset: int | None = None,
+        *,
+        logger: logging.Logger | logging.LoggerAdapter = _LOGGER,
     ) -> None:
         """
         Instantiate vehicle object.
         :param account:
         """
-        if not (utc_offset is None or (-86400 < utc_offset < 86400)):
-            raise ValueError("utc offset cannot be greater than 24 hours")
-
         self._account = account
         self._control_future: asyncio.Future | None = None
         self._features = None
@@ -1943,6 +2011,8 @@ class PandoraOnlineDevice:
         # Control timeout setting
         self.control_timeout = control_timeout
 
+        self.logger = logger
+
     def __repr__(self):
         return "<" + str(self) + ">"
 
@@ -1954,7 +2024,7 @@ class PandoraOnlineDevice:
             f'name="{self.name}", '
             f"account={self._account}, "
             f"features={self.features}"
-            f"]"
+            "]"
         )
 
     # State management
@@ -1965,6 +2035,10 @@ class PandoraOnlineDevice:
             if self._utc_offset is None
             else self._utc_offset
         )
+
+    @utc_offset.setter
+    def utc_offset(self, value: int | None) -> None:
+        self._utc_offset = value
 
     @property
     def state(self) -> CurrentState | None:
@@ -2050,7 +2124,7 @@ class PandoraOnlineDevice:
 
     # Remote command execution section
     async def async_remote_command(
-        self, command_id: Union[int, CommandID], ensure_complete: bool = True
+        self, command_id: int | CommandID, ensure_complete: bool = True
     ):
         """Proxy method to execute commands on corresponding vehicle object"""
         if self._current_state is None:
@@ -2065,20 +2139,14 @@ class PandoraOnlineDevice:
         await self._account.async_remote_command(self.device_id, command_id)
 
         if ensure_complete:
-            try:
-                _LOGGER.debug(
-                    "Ensuring command completion (timeout: %d seconds)"
-                    % (self.control_timeout,)
-                )
-                await asyncio.wait_for(
-                    self._control_future, self.control_timeout
-                )
-                self._control_future.result()
+            self.logger.debug(
+                f"Ensuring command {command_id} completion "
+                f"(timeout: {self.control_timeout})"
+            )
+            await asyncio.wait_for(self._control_future, self.control_timeout)
+            self._control_future.result()
 
-            except asyncio.TimeoutError:
-                raise CommandExecutionError("timeout executing command")
-
-        _LOGGER.debug("Command executed successfully")
+        self.logger.debug(f"Command {command_id} executed successfully")
 
     async def async_wake_up(self) -> None:
         return await self.account.async_wake_up_device(self.device_id)
@@ -2332,7 +2400,3 @@ class InvalidAccessTokenError(AuthenticationError):
 
 class MissingAccessTokenError(InvalidAccessTokenError):
     """When access token is missing on object"""
-
-
-class CommandExecutionError(PandoraOnlineException):
-    pass

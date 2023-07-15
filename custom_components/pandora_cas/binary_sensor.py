@@ -193,6 +193,7 @@ ENTITY_TYPES = [
         icon_on="mdi:alert-octagon",
         icon="mdi:cancel",
         attribute="bit_state",
+        flag=BitStatus.ENGINE_LOCKED,
     ),
 ]
 

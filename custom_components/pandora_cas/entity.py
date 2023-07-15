@@ -33,7 +33,10 @@ from homeassistant.helpers.update_coordinator import (
 )
 from homeassistant.util import slugify
 
-from custom_components.pandora_cas import PandoraCASUpdateCoordinator
+from custom_components.pandora_cas import (
+    PandoraCASUpdateCoordinator,
+    ConfigEntryLoggerAdapter,
+)
 from custom_components.pandora_cas.api import (
     PandoraOnlineDevice,
     Features,
@@ -78,6 +81,7 @@ async def async_platform_setup_entry(
     logger: logging.Logger = _LOGGER,
 ):
     """Generic platform setup function"""
+    logger = ConfigEntryLoggerAdapter(logger, entry)
     platform_id = async_get_current_platform()
     logger.debug(
         f'Setting up platform "{platform_id.domain}" with '
@@ -182,7 +186,10 @@ class PandoraCASEntity(
         entity_description: "PandoraCASEntityDescription",
         extra_identifier: Any = None,
         context: Any = None,
+        *,
+        logger: logging.Logger | logging.LoggerAdapter = _LOGGER,
     ) -> None:
+        self.logger = logger
         self.entity_description = entity_description
 
         BasePandoraCASEntity.__init__(self, pandora_device)
@@ -301,7 +308,7 @@ class PandoraCASEntity(
 
     @callback
     def _process_command_response(self, event: Union[Event, datetime]) -> None:
-        _LOGGER.debug(f"[{self}] Resetting command event")
+        self.logger.debug("Resetting command event")
         self.reset_command_event()
         self.async_write_ha_state()
 
