@@ -86,9 +86,10 @@ class PandoraCASLock(PandoraCASBooleanEntity, LockEntity):
     def is_unlocking(self) -> bool | None:
         return self._is_turning_off
 
-    @property
-    def is_jammed(self) -> bool | None:
-        return self._last_command_failed
+    # @property
+    # def is_jammed(self) -> bool | None:
+    #     return self._last_command_failed
+    #     return
 
     async def async_lock(self, **kwargs) -> None:
         await self.run_binary_command(True)
