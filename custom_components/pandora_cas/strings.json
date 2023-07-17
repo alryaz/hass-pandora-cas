@@ -1,7 +1,8 @@
 {
   "config": {
     "abort": {
-      "already_configured": "This account had already been configured!"
+      "already_configured": "This account had already been configured!",
+      "yaml_not_supported": "Updating configuration for YAML entries is not supported"
     },
     "error": {
       "invalid_auth": "Invalid authentication information",
@@ -12,9 +13,7 @@
         "data": {
           "username": "Username",
           "password": "Password",
-          "verify_ssl": "Verify SSL certificates",
-          "disable_websockets": "Disable WebSockets",
-          "disable_polling": "Disable polling"
+          "verify_ssl": "Verify SSL certificates"
         },
         "title": "Authentication",
         "description": "Enter your credentials for your Pandora Online account."
@@ -629,12 +628,11 @@
       },
       "integration_options": {
         "data": {
-          "verify_ssl": "Verify SSL certificates",
-          "disable_websockets": "Disable WebSockets",
-          "disable_polling": "Disable polling",
+          "effective_read_timeout": "Timeout for WebSockets responses",
           "force_lock_icons": "Use lock icons",
-          "polling_interval": "Polling interval",
-          "effective_read_timeout": "Timeout for WebSockets responses"
+          "polling_interval": "HTTP polling interval",
+          "verify_ssl": "Verify SSL certificates",
+          "method": "Method of updating devices' data"
         }
       },
       "device_options": {

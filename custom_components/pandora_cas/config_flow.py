@@ -4,13 +4,16 @@ __all__ = ("PandoraCASConfigFlow",)
 import logging
 from copy import deepcopy
 from json import dumps
-from typing import Any
+from typing import Any, Final
 
+import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
 from homeassistant.config_entries import (
     OptionsFlowWithConfigEntry,
     ConfigFlow,
     ConfigEntry,
     OptionsFlow,
+    SOURCE_IMPORT,
 )
 from homeassistant.const import (
     CONF_PASSWORD,
@@ -18,6 +21,7 @@ from homeassistant.const import (
     CONF_VERIFY_SSL,
     CONF_ACCESS_TOKEN,
     CONF_DEVICES,
+    CONF_METHOD,
 )
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import (
@@ -33,9 +37,9 @@ from homeassistant.helpers.schema_config_entry_flow import (
 
 from custom_components.pandora_cas import (
     async_run_pandora_coro,
+    ENTRY_DATA_SCHEMA,
+    BASE_INTEGRATION_OPTIONS_SCHEMA,
     DEVICE_OPTIONS_SCHEMA,
-    BASE_CONFIG_ENTRY_SCHEMA,
-    INTEGRATION_OPTIONS_SCHEMA,
 )
 from custom_components.pandora_cas.api import PandoraOnlineAccount
 from custom_components.pandora_cas.const import *
@@ -62,6 +66,40 @@ async def async_options_flow_init_step_validate(
     return user_input
 
 
+def determine_method(entry: ConfigEntry | dict | None = None):
+    if entry is None:
+        return METHOD_COMBO
+    if (entry.options or {}).get(CONF_DISABLE_WEBSOCKETS):
+        if entry.pref_disable_polling:
+            return METHOD_MANUAL
+        return METHOD_POLL
+    elif entry.pref_disable_polling:
+        return METHOD_LISTEN
+    return METHOD_COMBO
+
+
+def determine_disabled(
+    entry: ConfigEntry | str | None = None,
+) -> tuple[bool, bool]:
+    method = entry if isinstance(entry, str) else determine_method(entry)
+
+    # (disable_websockets, disable_polling)
+    return (
+        method in (METHOD_MANUAL, METHOD_POLL),
+        method in (METHOD_MANUAL, METHOD_LISTEN),
+    )
+
+
+STEP_USER: Final = "user"
+STEP_USER_SCHEMA: Final = vol.Schema(
+    {
+        vol.Required(CONF_USERNAME): cv.string,
+        vol.Required(CONF_PASSWORD): cv.string,
+        vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
+    }
+)
+
+
 class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Pandora Car Alarm System config entries."""
 
@@ -80,7 +118,7 @@ class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
                 password=user_input[CONF_PASSWORD],
                 access_token=user_input.get(CONF_ACCESS_TOKEN),
                 session=async_get_clientsession(
-                    self.hass, verify_ssl=user_input[CONF_VERIFY_SSL]
+                    self.hass, verify_ssl=user_input.get(CONF_VERIFY_SSL, True)
                 ),
             )
 
@@ -92,6 +130,7 @@ class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
                 error = "cannot_connect"
             else:
                 unique_id = str(account.user_id)
+
                 if entry := self._reauth_entry:
                     # Handle reauthentication
                     if unique_id != self._reauth_entry.unique_id:
@@ -115,51 +154,58 @@ class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
                     )
                     await self.hass.config_entries.async_reload(entry.entry_id)
                     return self.async_abort(reason="reauth_successful")
-                else:
-                    # Handle new config entry
-                    await self.async_set_unique_id(unique_id)
-                    self._abort_if_unique_id_configured()
 
-                    user_input[CONF_ACCESS_TOKEN] = account.access_token
+                # Handle new config entry
+                await self.async_set_unique_id(unique_id)
+                self._abort_if_unique_id_configured()
 
-                    options = {
-                        str(option): user_input.pop(str(option))
-                        for option in INTEGRATION_OPTIONS_SCHEMA.schema
-                    }
+                # Save access token for future reuse
+                user_input[CONF_ACCESS_TOKEN] = account.access_token
 
-                    return self.async_create_entry(
-                        title=user_input[CONF_USERNAME],
-                        data=user_input,
-                        options=options,
-                    )
+                # Clear user input from data that is destined for options
+                options = {
+                    CONF_VERIFY_SSL: user_input.pop(CONF_VERIFY_SSL, True)
+                }
+
+                return self.async_create_entry(
+                    title=user_input[CONF_USERNAME],
+                    data=user_input,
+                    options=options,
+                )
 
             errors = {"base": error}
             schema = self.add_suggested_values_to_schema(
-                BASE_CONFIG_ENTRY_SCHEMA,
+                ENTRY_DATA_SCHEMA,
                 user_input,
             )
         elif entry := self._reauth_entry:
             errors = {"base": "invalid_auth"}
             schema = self.add_suggested_values_to_schema(
-                BASE_CONFIG_ENTRY_SCHEMA,
-                {**entry.data, **entry.options, CONF_PASSWORD: ""},
+                STEP_USER_SCHEMA,
+                {
+                    CONF_USERNAME: entry.data[CONF_USERNAME],
+                    CONF_PASSWORD: "",
+                    CONF_VERIFY_SSL: entry.options.get(CONF_VERIFY_SSL, True),
+                },
             )
         else:
             errors = None
-            schema = BASE_CONFIG_ENTRY_SCHEMA
+            schema = STEP_USER_SCHEMA
 
         return self.async_show_form(
-            step_id="user",
-            data_schema=schema,
-            errors=errors,
+            step_id=STEP_USER, data_schema=schema, errors=errors
         )
 
     async def async_step_reauth(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        self._reauth_entry = self.hass.config_entries.async_get_entry(
-            self.context["entry_id"]
-        )
+        if (
+            entry := self.hass.config_entries.async_get_entry(
+                self.context["entry_id"]
+            )
+        ).source == SOURCE_IMPORT:
+            return self.async_abort(reason="yaml_not_supported")
+        self._reauth_entry = entry
         return await self.async_step_user()
 
     async def async_step_import(
@@ -185,24 +231,39 @@ class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 STEP_DEVICE_OPTIONS: Final = "device_options"
-STEP_DEVICE_SETTINGS: Final = "device_settings"
-STEP_INTEGRATION_OPTIONS: Final = "integration_options"
 STEP_SAVE: Final = "save"
+
+STEP_INTEGRATION_OPTIONS: Final = "integration_options"
+STEP_INTEGRATION_OPTIONS_SCHEMA: Final = (
+    BASE_INTEGRATION_OPTIONS_SCHEMA.extend(
+        {
+            vol.Optional(CONF_METHOD, default=METHOD_COMBO): vol.In(
+                {
+                    METHOD_COMBO: "WebSockets + HTTP",
+                    METHOD_POLL: "HTTP",
+                    METHOD_LISTEN: "WebSockets",
+                    METHOD_MANUAL: "Manual / Вручную",
+                }
+            )
+        },
+        extra=vol.REMOVE_EXTRA,
+    )
+)
 
 
 class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
+        # Helpers to handle the device_options step
         self.device_options: dict[str, str] | None = None
         self.current_pandora_id: str | None = None
-        self.save_needed = False
-        self.options[
-            CONF_DISABLE_POLLING
-        ] = self.config_entry.pref_disable_polling
+
+        # Holders for current and edited options
+        self.options[CONF_METHOD] = determine_method(self.config_entry)
         self.initial_options = deepcopy(self.options)
 
-    def init_device_options(self):
+    def _init_device_options(self):
         if self.device_options is None:
             self.device_options = {}
             dev_reg = device_registry.async_get(self.hass)
@@ -224,7 +285,6 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
     ) -> FlowResult:
         menu_options = [
             STEP_INTEGRATION_OPTIONS,
-            # STEP_DEVICE_SETTINGS,
             STEP_DEVICE_OPTIONS,
         ]
         if dumps(self.options) != dumps(self.initial_options):
@@ -234,21 +294,27 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
     async def async_step_save(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        disable_polling = self.options.pop(CONF_DISABLE_POLLING)
+        (
+            self.options[CONF_DISABLE_WEBSOCKETS],
+            disable_polling,
+        ) = determine_disabled(self.options.pop(CONF_METHOD))
 
-        if disable_polling != self.config_entry.pref_disable_polling:
+        if disable_polling is not self.config_entry.pref_disable_polling:
+            # When polling is set to a value different from previous,
+            # update directly before finishing flow.
             self.hass.config_entries.async_update_entry(
                 self.config_entry,
                 options=self.options,
                 pref_disable_polling=disable_polling,
             )
+
         return self.async_create_entry(title="", data=self.options)
 
     async def async_step_device_options(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         if (pandora_id := self.current_pandora_id) is None:
-            self.init_device_options()
+            self._init_device_options()
             return self.async_show_menu(
                 step_id=STEP_DEVICE_OPTIONS,
                 menu_options={
@@ -260,6 +326,9 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
         schema = DEVICE_OPTIONS_SCHEMA
 
         if user_input is None:
+            # This value must already be set by the __setattr__ magic method
+            if self.current_pandora_id is None:
+                return self.async_abort("unknown")
             schema = self.add_suggested_values_to_schema(
                 schema, self.options.get(CONF_DEVICES, {}).get(pandora_id, {})
             )
@@ -274,17 +343,6 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
             step_id=STEP_DEVICE_OPTIONS, data_schema=schema
         )
 
-    INTERVALS = {
-        CONF_POLLING_INTERVAL: (
-            MIN_POLLING_INTERVAL,
-            DEFAULT_POLLING_INTERVAL,
-        ),
-        CONF_EFFECTIVE_READ_TIMEOUT: (
-            MIN_EFFECTIVE_READ_TIMEOUT,
-            DEFAULT_EFFECTIVE_READ_TIMEOUT,
-        ),
-    }
-
     async def async_step_integration_options(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
@@ -292,70 +350,26 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
 
         if user_input is None:
             user_input = dict(self.options)
-
-            # @TODO: maybe not required
-            for key, (_, default) in self.INTERVALS.items():
-                user_input.setdefault(key, default)
         else:
-            for key, (min_value, _) in self.INTERVALS.items():
-                user_input[key] = user_input[key].total_seconds()
+            # Check intervals
+            for key, min_value in {
+                CONF_POLLING_INTERVAL: MIN_POLLING_INTERVAL,
+                CONF_EFFECTIVE_READ_TIMEOUT: MIN_EFFECTIVE_READ_TIMEOUT,
+            }.items():
                 if user_input[key] < min_value:
                     errors[key] = "interval_too_short"
 
             if not errors:
-                print(user_input)
-                print(self.options)
                 self.options.update(user_input)
-                print(self.options)
                 return await self.async_step_init()
-
-        for key in self.INTERVALS:
-            current_value = user_input[key]
-            user_input[key] = {
-                "hours": current_value // 3600,
-                "minutes": (current_value % 3600) // 60,
-                "seconds": current_value % 60,
-            }
 
         return self.async_show_form(
             step_id=STEP_INTEGRATION_OPTIONS,
             data_schema=self.add_suggested_values_to_schema(
-                INTEGRATION_OPTIONS_SCHEMA, user_input
+                STEP_INTEGRATION_OPTIONS_SCHEMA, user_input
             ),
             errors=errors,
         )
-
-    async def async_step_device_settings(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        if (pandora_id := self.current_pandora_id) is None:
-            self.init_device_options()
-            return self.async_show_menu(
-                step_id=STEP_DEVICE_SETTINGS,
-                menu_options={
-                    f"{STEP_DEVICE_SETTINGS}_{pandora_id}": name
-                    for pandora_id, name in self.device_options.items()
-                },
-            )
-
-        try:
-            account: PandoraOnlineAccount = self.hass.data[DOMAIN][
-                self.config_entry.entry_id
-            ].account
-        except (KeyError, AttributeError):
-            account = PandoraOnlineAccount(
-                session=async_get_clientsession(
-                    self.hass, self.options[CONF_VERIFY_SSL]
-                ),
-                username=self.config_entry.data[CONF_USERNAME],
-                password=self.config_entry.data[CONF_USERNAME],
-                access_token=self.config_entry.data.get(CONF_ACCESS_TOKEN),
-            )
-            await account.async_authenticate()
-
-        settings = await account.async_fetch_device_settings(pandora_id)
-
-        # @TODO: this is a development access point
 
     def __getattr__(self, attribute):
         if isinstance(attribute, str) and attribute.startswith(
@@ -366,9 +380,6 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
             if pandora_id.startswith("options_"):
                 target_method = self.async_step_device_options
                 pandora_id = pandora_id[8:]
-            elif pandora_id.startswith("settings_"):
-                target_method = self.async_step_device_settings
-                pandora_id = pandora_id[9:]
             if target_method is not None and pandora_id.isnumeric():
                 self.current_pandora_id = pandora_id
                 return target_method

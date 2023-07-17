@@ -1,19 +1,24 @@
 """Initialization script for Pandora Car Alarm System component."""
 
 __all__ = (
-    "BASE_CONFIG_ENTRY_SCHEMA",
+    "BASE_INTEGRATION_OPTIONS_SCHEMA",
+    "CONFIG_ENTRY_SCHEMA",
     "CONFIG_SCHEMA",
+    "ConfigEntryLoggerAdapter",
     "DEVICE_OPTIONS_SCHEMA",
+    "ENTRY_DATA_SCHEMA",
+    "ENTRY_OPTIONS_SCHEMA",
     "INTEGRATION_OPTIONS_SCHEMA",
     "PandoraCASUpdateCoordinator",
+    "SERVICE_PREDEFINED_COMMAND_SCHEMA",
     "SERVICE_REMOTE_COMMAND",
+    "SERVICE_REMOTE_COMMAND_SCHEMA",
     "async_migrate_entry",
     "async_run_pandora_coro",
     "async_setup",
     "async_setup_entry",
     "async_unload_entry",
     "event_enum_to_type",
-    "ConfigEntryLoggerAdapter",
 )
 
 import asyncio
@@ -30,6 +35,7 @@ from typing import (
     Literal,
     Optional,
     MutableMapping,
+    Final,
 )
 
 import aiohttp
@@ -85,29 +91,30 @@ from custom_components.pandora_cas.api import (
 from custom_components.pandora_cas.const import *
 from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: Final = logging.getLogger(__name__)
 
-INTEGRATION_OPTIONS_SCHEMA: Final = vol.Schema(
+
+BASE_INTEGRATION_OPTIONS_SCHEMA: Final = vol.Schema(
     {
         vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
-        vol.Optional(CONF_DISABLE_WEBSOCKETS, default=False): cv.boolean,
-        vol.Optional(CONF_DISABLE_POLLING, default=False): cv.boolean,
         vol.Optional(CONF_FORCE_LOCK_ICONS, default=False): cv.boolean,
         vol.Optional(
             CONF_EFFECTIVE_READ_TIMEOUT, default=DEFAULT_EFFECTIVE_READ_TIMEOUT
-        ): cv.positive_time_period_dict,
+        ): cv.positive_float,
         vol.Optional(
             CONF_POLLING_INTERVAL, default=DEFAULT_POLLING_INTERVAL
-        ): cv.positive_time_period_dict,
-    }
+        ): cv.positive_float,
+    },
+    extra=vol.REMOVE_EXTRA,
 )
 
-BASE_CONFIG_ENTRY_SCHEMA = vol.Schema(
+INTEGRATION_OPTIONS_SCHEMA: Final = BASE_INTEGRATION_OPTIONS_SCHEMA.extend(
     {
-        vol.Required(CONF_USERNAME): cv.string,
-        vol.Required(CONF_PASSWORD): cv.string,
-    }
-).extend(INTEGRATION_OPTIONS_SCHEMA.schema)
+        vol.Optional(CONF_DISABLE_WEBSOCKETS, default=False): cv.boolean,
+    },
+    extra=vol.REMOVE_EXTRA,
+)
+"""Schema for integration options coming from saved entry"""
 
 DEVICE_OPTIONS_SCHEMA: Final = vol.Schema(
     {
@@ -134,18 +141,51 @@ DEVICE_OPTIONS_SCHEMA: Final = vol.Schema(
         ),
         vol.Optional(CONF_DISABLE_CURSOR_ROTATION, default=False): cv.boolean,
     },
-    extra=vol.ALLOW_EXTRA,
+    extra=vol.REMOVE_EXTRA,
+)
+"""Schema for device options coming from saved entry"""
+
+ENTRY_OPTIONS_SCHEMA: Final = vol.All(
+    lambda x: {} if x is None else dict(x),
+    INTEGRATION_OPTIONS_SCHEMA.extend(
+        {
+            vol.Optional(CONF_DEVICES, default=dict): {
+                cv.string: DEVICE_OPTIONS_SCHEMA
+            }
+        },
+        extra=vol.REMOVE_EXTRA,
+    ),
+)
+"""Schema for configuration entry options coming from saved entry"""
+
+ENTRY_DATA_SCHEMA: Final = vol.All(
+    lambda x: {} if x is None else dict(x),
+    vol.Schema(
+        {
+            vol.Required(CONF_USERNAME): cv.string,
+            vol.Optional(CONF_PASSWORD): cv.string,
+            vol.Optional(CONF_ACCESS_TOKEN): cv.string,
+        },
+        extra=vol.REMOVE_EXTRA,
+    ),
 )
 
-CONFIG_ENTRY_SCHEMA = vol.All(
+"""Schema for configuration entry data coming from saved entry"""
+
+CONFIG_ENTRY_SCHEMA: Final = vol.All(
     *(
         cv.removed(platform_id, raise_if_present=False)
         for platform_id in PLATFORMS
     ),
     cv.removed(CONF_RPM_COEFFICIENT, raise_if_present=False),
     cv.removed(CONF_RPM_OFFSET, raise_if_present=False),
-    BASE_CONFIG_ENTRY_SCHEMA,
+    *(
+        cv.removed(str(schema_key), raise_if_present=False)
+        for schema_key in INTEGRATION_OPTIONS_SCHEMA.schema
+    ),
+    ENTRY_DATA_SCHEMA,
 )
+"""Schema for configuration data coming from YAML"""
 
 CONFIG_SCHEMA: Final = vol.Schema(
     {
@@ -157,6 +197,7 @@ CONFIG_SCHEMA: Final = vol.Schema(
     },
     extra=vol.ALLOW_EXTRA,
 )
+"""Schema for domain data coming from YAML"""
 
 
 def _determine_command_by_slug(command_slug: str) -> int:
@@ -203,15 +244,6 @@ SERVICE_PREDEFINED_COMMAND_SCHEMA = vol.All(
         },
         extra=vol.ALLOW_EXTRA,
     ),
-)
-
-SERVICE_UPDATE_STATE = "update_state"
-_identifier_group = "identifier_group"
-UPDATE_SERVICE_SCHEMA = vol.Schema(
-    {
-        vol.Exclusive(ATTR_DEVICE_ID, _identifier_group): cv.string,
-        vol.Exclusive(CONF_USERNAME, _identifier_group): cv.string,
-    }
 )
 
 
@@ -301,14 +333,16 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 )
             )
         else:
-            if (
-                entry.source == SOURCE_IMPORT
-                and not CONF_PASSWORD not in entry.data
-            ):
+            if entry.source == SOURCE_IMPORT and user_cfg[
+                CONF_PASSWORD
+            ] != entry.data.get(CONF_PASSWORD):
                 _LOGGER.debug(f"Migrating password into {entry.entry_id}")
                 hass.config_entries.async_update_entry(
                     entry,
-                    data={**user_cfg, **entry.data},
+                    data={
+                        **entry.data,
+                        CONF_PASSWORD: user_cfg[CONF_PASSWORD],
+                    },
                 )
             continue
 
@@ -338,17 +372,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Setup configuration entry for Pandora Car Alarm System."""
     logger = ConfigEntryLoggerAdapter(_LOGGER)
 
-    username = entry.data[CONF_USERNAME]
     logger.info(f"Setting up config entry")
+
+    # Prepare necessary data
+    data = ENTRY_DATA_SCHEMA(entry.data)
+    options = ENTRY_OPTIONS_SCHEMA(entry.options)
+    username = entry.data[CONF_USERNAME]
+    access_token = data.get(CONF_ACCESS_TOKEN)
 
     # Instantiate account object
     account = PandoraOnlineAccount(
         username=username,
-        password=entry.data[CONF_PASSWORD],
-        access_token=entry.data.get(CONF_ACCESS_TOKEN),
-        session=async_get_clientsession(
-            hass, verify_ssl=entry.options[CONF_VERIFY_SSL]
-        ),
+        password=data[CONF_PASSWORD],
+        access_token=access_token,
+        session=async_get_clientsession(hass, options[CONF_VERIFY_SSL]),
         logger=ConfigEntryLoggerAdapter,
     )
 
@@ -356,7 +393,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await async_run_pandora_coro(account.async_authenticate())
 
     # Update access token if necessary
-    if entry.data.get(CONF_ACCESS_TOKEN) != account.access_token:
+    if access_token != account.access_token:
         hass.config_entries.async_update_entry(
             entry,
             data={
@@ -371,9 +408,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Create update coordinator
     update_interval = None
     if not entry.pref_disable_polling:
-        update_interval = timedelta(
-            seconds=entry.options[CONF_POLLING_INTERVAL]
-        )
+        update_interval = timedelta(seconds=options[CONF_POLLING_INTERVAL])
         logger.debug(
             f"Setting up polling to refresh at {update_interval} interval"
         )
@@ -386,7 +421,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await coordinator.async_config_entry_first_refresh()
 
     # Start listening for updates if enabled
-    if not entry.options[CONF_DISABLE_WEBSOCKETS]:
+    if not options[CONF_DISABLE_WEBSOCKETS]:
 
         async def _listen_configuration_entry():
             callback_args = dict(
@@ -407,7 +442,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 ),
                 effective_read_timeout=max(
                     MIN_EFFECTIVE_READ_TIMEOUT,
-                    entry.options[CONF_EFFECTIVE_READ_TIMEOUT],
+                    options[CONF_EFFECTIVE_READ_TIMEOUT],
                 ),
                 auto_restart=True,
                 auto_reauth=True,
@@ -779,13 +814,13 @@ async def async_run_pandora_coro(coro: Awaitable[_T]) -> _T:
     try:
         return await coro
     except AuthenticationError as exc:
-        raise ConfigEntryAuthFailed("Authentication failed") from exc
+        raise ConfigEntryAuthFailed(str(exc)) from exc
     except MalformedResponseError as exc:
-        raise ConfigEntryNotReady("Server responds erroneously") from exc
+        raise ConfigEntryNotReady(str(exc)) from exc
     except aiohttp.ClientError as exc:
-        raise ConfigEntryNotReady("Server error while authenticating") from exc
+        raise ConfigEntryNotReady(str(exc)) from exc
     except (OSError, TimeoutError) as exc:
-        raise ConfigEntryNotReady("Timed out while authenticating") from exc
+        raise ConfigEntryNotReady(str(exc)) from exc
 
 
 class PandoraCASUpdateCoordinator(

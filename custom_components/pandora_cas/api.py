@@ -1041,7 +1041,12 @@ class PandoraOnlineAccount:
                 "access_token": access_token,
             },
         ) as response:
-            data = await self._handle_dict_response(response)
+            try:
+                data = await self._handle_dict_response(response)
+            except AuthenticationError:
+                raise
+            except PandoraOnlineException as exc:
+                raise AuthenticationError(*exc.args) from exc
 
         # Extrapolate user identifier
         try:
@@ -1201,6 +1206,11 @@ class PandoraOnlineAccount:
         self.logger.info(f"Command {command_id} sent to device {device_id}")
 
     async def async_wake_up_device(self, device_id: int) -> None:
+        """
+        Send wake up command to target device.
+
+        :param device_id: Device identifier
+        """
         self.logger.info(f"Waking up device {device_id}")
 
         async with self._session.post(
@@ -1224,6 +1234,11 @@ class PandoraOnlineAccount:
     async def async_fetch_device_settings(
         self, device_id: int | str
     ) -> dict[str, Any]:
+        """
+        Fetch settings relevant to target device.
+
+        :param device_id: Device identifier
+        """
         async with self._session.get(
             self.BASE_URL + "/api/devices/settings",
             params={"access_token": self.access_token, "id": device_id},

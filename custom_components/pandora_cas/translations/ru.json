@@ -1,7 +1,8 @@
 {
   "config": {
     "abort": {
-      "already_configured": "Учётная запись для данного пользователя уже существует!"
+      "already_configured": "Учётная запись для данного пользователя уже существует!",
+      "yaml_not_supported": "Изменение данных YAML-конфигураций недоступно из интерфейса"
     },
     "error": {
       "invalid_auth": "Имя пользователя и/или пароль не подходят",
@@ -12,9 +13,7 @@
         "data": {
           "username": "Имя пользователя",
           "password": "Пароль",
-          "verify_ssl": "Проверять сертификаты SSL",
-          "disable_websockets": "Отключить WebSockets",
-          "disable_polling": "Отключить периодический опрос"
+          "verify_ssl": "Проверять сертификаты SSL"
         },
         "title": "Аутентификация",
         "description": "Введите данные для входа в Ваш аккаунт Pandora Online."
@@ -670,17 +669,14 @@
       "integration_options": {
         "title": "Настройки интеграции",
         "data": {
-          "disable_polling": "Отключить периодический опрос",
-          "disable_websockets": "Отключить WebSockets",
           "effective_read_timeout": "Таймаут ответов WebSockets",
           "force_lock_icons": "Использовать иконки замка",
-          "polling_interval": "Интервал опроса",
-          "verify_ssl": "Проверять сертификаты SSL"
+          "polling_interval": "Интервал опроса по HTTP",
+          "verify_ssl": "Проверять сертификаты SSL",
+          "method": "Метод получения данных об устройствах"
         },
         "data_description": {
-          "verify_ssl": "Выполнять проверку на безопасность соединения с серверами AlarmTrade.",
-          "disable_websockets": "Отключение получения событий и обновлений состояний устройств посредством WebSockets.",
-          "disable_polling": "Отключение периодического опроса сервера AlarmTrade на наличие новых событий и/или обновлений состояний устройств."
+          "verify_ssl": "Выполнять проверку на безопасность соединения с серверами AlarmTrade."
         }
       },
       "device_options": {
