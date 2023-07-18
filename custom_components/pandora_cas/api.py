@@ -1327,10 +1327,12 @@ class PandoraOnlineAccount:
                 (non_utc_val := state_args.get(non_utc)) is None
                 or (utc_val := state_args.get(utc)) is None
             ):
-                device.utc_offset = utc_offset = (
+                utc_offset = (
                     round((non_utc_val - utc_val) / 60) * 60
                 )
-                self.logger.debug(f"Calculated UTC offset: {utc_offset} seconds")
+                if device.utc_offset != utc_offset:
+                    self.logger.debug(f"Calculated UTC offset for device {device.device_id}: {utc_offset} seconds")
+                    device.utc_offset = utc_offset
                 break
 
         # Adjust for two timestamps
