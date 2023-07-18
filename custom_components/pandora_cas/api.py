@@ -1381,7 +1381,7 @@ class PandoraOnlineAccount:
                         key = f"{prefix}_timestamp{postfix}"
                         cur, new = getattr(state, key) or 0, state_args.get(key) or 0
                         sign = '=' if cur == key else ('<' if cur < key else '>')
-                        self.logger.debug(f"Timestamp {key} for {device.id}: {cur} {sign} {new}")
+                        self.logger.debug(f"Timestamp {key} for {device.device_id}: {cur} {sign} {new}")
                 return state, {}
 
         # noinspection PyTypeChecker
@@ -1405,7 +1405,7 @@ class PandoraOnlineAccount:
     ) -> tuple[CurrentState, dict[str, Any]]:
         update_args = {}
         if data_stats:
-            self.logger.debug(f"Received data update from HTTP for device {device.id}: {data_stats}")
+            self.logger.debug(f"Received data update from HTTP for device {device.device_id}: {data_stats}")
             update_args.update(
                 **CurrentState.get_common_dict_args(
                     data_stats,
@@ -1414,7 +1414,7 @@ class PandoraOnlineAccount:
                 is_online=bool(data_stats.get("online")),
             )
         if data_time:
-            self.logger.debug(f"Received time update from HTTP for device {device.id}: {data_time}")
+            self.logger.debug(f"Received time update from HTTP for device {device.device_id}: {data_time}")
             update_args.update(
                 online_timestamp=data_time.get("onlined"),
                 online_timestamp_utc=data_time.get("online"),
