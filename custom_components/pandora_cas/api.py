@@ -1330,6 +1330,7 @@ class PandoraOnlineAccount:
                 device.utc_offset = utc_offset = (
                     round((non_utc_val - utc_val) / 60) * 60
                 )
+                self.logger.debug(f"Calculated UTC offset: {utc_offset} seconds")
                 break
 
         # Adjust for two timestamps
@@ -1375,6 +1376,12 @@ class PandoraOnlineAccount:
                     f"older than existing data (based on '{bad_timestamp}'), "
                     f"this state update will be ignored completely!"
                 )
+                for postfix in ("", "_utc"):
+                    for prefix in prefixes:
+                        key = f"{prefix}_timestamp{postfix}"
+                        cur, new = getattr(state, key) or 0, state_args.get(key) or 0
+                        sign = '=' if cur == key else ('<' if cur < key else '>')
+                        self.logger.debug(f"Timestamp {key} for {device.id}: {cur} {sign} {new}")
                 return state, {}
 
         # noinspection PyTypeChecker
@@ -1398,6 +1405,7 @@ class PandoraOnlineAccount:
     ) -> tuple[CurrentState, dict[str, Any]]:
         update_args = {}
         if data_stats:
+            self.logger.debug(f"Received data update from HTTP for device {device.id}: {data_stats}")
             update_args.update(
                 **CurrentState.get_common_dict_args(
                     data_stats,
@@ -1406,6 +1414,7 @@ class PandoraOnlineAccount:
                 is_online=bool(data_stats.get("online")),
             )
         if data_time:
+            self.logger.debug(f"Received time update from HTTP for device {device.id}: {data_time}")
             update_args.update(
                 online_timestamp=data_time.get("onlined"),
                 online_timestamp_utc=data_time.get("online"),
