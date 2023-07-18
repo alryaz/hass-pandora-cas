@@ -22,6 +22,7 @@ __all__ = (
 )
 
 import asyncio
+import importlib
 import logging
 from datetime import timedelta
 from functools import partial
@@ -140,6 +141,17 @@ DEVICE_OPTIONS_SCHEMA: Final = vol.Schema(
             )
         ),
         vol.Optional(CONF_DISABLE_CURSOR_ROTATION, default=False): cv.boolean,
+        vol.Optional(
+            CONF_IGNORE_UPDATES_ENGINE_OFF, default=list
+        ): cv.multi_select(
+            [
+                f"{platform}__{entity_type.key}"
+                for platform in PLATFORMS
+                for entity_type in importlib.import_module(
+                    f"custom_components.pandora_cas.{platform}"
+                ).ENTITY_TYPES
+            ]
+        ),
     },
     extra=vol.REMOVE_EXTRA,
 )

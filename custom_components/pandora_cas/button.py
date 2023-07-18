@@ -5,7 +5,7 @@ import asyncio
 import logging
 from dataclasses import dataclass
 from functools import partial
-from typing import Optional, Callable
+from typing import Optional, Callable, Final
 
 from homeassistant.components.button import (
     ButtonEntity,
@@ -29,7 +29,7 @@ from custom_components.pandora_cas.entity import (
     parse_description_command_id,
 )
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: Final = logging.getLogger(__name__)
 
 
 @dataclass

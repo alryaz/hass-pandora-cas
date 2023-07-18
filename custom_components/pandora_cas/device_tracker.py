@@ -16,13 +16,10 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
 
-from custom_components.pandora_cas import PandoraCASUpdateCoordinator
 from custom_components.pandora_cas.const import *
 from custom_components.pandora_cas.entity import (
-    PandoraCASEntity,
-)
-from custom_components.pandora_cas.entity import (
     PandoraCASEntityDescription,
+    PandoraCASEntity,
 )
 from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
 
@@ -34,6 +31,8 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> bool:
+    from custom_components.pandora_cas import PandoraCASUpdateCoordinator
+
     new_entities = []
     coordinator: PandoraCASUpdateCoordinator = hass.data[DOMAIN][
         entry.entry_id

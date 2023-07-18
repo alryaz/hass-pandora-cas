@@ -2,14 +2,13 @@
 __all__ = ("TRIGGER_SCHEMA", "async_get_triggers", "async_attach_trigger")
 
 import logging
-from typing import Optional
+from typing import Optional, Final
 
 import voluptuous as vol
 from homeassistant.components.device_automation import (
     DEVICE_TRIGGER_BASE_SCHEMA,
     InvalidDeviceAutomationConfig,
 )
-
 from homeassistant.components.homeassistant.triggers import (
     event as event_trigger,
 )
@@ -20,15 +19,17 @@ from homeassistant.const import (
     CONF_DOMAIN,
 )
 from homeassistant.core import HomeAssistant, CALLBACK_TYPE
-from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.device_registry import (
     async_get as async_get_device_registry,
 )
 from homeassistant.helpers.trigger import TriggerActionType, TriggerInfo
+from homeassistant.helpers.typing import ConfigType
 
+from custom_components.pandora_cas import event_enum_to_type
 from custom_components.pandora_cas.api import PrimaryEventID
 from custom_components.pandora_cas.const import EVENT_TYPE_EVENT, DOMAIN
-from custom_components.pandora_cas import event_enum_to_type
+
+_LOGGER: Final = logging.getLogger(__name__)
 
 TRIGGER_ID_MAPPING = {
     event_enum_to_type(e): e
@@ -36,16 +37,14 @@ TRIGGER_ID_MAPPING = {
     if e != PrimaryEventID.UNKNOWN
 }
 
-TRIGGER_TYPES = set(TRIGGER_ID_MAPPING)
-TRIGGER_SCHEMA = DEVICE_TRIGGER_BASE_SCHEMA.extend(
+TRIGGER_TYPES: Final = set(TRIGGER_ID_MAPPING)
+TRIGGER_SCHEMA: Final = DEVICE_TRIGGER_BASE_SCHEMA.extend(
     {
         vol.Required(CONF_TYPE): vol.In(TRIGGER_TYPES),
     }
 )
 
-DEVICE = "device"
-
-_LOGGER = logging.getLogger(__name__)
+DEVICE: Final = "device"
 
 
 def async_get_pandora_id_by_device_id(

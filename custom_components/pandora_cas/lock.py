@@ -6,7 +6,7 @@ import logging
 from asyncio import run_coroutine_threadsafe
 from dataclasses import dataclass
 from functools import partial
-from typing import Any, Optional
+from typing import Any, Optional, TYPE_CHECKING, Final
 
 from homeassistant.components.lock import (
     LockEntity,
@@ -14,7 +14,6 @@ from homeassistant.components.lock import (
     LockEntityDescription,
 )
 
-from custom_components.pandora_cas import PandoraCASUpdateCoordinator
 from custom_components.pandora_cas.api import (
     BitStatus,
     CommandID,
@@ -27,7 +26,10 @@ from custom_components.pandora_cas.entity import (
 )
 from custom_components.pandora_cas.const import CONF_FORCE_LOCK_ICONS
 
-_LOGGER = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from custom_components.pandora_cas import PandoraCASUpdateCoordinator
+
+_LOGGER: Final = logging.getLogger(__name__)
 
 
 @dataclass
@@ -57,7 +59,7 @@ class PandoraCASLock(PandoraCASBooleanEntity, LockEntity):
 
     def __init__(
         self,
-        coordinator: PandoraCASUpdateCoordinator,
+        coordinator: "PandoraCASUpdateCoordinator",
         pandora_device: PandoraOnlineDevice,
         entity_description: "PandoraCASLockEntityDescription",
         *args,

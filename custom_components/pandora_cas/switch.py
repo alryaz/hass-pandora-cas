@@ -8,7 +8,7 @@ from typing import Any, Optional
 
 from homeassistant.components.switch import SwitchEntity, ENTITY_ID_FORMAT
 
-from custom_components.pandora_cas import CONF_ENGINE_STATE_BY_RPM
+from custom_components.pandora_cas.const import CONF_ENGINE_STATE_BY_RPM
 from custom_components.pandora_cas.api import (
     BitStatus,
     CommandID,

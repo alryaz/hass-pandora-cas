@@ -51,7 +51,7 @@ import aiohttp
 import attr
 from async_timeout import timeout
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: Final = logging.getLogger(__name__)
 
 #: default user agent for use in requests
 DEFAULT_USER_AGENT: Final = (

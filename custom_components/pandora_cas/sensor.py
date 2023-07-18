@@ -4,7 +4,7 @@ __all__ = ("ENTITY_TYPES", "async_setup_entry")
 import logging
 from dataclasses import dataclass
 from functools import partial
-from typing import Any, Callable, Optional, Mapping, Hashable, Dict
+from typing import Any, Callable, Optional, Mapping, Hashable
 
 from homeassistant.components.sensor import (
     ENTITY_ID_FORMAT,

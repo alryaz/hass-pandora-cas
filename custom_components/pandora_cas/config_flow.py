@@ -34,6 +34,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.schema_config_entry_flow import (
     SchemaCommonFlowHandler,
 )
+from homeassistant.helpers.translation import async_get_translations
 
 from custom_components.pandora_cas import (
     async_run_pandora_coro,
@@ -230,7 +231,6 @@ class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
         return PandoraCASOptionsFlow(config_entry)
 
 
-STEP_DEVICE_OPTIONS: Final = "device_options"
 STEP_SAVE: Final = "save"
 
 STEP_INTEGRATION_OPTIONS: Final = "integration_options"
@@ -251,6 +251,10 @@ STEP_INTEGRATION_OPTIONS_SCHEMA: Final = (
 )
 
 
+STEP_DEVICE_OPTIONS: Final = "device_options"
+# STEP_DEVICE_OPTIONS_SCHEMA: Final = DEVICE_OPTIONS_SCHEMA
+
+
 class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -262,6 +266,7 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
         # Holders for current and edited options
         self.options[CONF_METHOD] = determine_method(self.config_entry)
         self.initial_options = deepcopy(self.options)
+        self.device_options_schema: vol.Schema | None = None
 
     def _init_device_options(self):
         if self.device_options is None:
@@ -323,7 +328,31 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
                 },
             )
 
-        schema = DEVICE_OPTIONS_SCHEMA
+        if self.device_options_schema is None:
+            translations = await async_get_translations(
+                self.hass, self.hass.config.language, "entity", {DOMAIN}
+            )
+            entity_types_options = {}
+            for full_key in DEVICE_OPTIONS_SCHEMA.schema[
+                CONF_IGNORE_UPDATES_ENGINE_OFF
+            ].options:
+                domain, _, key = full_key.partition("__")
+                translation_path = (
+                    f"component.{DOMAIN}.entity.{domain}.{key}.name"
+                )
+                entity_name = (
+                    f"{domain}: {translations.get(translation_path) or key}"
+                )
+                entity_types_options[full_key] = entity_name
+            self.device_options_schema = DEVICE_OPTIONS_SCHEMA.extend(
+                {
+                    vol.Optional(
+                        CONF_IGNORE_UPDATES_ENGINE_OFF, default=list
+                    ): cv.multi_select(entity_types_options)
+                }
+            )
+
+        schema = self.device_options_schema
 
         if user_input is None:
             # This value must already be set by the __setattr__ magic method

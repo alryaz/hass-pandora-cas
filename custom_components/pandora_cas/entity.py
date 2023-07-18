@@ -16,6 +16,8 @@ from typing import (
     final,
     List,
     Awaitable,
+    TYPE_CHECKING,
+    Final,
 )
 
 from homeassistant.config_entries import ConfigEntry
@@ -33,10 +35,7 @@ from homeassistant.helpers.update_coordinator import (
 )
 from homeassistant.util import slugify
 
-from custom_components.pandora_cas import (
-    PandoraCASUpdateCoordinator,
-    ConfigEntryLoggerAdapter,
-)
+
 from custom_components.pandora_cas.api import (
     PandoraOnlineDevice,
     Features,
@@ -49,7 +48,10 @@ from custom_components.pandora_cas.const import (
     CONF_OFFLINE_AS_UNAVAILABLE,
 )
 
-_LOGGER = logging.getLogger(__name__)
+if TYPE_CHECKING:
+    from custom_components.pandora_cas import PandoraCASUpdateCoordinator
+
+_LOGGER: Final = logging.getLogger(__name__)
 
 
 def parse_description_command_id(
@@ -81,6 +83,8 @@ async def async_platform_setup_entry(
     logger: logging.Logger = _LOGGER,
 ):
     """Generic platform setup function"""
+    from custom_components.pandora_cas import ConfigEntryLoggerAdapter
+
     logger = ConfigEntryLoggerAdapter(logger, entry)
     platform_id = async_get_current_platform()
     logger.debug(
@@ -89,7 +93,7 @@ async def async_platform_setup_entry(
     )
 
     new_entities = []
-    coordinator: PandoraCASUpdateCoordinator = hass.data[DOMAIN][
+    coordinator: "PandoraCASUpdateCoordinator" = hass.data[DOMAIN][
         entry.entry_id
     ]
     for device in coordinator.account.devices.values():
@@ -169,7 +173,7 @@ class BasePandoraCASEntity(Entity):
 
 
 class PandoraCASEntity(
-    BasePandoraCASEntity, CoordinatorEntity[PandoraCASUpdateCoordinator]
+    BasePandoraCASEntity, CoordinatorEntity["PandoraCASUpdateCoordinator"]
 ):
     ENTITY_TYPES: ClassVar[
         Collection[PandoraCASEntityDescription]
@@ -182,7 +186,7 @@ class PandoraCASEntity(
 
     def __init__(
         self,
-        coordinator: PandoraCASUpdateCoordinator,
+        coordinator: "PandoraCASUpdateCoordinator",
         pandora_device: PandoraOnlineDevice,
         entity_description: "PandoraCASEntityDescription",
         extra_identifier: Any = None,
