@@ -1382,7 +1382,7 @@ class PandoraOnlineAccount:
                     for prefix in prefixes:
                         key = f"{prefix}_timestamp{postfix}"
                         cur, new = getattr(state, key) or 0, state_args.get(key) or 0
-                        sign = '=' if cur == key else ('<' if cur < key else '>')
+                        sign = '=' if cur == new else ('<' if cur < new else '>')
                         self.logger.debug(f"Timestamp {key} for {device.device_id}: {cur} {sign} {new}")
                 return state, {}
 
