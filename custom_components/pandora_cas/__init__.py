@@ -523,6 +523,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     if entry.version < 5:
         # Update unique ID to user ID
+        new_options.setdefault(CONF_VERIFY_SSL, True)
         account = PandoraOnlineAccount(
             username=new_data[CONF_USERNAME],
             password=new_data[CONF_PASSWORD],
