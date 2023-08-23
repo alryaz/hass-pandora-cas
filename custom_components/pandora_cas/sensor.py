@@ -95,6 +95,16 @@ ENTITY_TYPES = [
         suggested_display_precision=0,
     ),
     PandoraCASSensorEntityDescription(
+        key="soc",
+        name="State Of Charge",
+        icon="mdi:battery",
+        native_unit_of_measurement=PERCENTAGE,
+        attribute="ev_state_of_charge",
+        device_class=SensorDeviceClass.VOLUME_STORAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=0,
+    ),
+    PandoraCASSensorEntityDescription(
         key="interior_temperature",
         name="Interior Temperature",
         icon="mdi:thermometer",
