@@ -85,6 +85,16 @@ ENTITY_TYPES = [
         entity_registry_enabled_default=False,
     ),
     PandoraCASSensorEntityDescription(
+        key="can_mileage_by_battery",
+        name="CAN Mileage batt",
+        attribute="can_mileage_by_battery",
+        native_unit_of_measurement=UnitOfLength.KILOMETERS,
+        suggested_unit_of_measurement=UnitOfLength.KILOMETERS,
+        device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.TOTAL,
+        suggested_display_precision=0,
+    ),
+    PandoraCASSensorEntityDescription(
         key="fuel",
         name="Fuel Level",
         icon="mdi:fuel",
