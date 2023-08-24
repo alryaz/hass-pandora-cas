@@ -168,7 +168,7 @@ class BasePandoraCASEntity(Entity):
             manufacturer="Pandora",
             model=d.model,
             sw_version=f"{d.firmware_version} / {d.voice_version}",
-            via_device=(DOMAIN, str(d.device_id))
+            via_device=(DOMAIN, str(d.device_id)),
         )
 
 
