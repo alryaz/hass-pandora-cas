@@ -1,29 +1,15 @@
+"""Processor for tracker icon registry"""
+
 import logging
 import re
-from collections import defaultdict
 from os import listdir
 from os.path import dirname, join, isfile
-from typing import Final, Optional, Collection
-
-
-def from_path(path: str) -> str:
-    return (
-        '<?xml version="1.0" encoding="UTF-8" standalone="no"?>' + "<svg "
-        'version="1.1" '
-        'width="512" '
-        'height="512" '
-        'xmlns="http://www.w3.org/2000/svg" '
-        'xmlns:svg="http://www.w3.org/2000/svg">' + "<path "
-        'transform="rotate({rotation} 256 256)" '
-        + 'style="fill:{fill};fill-opacity:1" d="'
-        + path
-        + '"/></svg>'
-    )
+from typing import Final, Optional
 
 
 DEFAULT_CURSORS_PATH: Final = join(dirname(__file__), "cursors")
 
-_RE_TRANSFORMATION = re.compile(r"rotate\(([0-9\.]+)\s+256\s+256\)")
+_RE_TRANSFORMATION = re.compile(r"rotate\((-?[0-9.]+)\s+256\s+256\)")
 _RE_FILL = re.compile(r"fill:#000000")
 
 _LOGGER = logging.getLogger(__name__)
@@ -85,7 +71,7 @@ class ImagesDefaultDict(dict):
         base_code, base_rotation = self[car_type]
         return base_code.format(
             fill=(fill or "#000000"),
-            rotation=(float(rotation or 0.0) - base_rotation) % 360,
+            rotation=(float(rotation or 0.0) + base_rotation) % 360,
         )
 
 
