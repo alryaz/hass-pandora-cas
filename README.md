@@ -12,15 +12,14 @@
 > 💵 **Пожертвование на развитие проекта**  
 > [![Пожертвование YooMoney](https://img.shields.io/badge/YooMoney-8B3FFD.svg?style=for-the-badge)](https://yoomoney.ru/to/410012369233217)
 > [![Пожертвование Тинькофф](https://img.shields.io/badge/Tinkoff-F8D81C.svg?style=for-the-badge)](https://www.tinkoff.ru/cf/3g8f1RTkf5G)
-> [![Пожертвование PayPal](https://img.shields.io/badge/PayPal-159BD7.svg?style=for-the-badge)](https://www.paypal.me/alryaz)
 > [![Пожертвование Cбербанк](https://img.shields.io/badge/Сбербанк-green.svg?style=for-the-badge)](https://www.sberbank.com/ru/person/dl/jc?linkname=3pDgknI7FY3z7tJnN)
+> [![Пожертвование DonationAlerts](https://img.shields.io/badge/DonationAlerts-fbaf2b.svg?style=for-the-badge)](https://www.donationalerts.com/r/alryaz)
 >
 > 💬 **Техническая поддержка**  
 > [![Группа в Telegram](https://img.shields.io/endpoint?url=https%3A%2F%2Ftg.sumanjay.workers.dev%2Falryaz_ha_addons&style=for-the-badge)](https://telegram.dog/alryaz_ha_addons)
 >
 > 🥇 **Вдохновитель, оригинальный разработчик**  
 > [![Репозиторий GitHub](https://img.shields.io/badge/GitHub-turbulator%2Fpandora--cas-blue?style=for-the-badge)](https://github.com/turbulator/pandora-cas)
-> [![Donate](https://img.shields.io/badge/Donate-Yandex-orange.svg?style=for-the-badge)](https://money.yandex.ru/to/41001690673042)
 
 Автомобиль тоже может быть частью умного дома. С помощью этого компонента вы
 сможете отслеживать состояние, управлять и автоматизировать свой автомобиль,
