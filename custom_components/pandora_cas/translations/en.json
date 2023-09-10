@@ -658,5 +658,281 @@
         }
       }
     }
+  },
+  "services": {
+    "remote_command": {
+      "name": "Remote Command",
+      "description": "Execute a specific command (defined by a command identifier).",
+      "fields": {
+        "command_id": {
+          "name": "Command Identifier",
+          "description": "Numeric identifier of the command handled by the target Pandora device firmware."
+        },
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "lock": {
+      "name": "Lock",
+      "description": "Engage the vehicle's security mechanism to prevent access.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "unlock": {
+      "name": "Unlock",
+      "description": "Disengage the vehicle's security mechanism to allow access.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "start_engine": {
+      "name": "Start Engine",
+      "description": "Commence the vehicle's engine remotely (autostart operation).",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "stop_engine": {
+      "name": "Stop Engine",
+      "description": "Halt the running vehicle engine remotely (autostart operation).",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "enable_tracking": {
+      "name": "Enable Tracking",
+      "description": "Activate the vehicle's tracking system.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "disable_tracking": {
+      "name": "Disable Tracking",
+      "description": "Deactivate the vehicle's tracking system.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "enable_active_security": {
+      "name": "Enable Active Security",
+      "description": "Activate enhanced security measures.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "disable_active_security": {
+      "name": "Disable Active Security",
+      "description": "Deactivate enhanced security measures.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "turn_on_coolant_heater": {
+      "name": "Turn On Coolant Heater",
+      "description": "Start the coolant heater operation.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "turn_off_coolant_heater": {
+      "name": "Turn Off Coolant Heater",
+      "description": "Stop the coolant heater operation.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "turn_on_ext_channel": {
+      "name": "Turn On Ext Channel",
+      "description": "Activate an external channel or accessory.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "turn_off_ext_channel": {
+      "name": "Turn Off Ext Channel",
+      "description": "Deactivate an external channel or accessory.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "enable_service_mode": {
+      "name": "Enable Service Mode",
+      "description": "Active the service mode.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "disable_service_mode": {
+      "name": "Disable Service Mode",
+      "description": "Deactivate the service mode.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "enable_status_output": {
+      "name": "Enable Status Output",
+      "description": "Activate additional status output channel.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "disable_status_output": {
+      "name": "Disable Status Output",
+      "description": "Activate additional status output channel.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "trigger_horn": {
+      "name": "Trigger Horn",
+      "description": "Activate the vehicle's horn as an alert.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "trigger_light": {
+      "name": "Trigger Light",
+      "description": "Activate the vehicle's lights as an alert.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "trigger_trunk": {
+      "name": "Trigger Trunk",
+      "description": "Activate the trunk release mechanism.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "check": {
+      "name": "Check",
+      "description": "Initiate telemetry retrieval operation (update data).",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "erase_dtc": {
+      "name": "Erase Diagnostic Trouble Codes (DTC)",
+      "description": "Clear stored diagnostic trouble codes.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "read_dtc": {
+      "name": "Read Diagnostic Trouble Codes (DTC)",
+      "description": "Retrieve diagnostic trouble codes.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "additional_command_1": {
+      "name": "Additional Command 1",
+      "description": "Execute primary user-defined action.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "additional_command_2": {
+      "name": "Additional Command 2",
+      "description": "Execute secondary user-defined action.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "enable_connection": {
+      "name": "Enable Connection",
+      "description": "Allow real time telemetric connections with online services.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    },
+    "disable_connection": {
+      "name": "Disable Connection",
+      "description": "Prevent real time telemetric connections with online services.",
+      "fields": {
+        "device_id": {
+          "name": "Device Identifier",
+          "description": "Unique numeric identifier of the target Pandora device."
+        }
+      }
+    }
   }
 }

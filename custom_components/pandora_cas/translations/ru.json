@@ -703,5 +703,281 @@
         }
       }
     }
+  },
+  "services": {
+    "remote_command": {
+      "name": "Remote Command",
+      "description": "Execute a specific command (defined by a command identifier).",
+      "fields": {
+        "command_id": {
+          "name": "Command Identifier",
+          "description": "Numeric identifier of the command handled by the target Pandora device firmware."
+        },
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "lock": {
+      "name": "Постановка на охрану",
+      "description": "Engage the vehicle's security mechanism to prevent access.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "unlock": {
+      "name": "Снятие с охраны",
+      "description": "Disengage the vehicle's security mechanism to allow access.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "start_engine": {
+      "name": "Запуск двигателя",
+      "description": "Commence the vehicle's engine remotely (autostart operation).",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "stop_engine": {
+      "name": "Остановка двигателя",
+      "description": "Halt the running vehicle engine remotely (autostart operation).",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "enable_tracking": {
+      "name": "Включить отслеживание координат (трекинг)",
+      "description": "Activate the vehicle's tracking system.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "disable_tracking": {
+      "name": "Отключить отслеживание координат (трекинг)",
+      "description": "Deactivate the vehicle's tracking system.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "enable_active_security": {
+      "name": "Включить режим повышенной (активной) защиты",
+      "description": "Activate enhanced security measures.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "disable_active_security": {
+      "name": "Выключить режим повышенной (активной) защиты",
+      "description": "Deactivate enhanced security measures.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "turn_on_coolant_heater": {
+      "name": "Включить предпусковой подогреватель",
+      "description": "Start the coolant heater operation.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "turn_off_coolant_heater": {
+      "name": "Выключить предпусковой подогреватель",
+      "description": "Stop the coolant heater operation.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "turn_on_ext_channel": {
+      "name": "Включить дополнительный канал",
+      "description": "Activate an external channel or accessory.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "turn_off_ext_channel": {
+      "name": "Выключить дополнительный канал",
+      "description": "Deactivate an external channel or accessory.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "enable_service_mode": {
+      "name": "Включить режим техобслуживания",
+      "description": "Active the service mode.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "disable_service_mode": {
+      "name": "Выключить режим техобслуживания",
+      "description": "Deactivate the service mode.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "enable_status_output": {
+      "name": "Включить статусный выход",
+      "description": "Activate additional status output channel.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "disable_status_output": {
+      "name": "Выключить статусный выход",
+      "description": "Activate additional status output channel.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "trigger_horn": {
+      "name": "Издать звук клаксоном",
+      "description": "Activate the vehicle's horn as an alert.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "trigger_light": {
+      "name": "Моргнуть элементами освещения",
+      "description": "Activate the vehicle's lights as an alert.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "trigger_trunk": {
+      "name": "Открыть багажник",
+      "description": "Activate the trunk release mechanism.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "check": {
+      "name": "Проверка (обновление данных)",
+      "description": "Initiate telemetry retrieval operation (update data).",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "erase_dtc": {
+      "name": "Очистить диагностические коды ошибок (DTC)",
+      "description": "Clear stored diagnostic trouble codes.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "read_dtc": {
+      "name": "Прочитать диагностические коды ошибок (DTC)",
+      "description": "Retrieve diagnostic trouble codes.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "additional_command_1": {
+      "name": "Дополнительная команда №1",
+      "description": "Execute primary user-defined action.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "additional_command_2": {
+      "name": "Дополнительная команда №2",
+      "description": "Execute secondary user-defined action.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "enable_connection": {
+      "name": "Включить связь с облаком",
+      "description": "Allow real time telemetric connections with online services.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    },
+    "disable_connection": {
+      "name": "Выключить связь с облаком",
+      "description": "Prevent real time telemetric connections with online services.",
+      "fields": {
+        "device_id": {
+          "name": "Идентификатор устройства",
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+        }
+      }
+    }
   }
 }
