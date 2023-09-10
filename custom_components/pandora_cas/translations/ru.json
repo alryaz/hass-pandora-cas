@@ -706,12 +706,12 @@
   },
   "services": {
     "remote_command": {
-      "name": "Remote Command",
-      "description": "Execute a specific command (defined by a command identifier).",
+      "name": "Удалённая команда",
+      "description": "Выполнить произвольную команду напрямую (используя идентификатор команды).",
       "fields": {
         "command_id": {
-          "name": "Command Identifier",
-          "description": "Numeric identifier of the command handled by the target Pandora device firmware."
+          "name": "Идентификатор команды",
+          "description": "Числовой идентификатор команды, обрабатываемой прошивкой целевого устройства Pandora."
         },
         "device_id": {
           "name": "Идентификатор устройства",
@@ -821,7 +821,7 @@
     },
     "turn_on_ext_channel": {
       "name": "Включить дополнительный канал",
-      "description": "Activate an external channel or accessory.",
+      "description": "Активировать внешнее устройство или аксессуар.",
       "fields": {
         "device_id": {
           "name": "Идентификатор устройства",
@@ -831,7 +831,7 @@
     },
     "turn_off_ext_channel": {
       "name": "Выключить дополнительный канал",
-      "description": "Deactivate an external channel or accessory.",
+      "description": "Деактивировать внешнее устройство или аксессуар.",
       "fields": {
         "device_id": {
           "name": "Идентификатор устройства",
@@ -841,7 +841,7 @@
     },
     "enable_service_mode": {
       "name": "Включить режим техобслуживания",
-      "description": "Active the service mode.",
+      "description": "Перевести удалённое устройство в сервисный режим.",
       "fields": {
         "device_id": {
           "name": "Идентификатор устройства",
@@ -851,7 +851,7 @@
     },
     "disable_service_mode": {
       "name": "Выключить режим техобслуживания",
-      "description": "Deactivate the service mode.",
+      "description": "Вывести удалённое устройство из сервисного режима.",
       "fields": {
         "device_id": {
           "name": "Идентификатор устройства",
@@ -861,7 +861,7 @@
     },
     "enable_status_output": {
       "name": "Включить статусный выход",
-      "description": "Activate additional status output channel.",
+      "description": "Включить канал статусного выхода на удалённом устройстве.",
       "fields": {
         "device_id": {
           "name": "Идентификатор устройства",
@@ -871,7 +871,7 @@
     },
     "disable_status_output": {
       "name": "Выключить статусный выход",
-      "description": "Activate additional status output channel.",
+      "description": "Выключить канал статусного выхода на удалённом устройстве.",
       "fields": {
         "device_id": {
           "name": "Идентификатор устройства",
@@ -880,8 +880,8 @@
       }
     },
     "trigger_horn": {
-      "name": "Издать звук клаксоном",
-      "description": "Activate the vehicle's horn as an alert.",
+      "name": "Издать звук сирены",
+      "description": "Активировать однократно цикл издания звука установленной сиреной (или клаксоном), используемой(-ым) в качестве оповещения о возникновении тревожного события.",
       "fields": {
         "device_id": {
           "name": "Идентификатор устройства",
@@ -891,7 +891,7 @@
     },
     "trigger_light": {
       "name": "Моргнуть элементами освещения",
-      "description": "Activate the vehicle's lights as an alert.",
+      "description": "Активировать однократно цикл включения освещения (фары, сигналы), используемого в качестве оповещения о возникновении тревожного события.",
       "fields": {
         "device_id": {
           "name": "Идентификатор устройства",
@@ -901,7 +901,7 @@
     },
     "trigger_trunk": {
       "name": "Открыть багажник",
-      "description": "Activate the trunk release mechanism.",
+      "description": "Спровоцировать багажник автомобиля на открытие.",
       "fields": {
         "device_id": {
           "name": "Идентификатор устройства",
@@ -911,7 +911,7 @@
     },
     "check": {
       "name": "Проверка (обновление данных)",
-      "description": "Initiate telemetry retrieval operation (update data).",
+      "description": "Отправить команду на удалённое устройство для немедленной передачи текущего состояния всех имеющихся атрибутов на сервер.",
       "fields": {
         "device_id": {
           "name": "Идентификатор устройства",
@@ -921,7 +921,7 @@
     },
     "erase_dtc": {
       "name": "Очистить диагностические коды ошибок (DTC)",
-      "description": "Clear stored diagnostic trouble codes.",
+      "description": "Выполнить очистку диагностических кодов ошибок, считываемых по CAN-шине с ЭБУ автомобиля.",
       "fields": {
         "device_id": {
           "name": "Идентификатор устройства",
@@ -931,7 +931,7 @@
     },
     "read_dtc": {
       "name": "Прочитать диагностические коды ошибок (DTC)",
-      "description": "Retrieve diagnostic trouble codes.",
+      "description": "Прочесть диагностические коды ошибок по CAN-шине с ЭБУ автомобиля",
       "fields": {
         "device_id": {
           "name": "Идентификатор устройства",
@@ -941,7 +941,7 @@
     },
     "additional_command_1": {
       "name": "Дополнительная команда №1",
-      "description": "Execute primary user-defined action.",
+      "description": "Выполнить первый заданный пользователем алгоритм действий.",
       "fields": {
         "device_id": {
           "name": "Идентификатор устройства",
@@ -951,7 +951,7 @@
     },
     "additional_command_2": {
       "name": "Дополнительная команда №2",
-      "description": "Execute secondary user-defined action.",
+      "description": "Выполнить второй заданный пользователем алгоритм действий.",
       "fields": {
         "device_id": {
           "name": "Идентификатор устройства",
@@ -961,7 +961,7 @@
     },
     "enable_connection": {
       "name": "Включить связь с облаком",
-      "description": "Allow real time telemetric connections with online services.",
+      "description": "Разрешить передачу телеметрической информации на сервера AlarmTrade в реальном времени.",
       "fields": {
         "device_id": {
           "name": "Идентификатор устройства",
@@ -971,7 +971,7 @@
     },
     "disable_connection": {
       "name": "Выключить связь с облаком",
-      "description": "Prevent real time telemetric connections with online services.",
+      "description": "Прекратить передачу телеметрической информации на сервера AlarmTrade в реальном времени.",
       "fields": {
         "device_id": {
           "name": "Идентификатор устройства",
