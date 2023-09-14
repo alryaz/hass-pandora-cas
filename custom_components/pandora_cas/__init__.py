@@ -276,8 +276,8 @@ async def _async_register_services(hass: HomeAssistant) -> None:
 
         for config_entry_id, coordinator in hass.data.get(DOMAIN, {}).items():
             try:
-                device = coordinator.account.devices[device_id].device
-            except (KeyError, AttributeError):
+                device = coordinator.account.devices[device_id]
+            except KeyError:
                 continue
             _LOGGER.debug(
                 f"Found device '{device}' on coordinator '{coordinator}' for '{call.service}' service call"
