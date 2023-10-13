@@ -45,6 +45,7 @@ from typing import (
     SupportsFloat,
     SupportsInt,
     Optional,
+    MutableMapping,
 )
 
 import aiohttp
@@ -107,8 +108,8 @@ class CommandID(IntEnum):
     TURN_OFF_EXT_CHANNEL = 34
 
     # Service mode toggle
-    ENABLE_SERVICE_MODE = 40
-    DISABLE_SERVICE_MODE = 41
+    ENABLE_SERVICE_MODE = 40  # 36?
+    DISABLE_SERVICE_MODE = 41  # 37?
 
     # Status output toggle
     ENABLE_STATUS_OUTPUT = 48
@@ -139,6 +140,11 @@ class CommandID(IntEnum):
     NAV12_RESET_ERRORS = 57408
     NAV12_ENABLE_STATUS_OUTPUT = 57372
     NAV12_DISABLE_STATUS_OUTPUT = 57371
+
+    # Unknown (untested and incorrectly named) commands
+    STAY_HOME_PROPION = 42
+    LOW_POWER_MODE = 50
+    PS_CALL = 256
 
 
 class EventType(IntEnum):
@@ -368,6 +374,9 @@ def _degrees_to_direction(degrees: float):
     return sides[round(degrees / (360 / len(sides))) % len(sides)]
 
 
+_TKwargs = TypeVar("_TKwargs", bound=MutableMapping[str, Any])
+
+
 @attr.s(kw_only=True, frozen=True, slots=True)
 class CurrentState:
     identifier: int = attr.ib(converter=int)
@@ -403,6 +412,10 @@ class CurrentState:
 
     can_seat_taken: bool | None = attr.ib(default=None)
     can_average_speed: float | None = attr.ib(default=None)
+    can_consumption: float | None = attr.ib(default=None)
+    can_consumption_after: float | None = attr.ib(default=None)
+    can_need_pads_exchange: bool | None = attr.ib(default=None)
+    can_days_to_maintenance: int | None = attr.ib(default=None)
     can_tpms_front_left: float | None = attr.ib(default=None)
     can_tpms_front_right: float | None = attr.ib(default=None)
     can_tpms_back_left: float | None = attr.ib(default=None)
@@ -416,6 +429,7 @@ class CurrentState:
     can_belt_passenger: bool | None = attr.ib(default=None)
     can_belt_back_left: bool | None = attr.ib(default=None)
     can_belt_back_right: bool | None = attr.ib(default=None)
+    can_belt_back_center: bool | None = attr.ib(default=None)
     can_low_liquid: bool | None = attr.ib(default=None)
     can_mileage_by_battery: float | None = attr.ib(default=None)
     can_mileage_to_empty: float | None = attr.ib(default=None)
@@ -444,6 +458,18 @@ class CurrentState:
     online_timestamp_utc: int | None = attr.ib(default=None)
     settings_timestamp_utc: int | None = attr.ib(default=None)
     command_timestamp_utc: int | None = attr.ib(default=None)
+
+    @classmethod
+    def _merge_data_kwargs(
+        cls,
+        data: Mapping[str, Any],
+        kwargs: _TKwargs,
+        to_merge: Mapping[str, str],
+    ) -> _TKwargs:
+        for kwarg, key in to_merge.items():
+            if kwarg not in kwargs and key in data:
+                kwargs[kwarg] = data[key]
+        return kwargs
 
     @classmethod
     def get_common_dict_args(
@@ -513,27 +539,57 @@ class CurrentState:
         return kwargs
 
     @classmethod
+    def get_can_args(cls, data: Mapping[str, Any], **kwargs) -> dict[str, Any]:
+        return cls._merge_data_kwargs(
+            data,
+            kwargs,
+            {
+                # Tire pressure
+                "can_tpms_front_left": "CAN_TMPS_forvard_left",
+                "can_tpms_front_right": "CAN_TMPS_forvard_right",
+                "can_tpms_back_left": "CAN_TMPS_back_left",
+                "can_tpms_back_right": "CAN_TMPS_back_right",
+                "can_tpms_reserve": "CAN_TMPS_reserve",
+                # Glasses
+                "can_glass_driver": "CAN_driver_glass",
+                "can_glass_passenger": "CAN_passenger_glass",
+                "can_glass_back_left": "CAN_back_left_glass",
+                "can_glass_back_right": "CAN_back_right_glass",
+                # Belts
+                "can_belt_driver": "CAN_driver_belt",
+                "can_belt_passenger": "CAN_passenger_belt",
+                "can_belt_back_left": "CAN_back_left_belt",
+                "can_belt_back_right": "CAN_back_right_belt",
+                "can_belt_back_center": "CAN_back_center_belt",
+                # Mileages (non-generic)
+                "can_mileage_by_battery": "CAN_mileage_by_battery",
+                "can_mileage_to_empty": "CAN_mileage_to_empty",
+                "can_mileage_to_maintenance": "CAN_mileage_to_maintenance",
+                # EV-related
+                "ev_charging_connected": "charging_connect",
+                "ev_charging_slow": "charging_slow",
+                "ev_charging_fast": "charging_fast",
+                "ev_state_of_charge": "SOC",
+                "ev_state_of_health": "SOH",
+                "ev_status_ready": "ev_status_ready",
+                "battery_temperature": "battery_temperature",
+                # Miscellaneous
+                "can_average_speed": "CAN_average_speed",
+                "can_low_liquid": "CAN_low_liquid",
+                "can_seat_taken": "CAN_seat_taken",
+                "can_consumption": "CAN_consumption",
+                "can_consumption_after": "CAN_consumption_after",
+                "can_need_pads_exchange": "CAN_need_pads_exchange",
+                "can_days_to_maintenance": "CAN_days_to_maintenance",
+            },
+        )
+
+    @classmethod
     def get_ws_state_args(
         cls, data: Mapping[str, Any], **kwargs
     ) -> dict[str, Any]:
         if "is_online" not in kwargs and "online_mode" in data:
             kwargs["is_online"] = bool(data["online_mode"])
-        if "state_timestamp" not in kwargs and "state" in data:
-            kwargs["state_timestamp"] = data["state"]
-        if "state_timestamp_utc" not in kwargs and "state_utc" in data:
-            kwargs["state_timestamp_utc"] = data["state_utc"]
-        if "online_timestamp" not in kwargs and "online" in data:
-            kwargs["online_timestamp"] = data["online"]
-        if "online_timestamp_utc" not in kwargs and "online_utc" in data:
-            kwargs["online_timestamp_utc"] = data["online_utc"]
-        if "settings_timestamp_utc" not in kwargs and "setting_utc" in data:
-            kwargs["settings_timestamp_utc"] = data["setting_utc"]
-        if "command_timestamp_utc" not in kwargs and "command_utc" in data:
-            kwargs["command_timestamp_utc"] = data["command_utc"]
-        if "active_sim" not in kwargs and "active_sim" in data:
-            kwargs["active_sim"] = data["active_sim"]
-        if "tracking_remaining" not in kwargs and "track_remains" in data:
-            kwargs["tracking_remaining"] = data["track_remains"]
         if "lock_latitude" not in kwargs and "lock_x" in data:
             if (lock_x := data["lock_x"]) is not None:
                 lock_x = float(lock_x) / 1000000
@@ -542,99 +598,22 @@ class CurrentState:
             if (lock_y := data["lock_y"]) is not None:
                 lock_y = float(lock_y) / 1000000
             kwargs["lock_longitude"] = lock_y / 1000000
-        if "can_average_speed" not in kwargs and "CAN_average_speed" in data:
-            kwargs["can_average_speed"] = data["CAN_average_speed"]
-        if (
-            "can_tpms_front_left" not in kwargs
-            and "CAN_TMPS_forvard_left" in data
-        ):
-            kwargs["can_tpms_front_left"] = data["CAN_TMPS_forvard_left"]
-        if (
-            "can_tpms_front_right" not in kwargs
-            and "CAN_TMPS_forvard_right" in data
-        ):
-            kwargs["can_tpms_front_right"] = data["CAN_TMPS_forvard_right"]
-        if "can_tpms_back_left" not in kwargs and "CAN_TMPS_back_left" in data:
-            kwargs["can_tpms_back_left"] = data["CAN_TMPS_back_left"]
-        if (
-            "can_tpms_back_right" not in kwargs
-            and "CAN_TMPS_back_right" in data
-        ):
-            kwargs["can_tpms_back_right"] = data["CAN_TMPS_back_right"]
-        if "can_tpms_reserve" not in kwargs and "CAN_TMPS_reserve" in data:
-            kwargs["can_tpms_reserve"] = data["CAN_TMPS_reserve"]
-        if "can_glass_driver" not in kwargs and "CAN_driver_glass" in data:
-            kwargs["can_glass_driver"] = data["CAN_driver_glass"]
-        if (
-            "can_glass_passenger" not in kwargs
-            and "CAN_passenger_glass" in data
-        ):
-            kwargs["can_glass_passenger"] = data["CAN_passenger_glass"]
-        if (
-            "can_glass_back_left" not in kwargs
-            and "CAN_back_left_glass" in data
-        ):
-            kwargs["can_glass_back_left"] = data["CAN_back_left_glass"]
-        if (
-            "can_glass_back_right" not in kwargs
-            and "CAN_back_right_glass" in data
-        ):
-            kwargs["can_glass_back_right"] = data["CAN_back_right_glass"]
-        if "can_belt_driver" not in kwargs and "CAN_driver_belt" in data:
-            kwargs["can_belt_driver"] = data["CAN_driver_belt"]
-        if "can_belt_passenger" not in kwargs and "CAN_passenger_belt" in data:
-            kwargs["can_belt_passenger"] = data["CAN_passenger_belt"]
-        if "can_belt_back_left" not in kwargs and "CAN_back_left_belt" in data:
-            kwargs["can_belt_back_left"] = data["CAN_back_left_belt"]
-        if (
-            "can_belt_back_right" not in kwargs
-            and "CAN_back_right_belt" in data
-        ):
-            kwargs["can_belt_back_right"] = data["CAN_back_right_belt"]
-        if "can_low_liquid" not in kwargs and "CAN_low_liquid" in data:
-            kwargs["can_low_liquid"] = data["CAN_low_liquid"]
-        if "can_seat_taken" not in kwargs and "CAN_seat_taken" in data:
-            kwargs["can_seat_taken"] = data["CAN_seat_taken"]
-        if (
-            "can_mileage_by_battery" not in kwargs
-            and "CAN_mileage_by_battery" in data
-        ):
-            kwargs["can_mileage_by_battery"] = data["CAN_mileage_by_battery"]
-        if (
-            "can_mileage_to_empty" not in kwargs
-            and "CAN_mileage_to_empty" in data
-        ):
-            kwargs["can_mileage_to_empty"] = data["CAN_mileage_to_empty"]
-        if (
-            "can_mileage_to_maintenance" not in kwargs
-            and "CAN_mileage_to_maintenance" in data
-        ):
-            kwargs["can_mileage_to_maintenance"] = data[
-                "CAN_mileage_to_maintenance"
-            ]
-        if (
-            "ev_charging_connected" not in kwargs
-            and "charging_connect" in data
-        ):
-            kwargs["ev_charging_connected"] = data["charging_connect"]
-        if "ev_charging_slow" not in kwargs and "charging_slow" in data:
-            kwargs["ev_charging_slow"] = data["charging_slow"]
-        if "ev_charging_fast" not in kwargs and "charging_fast" in data:
-            kwargs["ev_charging_fast"] = data["charging_fast"]
-        if "ev_state_of_charge" not in kwargs and "SOC" in data:
-            kwargs["ev_state_of_charge"] = data["SOC"]
-        if "ev_state_of_health" not in kwargs and "SOH" in data:
-            kwargs["ev_state_of_health"] = data["SOH"]
-        if "ev_status_ready" not in kwargs and "ev_status_ready" in data:
-            kwargs["ev_status_ready"] = data["ev_status_ready"]
-        if (
-            "battery_temperature" not in kwargs
-            and "battery_temperature" in data
-        ):
-            kwargs["battery_temperature"] = data["battery_temperature"]
         # if "tanks" in data:
         #     kwargs["fuel_tanks"] = FuelTank.parse_fuel_tanks(data["tanks"])
-        return cls.get_common_dict_args(data, **kwargs)
+        return cls._merge_data_kwargs(
+            data,
+            cls.get_common_dict_args(data, **cls.get_can_args(data, **kwargs)),
+            {
+                "state_timestamp": "state",
+                "state_timestamp_utc": "state_utc",
+                "online_timestamp": "online",
+                "online_timestamp_utc": "online_utc",
+                "settings_timestamp_utc": "setting_utc",
+                "command_timestamp_utc": "command_utc",
+                "active_sim": "active_sim",
+                "tracking_remaining": "track_remains",
+            },
+        )
 
     @classmethod
     def get_ws_point_args(
@@ -650,6 +629,9 @@ class CurrentState:
     def get_http_dict_args(
         cls, data: Mapping[str, Any], **kwargs
     ) -> dict[str, Any]:
+        # parse CAN data if present
+        if can := data.get("can"):
+            kwargs = cls.get_can_args(can, **kwargs)
         return cls.get_common_dict_args(data, **kwargs)
 
     @property
