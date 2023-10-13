@@ -155,6 +155,46 @@
           }
         }
       },
+      "driver_safety_belt": {
+        "name": "Driver Safety Belt",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "passenger_safety_belt": {
+        "name": "Passenger Safety Belt",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "left_back_safety_belt": {
+        "name": "Left Back Safety Belt",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "right_back_safety_belt": {
+        "name": "Right Back Safety Belt",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "center_back_safety_belt": {
+        "name": "Center Back Safety Belt",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
       "trunk": {
         "name": "Trunk",
         "state_attributes": {
@@ -173,6 +213,14 @@
       },
       "parking": {
         "name": "Parking Mode",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "seat_taken": {
+        "name": "Seat Taken",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"
@@ -350,6 +398,14 @@
       },
       "fuel": {
         "name": "Fuel Level",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "fuel_consumption": {
+        "name": "Fuel Consumption",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"

@@ -187,6 +187,66 @@
           "off": "Поднят"
         }
       },
+      "driver_safety_belt": {
+        "name": "Ремень безопасности водителя",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        },
+        "state": {
+          "on": "Пристёгнут",
+          "off": "Отстёгнут"
+        }
+      },
+      "passenger_safety_belt": {
+        "name": "Ремень безопасности пассажира",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        },
+        "state": {
+          "on": "Пристёгнут",
+          "off": "Отстёгнут"
+        }
+      },
+      "left_back_safety_belt": {
+        "name": "Задний левый ремень безопасности",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        },
+        "state": {
+          "on": "Пристёгнут",
+          "off": "Отстёгнут"
+        }
+      },
+      "right_back_safety_belt": {
+        "name": "Задний правый ремень безопасности",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        },
+        "state": {
+          "on": "Пристёгнут",
+          "off": "Отстёгнут"
+        }
+      },
+      "center_back_safety_belt": {
+        "name": "Задний центральный ремень безопасности",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        },
+        "state": {
+          "on": "Пристёгнут",
+          "off": "Отстёгнут"
+        }
+      },
       "trunk": {
         "name": "Багажник",
         "state_attributes": {
@@ -221,6 +281,14 @@
       },
       "brakes": {
         "name": "Тормоз",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "seat_taken": {
+        "name": "Кресло занято",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -287,6 +355,14 @@
       },
       "fuel": {
         "name": "Топливный бак",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "fuel_consumption": {
+        "name": "Расход топлива",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
