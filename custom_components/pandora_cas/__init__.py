@@ -739,7 +739,7 @@ def async_event_delegator(
     hass.bus.async_fire(
         EVENT_TYPE_EVENT,
         {
-            "event_type": event_enum_to_type(event.primary_event_enum),
+            CONF_EVENT_TYPE: event_enum_to_type(event.primary_event_enum),
             ATTR_DEVICE_ID: device.device_id,
             "event_id_primary": event.event_id_primary,
             "event_id_secondary": event.event_id_secondary,
@@ -773,7 +773,7 @@ def async_update_settings_delegator(
     # hass.bus.async_fire(
     #     EVENT_TYPE_EVENT,
     #     {
-    #         "event_type": event_enum_to_type(PrimaryEventID.SETTINGS_CHANGED),
+    #         CONF_EVENT_TYPE: event_enum_to_type(PrimaryEventID.SETTINGS_CHANGED),
     #         ATTR_DEVICE_ID: device.device_id,
     #         "event_id_primary": int(PrimaryEventID.SETTINGS_CHANGED),
     #         "event_id_secondary": event.event_id_secondary,
