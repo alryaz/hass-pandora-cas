@@ -13,6 +13,7 @@ __all__ = (
     "CONF_DISABLE_WEBSOCKETS",
     "CONF_EFFECTIVE_READ_TIMEOUT",
     "CONF_ENGINE_STATE_BY_RPM",
+    "CONF_EVENT_TYPE",
     "CONF_FUEL_IS_LITERS",
     "CONF_IGNORE_UPDATES_ENGINE_OFF",
     "CONF_IGNORE_WS_COORDINATES",
@@ -73,6 +74,7 @@ CONF_DISABLE_CURSOR_ROTATION: Final = "disable_cursor_rotation"
 CONF_DISABLE_WEBSOCKETS: Final = "disable_websockets"
 CONF_EFFECTIVE_READ_TIMEOUT: Final = "effective_read_timeout"
 CONF_ENGINE_STATE_BY_RPM: Final = "engine_state_by_rpm"
+CONF_EVENT_TYPE: Final = "event_type"
 CONF_FUEL_IS_LITERS: Final = "fuel_is_liters"
 CONF_IGNORE_WS_COORDINATES: Final = "ignore_ws_coordinates"
 CONF_MILEAGE_CAN_MILES: Final = "mileage_can_miles"
