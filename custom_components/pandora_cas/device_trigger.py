@@ -27,7 +27,7 @@ from homeassistant.helpers.typing import ConfigType
 
 from custom_components.pandora_cas import event_enum_to_type
 from custom_components.pandora_cas.api import PrimaryEventID
-from custom_components.pandora_cas.const import EVENT_TYPE_EVENT, DOMAIN
+from custom_components.pandora_cas.const import EVENT_TYPE_EVENT, DOMAIN, CONF_EVENT_TYPE
 
 _LOGGER: Final = logging.getLogger(__name__)
 
@@ -104,7 +104,7 @@ async def async_attach_trigger(
             event_trigger.CONF_EVENT_TYPE: EVENT_TYPE_EVENT,
             event_trigger.CONF_EVENT_DATA: {
                 CONF_DEVICE_ID: pandora_id,
-                CONF_TYPE: config[CONF_TYPE],
+                CONF_EVENT_TYPE: config[CONF_TYPE],
             },
         }
     )
