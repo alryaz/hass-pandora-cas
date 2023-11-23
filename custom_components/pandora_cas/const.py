@@ -35,6 +35,8 @@ __all__ = (
     "ATTR_PHONE_NUMBER",
     "ATTR_ROTATION",
     "ATTR_TAG_NUMBER",
+    "ATTR_TITLE_PRIMARY",
+    "ATTR_TITLE_SECONDARY",
     "EVENT_TYPE_COMMAND",
     "EVENT_TYPE_EVENT",
     "EVENT_TYPE_POINT",
@@ -99,6 +101,8 @@ ATTR_KEY_NUMBER: Final = "key_number"
 ATTR_PHONE_NUMBER: Final = "phone_number"
 ATTR_ROTATION: Final = "rotation"
 ATTR_TAG_NUMBER: Final = "tag_number"
+ATTR_TITLE_PRIMARY: Final = "title_primary"
+ATTR_TITLE_SECONDARY: Final = "title_secondary"
 
 # Home Assistant bus event identifiers
 EVENT_TYPE_COMMAND: Final = DOMAIN + "_command"
