@@ -57,6 +57,7 @@ from homeassistant.const import (
     ATTR_LATITUDE,
     ATTR_LONGITUDE,
     CONF_DEVICES,
+    CONF_LANGUAGE,
 )
 from homeassistant.core import ServiceCall, HomeAssistant, callback
 from homeassistant.exceptions import (
@@ -392,7 +393,28 @@ WEB_TRANSLATIONS_FALLBACK_LANGUAGE: Final = "en"
 DATA_WEB_TRANSLATIONS_STORE: Final = f"{DOMAIN}_web_translations_store"
 DATA_WEB_TRANSLATIONS: Final = f"{DOMAIN}_web_translations"
 
-async def async_load_web_translations(hass: HomeAssistant, language: str = "ru", verify_ssl: bool = True) -> dict[str, str]:
+
+def get_config_entry_language(entry: ConfigEntry) -> str:
+    # @TODO: refactor for fallback
+    return str(entry.options.get(CONF_LANGUAGE) or "ru")
+
+
+def get_translation_key(hass: HomeAssistant, language: str, key: str) -> str | None:
+    try:
+        web_translations = hass.data[DATA_WEB_TRANSLATIONS]
+    except KeyError:
+        return None
+
+    try:
+        return web_translations[language][key]
+    except KeyError:
+        try:
+            return web_translations[WEB_TRANSLATIONS_FALLBACK_LANGUAGE][key]
+        except KeyError:
+            return None
+    
+
+async def async_load_web_translations(hass: HomeAssistant, language: str, verify_ssl: bool = True) -> dict[str, str]:
     if (language := language.lower()) == "last_update":
         raise ValueError("how?")
 
@@ -531,7 +553,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # @TODO: make this a completely optional background job
     try:
-        await async_load_web_translations(hass, "ru", options[CONF_VERIFY_SSL])
+        await async_load_web_translations(
+            hass,
+            get_config_entry_language(config_entry),
+            options[CONF_VERIFY_SSL],
+        )
     except BaseException as exc:
         _LOGGER.error(f"Translations download failed: {exc}", exc_info=exc)
         pass
@@ -864,13 +890,24 @@ def async_event_delegator(
         f"Firing event {EVENT_TYPE_EVENT}[{event.event_id_primary}/"
         f"{event.event_id_secondary}] for device {event.device_id}"
     )
+    language = get_config_entry_language(entry)
     hass.bus.async_fire(
         EVENT_TYPE_EVENT,
         {
             CONF_EVENT_TYPE: event_enum_to_type(event.primary_event_enum),
             ATTR_DEVICE_ID: device.device_id,
-            "event_id_primary": event.event_id_primary,
-            "event_id_secondary": event.event_id_secondary,
+            "event_id_primary": (p := event.event_id_primary),
+            "event_id_secondary": (s := event.event_id_secondary),
+            ATTR_TITLE_PRIMARY: None if p is None else get_translation_key(
+                hass,
+                language,
+                f"event-name-{p}",
+            ),
+            ATTR_TITLE_SECONDARY: None if s is None else get_translation_key(
+                hass,
+                language,
+                f"event-subname-{p}-{s}",
+            ),
             ATTR_LATITUDE: event.latitude,
             ATTR_LONGITUDE: event.longitude,
             "gsm_level": event.gsm_level,
