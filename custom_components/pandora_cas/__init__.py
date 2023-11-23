@@ -389,27 +389,31 @@ class ConfigEntryLoggerAdapter(logging.LoggerAdapter):
 
 WEB_TRANSLATIONS_FALLBACK_LANGUAGE: Final = "en"
 
+DATA_WEB_TRANSLATIONS_STORE: Final = f"{DOMAIN}_web_translations_store"
 DATA_WEB_TRANSLATIONS: Final = f"{DOMAIN}_web_translations"
 
-async def async_load_event_titles(hass: HomeAssistant, language: str = "ru", verify_ssl: bool = True) -> dict[str, str]:
+async def async_load_web_translations(hass: HomeAssistant, language: str = "ru", verify_ssl: bool = True) -> dict[str, str]:
     if (language := language.lower()) == "last_update":
         raise ValueError("how?")
 
     try:
-        store = hass.data[DATA_WEB_TRANSLATIONS]
+        # Retrieve initialized store
+        store = hass.data[DATA_WEB_TRANSLATIONS_STORE]
     except KeyError:
-        hass.data[DATA_WEB_TRANSLATIONS] = store = Store(
+        hass.data[DATA_WEB_TRANSLATIONS_STORE] = store = Store(
             hass,
             1,
             DATA_WEB_TRANSLATIONS,
         )
+    
+    try:
+        # Retrieve cached data
+        saved_data = hass.data[DATA_WEB_TRANSLATIONS]
+    except KeyError:
+        hass.data[DATA_WEB_TRANSLATIONS] = saved_data = await store.async_load()
 
     language_data = None
-    if (saved_data := await store.async_load()) is None:
-        _LOGGER.info(
-            f"Translation data store initialization required."
-        )
-    else:
+    if isinstance(saved_data, dict):
         try:
             last_update = float(saved_data["last_update"][language])
         except (KeyError, ValueError, TypeError):
@@ -435,7 +439,9 @@ async def async_load_event_titles(hass: HomeAssistant, language: str = "ru", ver
                     f"no updates required."
                 )
                 return saved_data[language]
-        
+    else:
+        _LOGGER.info("Translation data store initialization required.")
+
     _LOGGER.info(f"Will attempt to download translations for language: {language}")
 
     try:
@@ -460,7 +466,7 @@ async def async_load_event_titles(hass: HomeAssistant, language: str = "ru", ver
             f"for language {language}, falling "
             f"back to {EVENT_TITLE_FALLBACK_LANGUAGE}",
         )
-        return async_load_event_titles(
+        return await async_load_web_translations(
             hass,
             EVENT_TITLE_FALLBACK_LANGUAGE,
             verify_ssl,
@@ -469,8 +475,11 @@ async def async_load_event_titles(hass: HomeAssistant, language: str = "ru", ver
     if isinstance(language_data, dict):
         language_data.update(new_data)
     else:
+        if not isinstance(saved_data, dict):
+            saved_data = {}
         saved_data[language] = language_data = new_data
     saved_data.setdefault("last_update", {})[language] = time()
+
     await store.save_data(saved_data)
     
     _LOGGER.info(
@@ -505,7 +514,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # @TODO: make this a completely optional background job
     try:
-        await async_load_event_titles(hass, "ru", options[CONF_VERIFY_SSL])
+        await async_load_web_translations(hass, "ru", options[CONF_VERIFY_SSL])
     except BaseException as exc:
         _LOGGER.error(f"Translations download failed: {exc}", exc_info=exc)
         pass
