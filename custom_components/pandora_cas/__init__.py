@@ -40,6 +40,7 @@ from typing import (
 )
 
 import aiohttp
+from time import time
 import voluptuous as vol
 from homeassistant.config_entries import (
     ConfigEntry,
@@ -68,6 +69,7 @@ from homeassistant.helpers.device_registry import (
     async_get as async_get_device_registry,
     async_entries_for_config_entry,
 )
+from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
@@ -384,6 +386,98 @@ class ConfigEntryLoggerAdapter(logging.LoggerAdapter):
         return "[%s] %s" % (self.config_entry.entry_id[-6:], msg), kwargs
 
 
+WEB_TRANSLATIONS_FALLBACK_LANGUAGE: Final = "en"
+
+DATA_WEB_TRANSLATIONS: Final = f"{DOMAIN}_web_translations"
+
+async def async_load_event_titles(hass: HomeAssistant, language: str = "ru", verify_ssl: bool = True) -> dict[str, str]:
+    if (language := language.lower()) == "last_update":
+        raise ValueError("how?")
+
+    try:
+        store = hass.data[DATA_WEB_TRANSLATIONS]
+    except KeyError:
+        hass.data[DATA_WEB_TRANSLATIONS] = store = Store(
+            hass,
+            1,
+            DATA_WEB_TRANSLATIONS,
+        )
+
+    language_data = None
+    if (saved_data := await store.async_load()) is None:
+        _LOGGER.info(
+            f"Translation data store initialization required."
+        )
+    else:
+        try:
+            last_update = float(saved_data["last_update"][language])
+        except (KeyError, ValueError, TypeError):
+            _LOGGER.info(
+                f"Data for language {language} is missing "
+                f"valid timestamp information."
+            )
+        else:
+            if (time() - last_update) > (7 * 24 * 60 * 60):
+                _LOGGER.info(
+                    f"Last data retrieval for language {language} "
+                    f"occurred on {datetime.fromtimestamp(last_update).isoformat()}, "
+                    f"assuming data is stale."
+                )
+            elif not isinstance((language_data := saved_data.get(language)), dict):
+                _LOGGER.warning(
+                    f"Data for language {language} is missing, "
+                    f"assuming storage is corrupt."
+                )
+            else:
+                _LOGGER.info(
+                    f"Data for language {language} is recent, "
+                    f"no updates required."
+                )
+                return saved_data[language]
+        
+    _LOGGER.info(f"Will attempt to download translations for language: {language}")
+
+    try:
+        async with async_get_clientsession(hass, verify_ssl).get(
+            f"https://p-on.ru/local/web/{language}.json",
+        ) as response:
+            new_data = await response.json()
+    except (aiohttp.ClientError, JSONDecodeError):
+        if isinstance((language_data := saved_data.get(language)), dict):
+            _LOGGER.warning(
+                f"Could not download translations for language "
+                f"{language}, will fall back to stale data."
+            )
+            return language_data
+        elif language == EVENT_TITLE_FALLBACK_LANGUAGE:
+            _LOGGER.error(
+                f"Failed loading fallback language"
+            )
+            raise
+        _LOGGER.error(
+            f"Could not decode translations "
+            f"for language {language}, falling "
+            f"back to {EVENT_TITLE_FALLBACK_LANGUAGE}",
+        )
+        return async_load_event_titles(
+            hass,
+            EVENT_TITLE_FALLBACK_LANGUAGE,
+            verify_ssl,
+        )
+
+    if isinstance(language_data, dict):
+        language_data.update(new_data)
+    else:
+        saved_data[language] = language_data = new_data
+    saved_data.setdefault("last_update", {})[language] = time()
+    await store.save_data(saved_data)
+    
+    _LOGGER.info(
+        f"Data for language {language} updated successfully."
+    )
+    return language_data
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Setup configuration entry for Pandora Car Alarm System."""
     logger = ConfigEntryLoggerAdapter(_LOGGER)
@@ -408,6 +502,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Perform authentication
     await async_run_pandora_coro(account.async_authenticate())
 
+    # @TODO: make this a completely optional background job
+    try:
+        await async_load_event_titles(hass, "ru", options[CONF_VERIFY_SSL])
+    except:
+        pass
+
     # Update access token if necessary
     if access_token != account.access_token:
         hass.config_entries.async_update_entry(
@@ -417,6 +517,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 CONF_ACCESS_TOKEN: account.access_token,
             },
         )
+
+    
 
     # Fetch devices
     await async_run_pandora_coro(account.async_refresh_devices())
