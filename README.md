@@ -366,6 +366,8 @@ Assistant. Следующие данные
 | device_id            |  `int`  | Идентификатор устройства |
 | event_id_primary     |  `int`  | Первичный код события    |
 | event_id_secondary   |  `int`  | Вторичный код события    |
+| title_primary        | `str`, `None` | Заглавное наименование события |
+| title_primary        | `str`, `None` | Уточняющее наименование события |
 | event_type           |  `str`  | Код типа события         |
 | latitude             | `float` | Широта                   | 
 | longitude            | `float` | Долгота                  |
