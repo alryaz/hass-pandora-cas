@@ -26,6 +26,7 @@ import importlib
 import logging
 from datetime import timedelta
 from functools import partial
+from json import JSONDecodeError
 from typing import (
     Any,
     Mapping,
@@ -505,7 +506,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # @TODO: make this a completely optional background job
     try:
         await async_load_event_titles(hass, "ru", options[CONF_VERIFY_SSL])
-    except:
+    except BaseException as exc:
+        _LOGGER.error(f"Translations download failed: {exc}", exc_info=exc)
         pass
 
     # Update access token if necessary
@@ -517,8 +519,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 CONF_ACCESS_TOKEN: account.access_token,
             },
         )
-
-    
 
     # Fetch devices
     await async_run_pandora_coro(account.async_refresh_devices())
