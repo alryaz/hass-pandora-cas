@@ -410,10 +410,18 @@ async def async_load_web_translations(hass: HomeAssistant, language: str = "ru",
         # Retrieve cached data
         saved_data = hass.data[DATA_WEB_TRANSLATIONS]
     except KeyError:
-        hass.data[DATA_WEB_TRANSLATIONS] = saved_data = await store.async_load()
+        # Retrieve stored data
+        saved_data = await store.async_load()
+
+        # Provide fallback for corrupt or empty data
+        if not isinstance(saved_data, dict):
+            saved_data = {}
+
+        # Cache loaded data
+        hass.data[DATA_WEB_TRANSLATIONS] = saved_data
 
     language_data = None
-    if isinstance(saved_data, dict):
+    if saved_data:
         try:
             last_update = float(saved_data["last_update"][language])
         except (KeyError, ValueError, TypeError):
@@ -456,7 +464,7 @@ async def async_load_web_translations(hass: HomeAssistant, language: str = "ru",
                 f"{language}, will fall back to stale data."
             )
             return language_data
-        elif language == EVENT_TITLE_FALLBACK_LANGUAGE:
+        elif language == WEB_TRANSLATIONS_FALLBACK_LANGUAGE:
             _LOGGER.error(
                 f"Failed loading fallback language"
             )
@@ -464,17 +472,15 @@ async def async_load_web_translations(hass: HomeAssistant, language: str = "ru",
         _LOGGER.error(
             f"Could not decode translations "
             f"for language {language}, falling "
-            f"back to {EVENT_TITLE_FALLBACK_LANGUAGE}",
+            f"back to {WEB_TRANSLATIONS_FALLBACK_LANGUAGE}",
         )
         return await async_load_web_translations(
             hass,
-            EVENT_TITLE_FALLBACK_LANGUAGE,
+            WEB_TRANSLATIONS_FALLBACK_LANGUAGE,
             verify_ssl,
         )
 
     if not isinstance(language_data, dict):
-        if not isinstance(saved_data, dict):
-            saved_data = {}
         saved_data[language] = language_data = {}
 
     # Fix-ups (QoL) for data
