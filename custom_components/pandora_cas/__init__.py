@@ -472,15 +472,26 @@ async def async_load_web_translations(hass: HomeAssistant, language: str = "ru",
             verify_ssl,
         )
 
-    if isinstance(language_data, dict):
-        language_data.update(new_data)
-    else:
+    if not isinstance(language_data, dict):
         if not isinstance(saved_data, dict):
             saved_data = {}
-        saved_data[language] = language_data = new_data
+        saved_data[language] = language_data = {}
+
+    # Fix-ups (QoL) for data
+    for key, value in language_data.items():
+        if value is None or not (value := str(value).strip()):
+            continue
+        if key.startswith('event-name-'):
+            # Uppercase only first character
+            value = value[0].upper() + value[1:]
+        elif key.startswith('event-subname-'):
+            # Lowercase only first character
+            value = value[0].lower() + value[1:]
+        language_data[key] = value
+
     saved_data.setdefault("last_update", {})[language] = time()
 
-    await store.save_data(saved_data)
+    await store.async_save(saved_data)
     
     _LOGGER.info(
         f"Data for language {language} updated successfully."
