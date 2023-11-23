@@ -555,7 +555,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     try:
         await async_load_web_translations(
             hass,
-            get_config_entry_language(config_entry),
+            get_config_entry_language(entry),
             options[CONF_VERIFY_SSL],
         )
     except BaseException as exc:
