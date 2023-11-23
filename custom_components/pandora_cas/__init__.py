@@ -491,6 +491,9 @@ async def async_load_web_translations(hass: HomeAssistant, language: str, verify
                 f"Failed loading fallback language"
             )
             raise
+        new_data = None
+
+    if not isinstance(new_data, dict):
         _LOGGER.error(
             f"Could not decode translations "
             f"for language {language}, falling "
@@ -506,7 +509,7 @@ async def async_load_web_translations(hass: HomeAssistant, language: str, verify
         saved_data[language] = language_data = {}
 
     # Fix-ups (QoL) for data
-    for key, value in language_data.items():
+    for key, value in new_data.items():
         if value is None or not (value := str(value).strip()):
             continue
         if key.startswith('event-name-'):
