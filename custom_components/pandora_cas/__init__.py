@@ -162,31 +162,24 @@ DEVICE_OPTIONS_SCHEMA: Final = vol.Schema(
 )
 """Schema for device options coming from saved entry"""
 
-ENTRY_OPTIONS_SCHEMA: Final = vol.All(
-    lambda x: {} if x is None else dict(x),
-    INTEGRATION_OPTIONS_SCHEMA.extend(
-        {
-            vol.Optional(CONF_DEVICES, default=dict): {
-                cv.string: DEVICE_OPTIONS_SCHEMA
-            }
-        },
-        extra=vol.REMOVE_EXTRA,
-    ),
+ENTRY_OPTIONS_SCHEMA: Final = INTEGRATION_OPTIONS_SCHEMA.extend(
+    {
+        vol.Optional(CONF_DEVICES, default=dict): {
+            cv.string: DEVICE_OPTIONS_SCHEMA
+        }
+    },
+    extra=vol.REMOVE_EXTRA,
 )
 """Schema for configuration entry options coming from saved entry"""
 
-ENTRY_DATA_SCHEMA: Final = vol.All(
-    lambda x: {} if x is None else dict(x),
-    vol.Schema(
-        {
-            vol.Required(CONF_USERNAME): cv.string,
-            vol.Optional(CONF_PASSWORD): cv.string,
-            vol.Optional(CONF_ACCESS_TOKEN): cv.string,
-        },
-        extra=vol.REMOVE_EXTRA,
-    ),
+ENTRY_DATA_SCHEMA: Final = vol.Schema(
+    {
+        vol.Required(CONF_USERNAME): cv.string,
+        vol.Optional(CONF_PASSWORD): cv.string,
+        vol.Optional(CONF_ACCESS_TOKEN): cv.string,
+    },
+    extra=vol.REMOVE_EXTRA,
 )
-
 """Schema for configuration entry data coming from saved entry"""
 
 CONFIG_ENTRY_SCHEMA: Final = vol.All(
@@ -537,8 +530,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     logger.info(f"Setting up config entry")
 
     # Prepare necessary data
-    data = ENTRY_DATA_SCHEMA(entry.data)
-    options = ENTRY_OPTIONS_SCHEMA(entry.options)
+    data = ENTRY_DATA_SCHEMA(dict(entry.data))
+    options = ENTRY_OPTIONS_SCHEMA({} if entry.options is None else dict(entry.options))
     username = entry.data[CONF_USERNAME]
     access_token = data.get(CONF_ACCESS_TOKEN)
 
