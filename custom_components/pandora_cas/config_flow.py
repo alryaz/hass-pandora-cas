@@ -397,13 +397,19 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
 
         schema = STEP_INTEGRATION_OPTIONS_SCHEMA
         if user_input.get(CONF_LANGUAGE) in DEFAULT_LANGUAGE_OPTIONS:
-            schema = schema.extend({
-                vol.Optional(CONF_LANGUAGE, default=DEFAULT_LANGUAGE): vol.In({
-                    "ru": "Русский (ru)",
-                    "en": "English (en)",
-                    "it": "Italiano (it)",
-                })
-            })
+            schema = schema.extend(
+                {
+                    vol.Optional(
+                        CONF_LANGUAGE, default=DEFAULT_LANGUAGE
+                    ): vol.In(
+                        {
+                            "ru": "Русский (ru)",
+                            "en": "English (en)",
+                            "it": "Italiano (it)",
+                        }
+                    )
+                }
+            )
 
         return self.async_show_form(
             step_id=STEP_INTEGRATION_OPTIONS,

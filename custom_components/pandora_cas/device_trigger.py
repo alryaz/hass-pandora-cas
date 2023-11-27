@@ -27,7 +27,11 @@ from homeassistant.helpers.typing import ConfigType
 
 from custom_components.pandora_cas import event_enum_to_type
 from custom_components.pandora_cas.api import PrimaryEventID
-from custom_components.pandora_cas.const import EVENT_TYPE_EVENT, DOMAIN, CONF_EVENT_TYPE
+from custom_components.pandora_cas.const import (
+    EVENT_TYPE_EVENT,
+    DOMAIN,
+    CONF_EVENT_TYPE,
+)
 
 _LOGGER: Final = logging.getLogger(__name__)
 

@@ -389,7 +389,9 @@ def get_config_entry_language(entry: ConfigEntry) -> str:
     return entry.options.get(CONF_LANGUAGE) or DEFAULT_LANGUAGE
 
 
-def get_web_translations_value(hass: HomeAssistant, language: str, key: str) -> str | None:
+def get_web_translations_value(
+    hass: HomeAssistant, language: str, key: str
+) -> str | None:
     """Retrieve value from web translations language dictionary."""
     try:
         web_translations = hass.data[DATA_WEB_TRANSLATIONS]
@@ -404,7 +406,9 @@ def get_web_translations_value(hass: HomeAssistant, language: str, key: str) -> 
         raise
 
 
-async def async_load_web_translations(hass: HomeAssistant, language: str, verify_ssl: bool = True) -> dict[str, str]:
+async def async_load_web_translations(
+    hass: HomeAssistant, language: str, verify_ssl: bool = True
+) -> dict[str, str]:
     """Load web translations."""
     if (language := language.lower()) == "last_update":
         raise ValueError("how?")
@@ -418,7 +422,7 @@ async def async_load_web_translations(hass: HomeAssistant, language: str, verify
             1,
             DATA_WEB_TRANSLATIONS,
         )
-    
+
     try:
         # Retrieve cached data
         saved_data = hass.data[DATA_WEB_TRANSLATIONS]
@@ -449,7 +453,9 @@ async def async_load_web_translations(hass: HomeAssistant, language: str, verify
                     f"occurred on {datetime.fromtimestamp(last_update).isoformat()}, "
                     f"assuming data is stale."
                 )
-            elif not isinstance((language_data := saved_data.get(language)), dict):
+            elif not isinstance(
+                (language_data := saved_data.get(language)), dict
+            ):
                 _LOGGER.warning(
                     f"Data for language {language} is missing, "
                     f"assuming storage is corrupt."
@@ -463,7 +469,9 @@ async def async_load_web_translations(hass: HomeAssistant, language: str, verify
     else:
         _LOGGER.info("Translation data store initialization required.")
 
-    _LOGGER.info(f"Will attempt to download translations for language: {language}")
+    _LOGGER.info(
+        f"Will attempt to download translations for language: {language}"
+    )
 
     try:
         async with async_get_clientsession(hass, verify_ssl).get(
@@ -478,9 +486,7 @@ async def async_load_web_translations(hass: HomeAssistant, language: str, verify
             )
             return language_data
         elif language == DEFAULT_LANGUAGE:
-            _LOGGER.error(
-                f"Failed loading fallback language"
-            )
+            _LOGGER.error(f"Failed loading fallback language")
             raise
         new_data = None
 
@@ -504,10 +510,10 @@ async def async_load_web_translations(hass: HomeAssistant, language: str, verify
     for key, value in new_data.items():
         if value is None or not (value := str(value).strip()):
             continue
-        if key.startswith('event-name-'):
+        if key.startswith("event-name-"):
             # Uppercase only first character
             value = value[0].upper() + value[1:]
-        elif key.startswith('event-subname-'):
+        elif key.startswith("event-subname-"):
             # Lowercase only first character
             value = value[0].lower() + value[1:]
         language_data[key] = value
@@ -515,10 +521,8 @@ async def async_load_web_translations(hass: HomeAssistant, language: str, verify
     saved_data.setdefault("last_update", {})[language] = time()
 
     await store.async_save(saved_data)
-    
-    _LOGGER.info(
-        f"Data for language {language} updated successfully."
-    )
+
+    _LOGGER.info(f"Data for language {language} updated successfully.")
     return language_data
 
 
@@ -530,7 +534,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Prepare necessary data
     data = ENTRY_DATA_SCHEMA(dict(entry.data))
-    options = ENTRY_OPTIONS_SCHEMA({} if entry.options is None else dict(entry.options))
+    options = ENTRY_OPTIONS_SCHEMA(
+        {} if entry.options is None else dict(entry.options)
+    )
     username = entry.data[CONF_USERNAME]
     access_token = data.get(CONF_ACCESS_TOKEN)
 
@@ -904,12 +910,16 @@ def async_event_delegator(
             ATTR_DEVICE_ID: device.device_id,
             "event_id_primary": (p := event.event_id_primary),
             "event_id_secondary": (s := event.event_id_secondary),
-            ATTR_TITLE_PRIMARY: None if p is None else get_web_translations_value(
+            ATTR_TITLE_PRIMARY: None
+            if p is None
+            else get_web_translations_value(
                 hass,
                 language,
                 f"event-name-{p}",
             ),
-            ATTR_TITLE_SECONDARY: None if s is None else get_web_translations_value(
+            ATTR_TITLE_SECONDARY: None
+            if s is None
+            else get_web_translations_value(
                 hass,
                 language,
                 f"event-subname-{p}-{s}",
