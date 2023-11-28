@@ -100,9 +100,6 @@ from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
 _LOGGER: Final = logging.getLogger(__name__)
 
 
-WEB_TRANSLATIONS_FALLBACK_LANGUAGE: Final = "en"
-
-
 BASE_INTEGRATION_OPTIONS_SCHEMA: Final = vol.Schema(
     {
         vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
@@ -113,9 +110,7 @@ BASE_INTEGRATION_OPTIONS_SCHEMA: Final = vol.Schema(
         vol.Optional(
             CONF_POLLING_INTERVAL, default=DEFAULT_POLLING_INTERVAL
         ): cv.positive_float,
-        vol.Optional(
-            CONF_LANGUAGE, default=WEB_TRANSLATIONS_FALLBACK_LANGUAGE
-        ): cv.string,
+        vol.Optional(CONF_LANGUAGE, default=DEFAULT_LANGUAGE): cv.string,
     },
     extra=vol.REMOVE_EXTRA,
 )
@@ -387,15 +382,11 @@ class ConfigEntryLoggerAdapter(logging.LoggerAdapter):
         return "[%s] %s" % (self.config_entry.entry_id[-6:], msg), kwargs
 
 
-DATA_WEB_TRANSLATIONS_STORE: Final = f"{DOMAIN}_web_translations_store"
-DATA_WEB_TRANSLATIONS: Final = f"{DOMAIN}_web_translations"
-
-
 def get_config_entry_language(entry: ConfigEntry) -> str:
     """Get web translations language from configuration entry options."""
     if entry.options is None:
-        return WEB_TRANSLATIONS_FALLBACK_LANGUAGE
-    return entry.options.get(CONF_LANGUAGE) or WEB_TRANSLATIONS_FALLBACK_LANGUAGE
+        return DEFAULT_LANGUAGE
+    return entry.options.get(CONF_LANGUAGE) or DEFAULT_LANGUAGE
 
 
 def get_web_translations_value(hass: HomeAssistant, language: str, key: str) -> str | None:
@@ -408,10 +399,10 @@ def get_web_translations_value(hass: HomeAssistant, language: str, key: str) -> 
     try:
         return web_translations[language][key]
     except KeyError:
-        if language != WEB_TRANSLATIONS_FALLBACK_LANGUAGE:
-            return get_web_translations_value(hass, WEB_TRANSLATIONS_FALLBACK_LANGUAGE, key)
+        if language != DEFAULT_LANGUAGE:
+            return get_web_translations_value(hass, DEFAULT_LANGUAGE, key)
         raise
-    
+
 
 async def async_load_web_translations(hass: HomeAssistant, language: str, verify_ssl: bool = True) -> dict[str, str]:
     """Load web translations."""
@@ -486,7 +477,7 @@ async def async_load_web_translations(hass: HomeAssistant, language: str, verify
                 f"{language}, will fall back to stale data."
             )
             return language_data
-        elif language == WEB_TRANSLATIONS_FALLBACK_LANGUAGE:
+        elif language == DEFAULT_LANGUAGE:
             _LOGGER.error(
                 f"Failed loading fallback language"
             )
@@ -498,11 +489,11 @@ async def async_load_web_translations(hass: HomeAssistant, language: str, verify
         _LOGGER.error(
             f"Could not decode translations "
             f"for language {language}, falling "
-            f"back to {WEB_TRANSLATIONS_FALLBACK_LANGUAGE}",
+            f"back to {DEFAULT_LANGUAGE}",
         )
         return await async_load_web_translations(
             hass,
-            WEB_TRANSLATIONS_FALLBACK_LANGUAGE,
+            DEFAULT_LANGUAGE,
             verify_ssl,
         )
 
@@ -823,7 +814,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if entry.version < 13:
         new_options.setdefault(
             CONF_LANGUAGE,
-            WEB_TRANSLATIONS_FALLBACK_LANGUAGE,
+            DEFAULT_LANGUAGE,
         )
 
         entry.version = 13
