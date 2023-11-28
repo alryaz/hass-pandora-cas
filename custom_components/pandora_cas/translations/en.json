@@ -13,7 +13,8 @@
         "data": {
           "username": "Username",
           "password": "Password",
-          "verify_ssl": "Verify SSL certificates"
+          "verify_ssl": "Verify SSL certificates",
+          "language": "Data translation language"
         },
         "title": "Authentication",
         "description": "Enter your credentials for your Pandora Online account."
@@ -688,7 +689,8 @@
           "force_lock_icons": "Use lock icons",
           "polling_interval": "HTTP polling interval",
           "verify_ssl": "Verify SSL certificates",
-          "method": "Method of updating devices' data"
+          "method": "Method of updating devices' data",
+          "language": "Data translation language"
         }
       },
       "device_options": {
