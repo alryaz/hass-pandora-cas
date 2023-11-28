@@ -47,6 +47,7 @@ Connect_, и реализует часть его функционала. Для
 - PanDECT X-1700 BT
 - PanDECT X-1900 BT
 - Pandora DX-4G
+- Pandora DX-4GL
 - Pandora DX-90BT + NAV-10
 - Pandora DX-9X LoRa + NAV-10
 - Pandora DXL-4970
