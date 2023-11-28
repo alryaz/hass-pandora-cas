@@ -388,11 +388,14 @@ DATA_WEB_TRANSLATIONS: Final = f"{DOMAIN}_web_translations"
 
 
 def get_config_entry_language(entry: ConfigEntry) -> str:
-    # @TODO: refactor for fallback
-    return str(entry.options.get(CONF_LANGUAGE) or "ru")
+    """Get web translations language from configuration entry options."""
+    if entry.options is None:
+        return WEB_TRANSLATIONS_FALLBACK_LANGUAGE
+    return entry.options.get(CONF_LANGUAGE) or WEB_TRANSLATIONS_FALLBACK_LANGUAGE
 
 
-def get_translation_key(hass: HomeAssistant, language: str, key: str) -> str | None:
+def get_web_translations_value(hass: HomeAssistant, language: str, key: str) -> str | None:
+    """Retrieve value from web translations language dictionary."""
     try:
         web_translations = hass.data[DATA_WEB_TRANSLATIONS]
     except KeyError:
@@ -401,13 +404,13 @@ def get_translation_key(hass: HomeAssistant, language: str, key: str) -> str | N
     try:
         return web_translations[language][key]
     except KeyError:
-        try:
-            return web_translations[WEB_TRANSLATIONS_FALLBACK_LANGUAGE][key]
-        except KeyError:
-            return None
+        if language != WEB_TRANSLATIONS_FALLBACK_LANGUAGE:
+            return get_web_translations_value(hass, WEB_TRANSLATIONS_FALLBACK_LANGUAGE, key)
+        raise
     
 
 async def async_load_web_translations(hass: HomeAssistant, language: str, verify_ssl: bool = True) -> dict[str, str]:
+    """Load web translations."""
     if (language := language.lower()) == "last_update":
         raise ValueError("how?")
 
@@ -486,6 +489,7 @@ async def async_load_web_translations(hass: HomeAssistant, language: str, verify
             raise
         new_data = None
 
+    # Use fallback web translations because decoded data is bad
     if not isinstance(new_data, dict):
         _LOGGER.error(
             f"Could not decode translations "
@@ -547,7 +551,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Perform authentication
     await async_run_pandora_coro(account.async_authenticate())
 
-    # @TODO: make this a completely optional background job
+    # Load web translations
+    # @TODO: make this a completely optional background job that runs until it is successful
     try:
         await async_load_web_translations(
             hass,
@@ -579,6 +584,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             f"Setting up polling to refresh at {update_interval} interval"
         )
 
+    # Setup update coordinator
     hass.data.setdefault(DOMAIN, {})[
         entry.entry_id
     ] = coordinator = PandoraCASUpdateCoordinator(
@@ -894,12 +900,12 @@ def async_event_delegator(
             ATTR_DEVICE_ID: device.device_id,
             "event_id_primary": (p := event.event_id_primary),
             "event_id_secondary": (s := event.event_id_secondary),
-            ATTR_TITLE_PRIMARY: None if p is None else get_translation_key(
+            ATTR_TITLE_PRIMARY: None if p is None else get_web_translations_value(
                 hass,
                 language,
                 f"event-name-{p}",
             ),
-            ATTR_TITLE_SECONDARY: None if s is None else get_translation_key(
+            ATTR_TITLE_SECONDARY: None if s is None else get_web_translations_value(
                 hass,
                 language,
                 f"event-subname-{p}-{s}",
