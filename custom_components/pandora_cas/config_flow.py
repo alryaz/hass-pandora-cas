@@ -22,6 +22,7 @@ from homeassistant.const import (
     CONF_ACCESS_TOKEN,
     CONF_DEVICES,
     CONF_METHOD,
+    CONF_LANGUAGE,
 )
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import (
@@ -397,7 +398,7 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
         schema = STEP_INTEGRATION_OPTIONS
         if user_input.get(CONF_LANGUAGE) in DEFAULT_LANGUAGE_OPTIONS:
             schema = schema.extend({
-                vol.Optional(CONF_LANGUAGE, default="en"): vol.In({
+                vol.Optional(CONF_LANGUAGE, default=DEFAULT_LANGUAGE): vol.In({
                     "ru": "Русский (ru)",
                     "en": "English (en)",
                     "it": "Italiano (it)",
