@@ -104,7 +104,7 @@ STEP_USER_SCHEMA: Final = vol.Schema(
 class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Pandora Car Alarm System config entries."""
 
-    VERSION: Final[int] = 12
+    VERSION: Final[int] = 13
 
     def __init__(self) -> None:
         """Init the config flow."""
@@ -232,6 +232,8 @@ class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 STEP_SAVE: Final = "save"
+
+DEFAULT_LANGUAGE_OPTIONS: Final = ("ru", "en", "it")
 
 STEP_INTEGRATION_OPTIONS: Final = "integration_options"
 STEP_INTEGRATION_OPTIONS_SCHEMA: Final = (
@@ -392,10 +394,20 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
                 self.options.update(user_input)
                 return await self.async_step_init()
 
+        schema = STEP_INTEGRATION_OPTIONS
+        if user_input.get(CONF_LANGUAGE) in DEFAULT_LANGUAGE_OPTIONS:
+            schema = schema.extend({
+                vol.Optional(CONF_LANGUAGE, default="en"): vol.In({
+                    "ru": "Русский (ru)",
+                    "en": "English (en)",
+                    "it": "Italiano (it)",
+                })
+            })
+
         return self.async_show_form(
-            step_id=STEP_INTEGRATION_OPTIONS,
+            step_id=schema,
             data_schema=self.add_suggested_values_to_schema(
-                STEP_INTEGRATION_OPTIONS_SCHEMA, user_input
+                schema, user_input
             ),
             errors=errors,
         )
