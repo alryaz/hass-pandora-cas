@@ -395,7 +395,7 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
                 self.options.update(user_input)
                 return await self.async_step_init()
 
-        schema = STEP_INTEGRATION_OPTIONS
+        schema = STEP_INTEGRATION_OPTIONS_SCHEMA
         if user_input.get(CONF_LANGUAGE) in DEFAULT_LANGUAGE_OPTIONS:
             schema = schema.extend({
                 vol.Optional(CONF_LANGUAGE, default=DEFAULT_LANGUAGE): vol.In({
@@ -406,7 +406,7 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
             })
 
         return self.async_show_form(
-            step_id=schema,
+            step_id=STEP_INTEGRATION_OPTIONS,
             data_schema=self.add_suggested_values_to_schema(
                 schema, user_input
             ),
