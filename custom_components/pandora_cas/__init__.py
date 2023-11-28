@@ -100,6 +100,9 @@ from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
 _LOGGER: Final = logging.getLogger(__name__)
 
 
+WEB_TRANSLATIONS_FALLBACK_LANGUAGE: Final = "en"
+
+
 BASE_INTEGRATION_OPTIONS_SCHEMA: Final = vol.Schema(
     {
         vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
@@ -110,6 +113,9 @@ BASE_INTEGRATION_OPTIONS_SCHEMA: Final = vol.Schema(
         vol.Optional(
             CONF_POLLING_INTERVAL, default=DEFAULT_POLLING_INTERVAL
         ): cv.positive_float,
+        vol.Optional(
+            CONF_LANGUAGE, default=WEB_TRANSLATIONS_FALLBACK_LANGUAGE
+        ): cv.string,
     },
     extra=vol.REMOVE_EXTRA,
 )
@@ -380,8 +386,6 @@ class ConfigEntryLoggerAdapter(logging.LoggerAdapter):
     ) -> tuple[Any, MutableMapping[str, Any]]:
         return "[%s] %s" % (self.config_entry.entry_id[-6:], msg), kwargs
 
-
-WEB_TRANSLATIONS_FALLBACK_LANGUAGE: Final = "en"
 
 DATA_WEB_TRANSLATIONS_STORE: Final = f"{DOMAIN}_web_translations_store"
 DATA_WEB_TRANSLATIONS: Final = f"{DOMAIN}_web_translations"
@@ -795,12 +799,13 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _add_new_devices_option(
             CONF_COORDINATES_DEBOUNCE, DEFAULT_COORDINATES_SMOOTHING
         )
+        entry.version = 10
 
     if entry.version < 11:
-        new_options[
-            CONF_EFFECTIVE_READ_TIMEOUT
-        ] = DEFAULT_EFFECTIVE_READ_TIMEOUT
-
+        new_options.setdefault(
+            CONF_EFFECTIVE_READ_TIMEOUT,
+            DEFAULT_EFFECTIVE_READ_TIMEOUT,
+        )
         entry.version = 11
 
     if entry.version < 12:
@@ -814,6 +819,14 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             )
 
         entry.version = 12
+
+    if entry.version < 13:
+        new_options.setdefault(
+            CONF_LANGUAGE,
+            WEB_TRANSLATIONS_FALLBACK_LANGUAGE,
+        )
+
+        entry.version = 13
 
     hass.config_entries.async_update_entry(entry, **args)
 
