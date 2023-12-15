@@ -21,6 +21,8 @@
 > 🥇 **Вдохновитель, оригинальный разработчик**  
 > [![Репозиторий GitHub](https://img.shields.io/badge/GitHub-turbulator%2Fpandora--cas-blue?style=for-the-badge)](https://github.com/turbulator/pandora-cas)
 
+[![My Home Assistant](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?repository=hass-pandora-cas&owner=alryaz&category=Integration)
+
 Автомобиль тоже может быть частью умного дома. С помощью этого компонента вы
 сможете отслеживать состояние, управлять и автоматизировать свой автомобиль,
 если он оборудован охранной системой Pandora. После настройки ваши устройства
