@@ -1,11 +1,12 @@
 """Button platform for Pandora Car Alarm System."""
+
 __all__ = ("ENTITY_TYPES", "async_setup_entry")
 
 import asyncio
 import logging
 from dataclasses import dataclass
 from functools import partial
-from typing import Optional, Callable, Final
+from typing import Callable, Final
 
 from homeassistant.components.button import (
     ButtonEntity,
@@ -36,11 +37,12 @@ _LOGGER: Final = logging.getLogger(__name__)
 class PandoraCASButtonEntityDescription(
     PandoraCASEntityDescription, ButtonEntityDescription
 ):
-    command: Optional[CommandOptions] = None
-    icon_pressing: Optional[str] = "mdi:progress-clock"
+    command: CommandOptions | None = None
+    icon_pressing: str | None = "mdi:progress-clock"
     allow_simultaneous_presses: bool = True
 
 
+# noinspection PyArgumentList
 ENTITY_TYPES = [
     PandoraCASButtonEntityDescription(
         key="erase_errors",
@@ -117,8 +119,8 @@ class PandoraCASButton(PandoraCASEntity, ButtonEntity):
         super().__init__(*args, **kwargs)
 
         self._is_pressing: bool = False
-        self._command_waiter: Optional[Callable[[], ...]] = None
-        self._command_press_listener: Optional[Callable[[], ...]] = None
+        self._command_waiter: Callable[[], ...] | None = None
+        self._command_press_listener: Callable[[], ...] | None = None
 
     @property
     def icon(self) -> str | None:

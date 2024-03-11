@@ -1,4 +1,5 @@
 """API interface for Pandora Car Alarm System."""
+
 __all__ = [
     # Basic entities
     "PandoraOnlineAccount",
@@ -44,7 +45,6 @@ from typing import (
     Union,
     SupportsFloat,
     SupportsInt,
-    Optional,
     MutableMapping,
 )
 
@@ -1378,6 +1378,7 @@ class PandoraOnlineAccount:
         # noinspection PyTypeChecker
         return state, state_args
 
+    # noinspection PyMethodMayBeStatic
     def _process_http_event(
         self, device: "PandoraOnlineDevice", data: Mapping[str, Any]
     ) -> TrackingEvent:
@@ -1829,36 +1830,46 @@ class PandoraOnlineAccount:
     async def async_listen_for_updates(
         self,
         *,
-        state_callback: Callable[
-            ["PandoraOnlineDevice", CurrentState, Mapping[str, Any]],
-            Awaitable[None] | None,
-        ]
-        | None = None,
-        command_callback: Callable[
-            ["PandoraOnlineDevice", int, int, Any | None],
-            Awaitable[None] | None,
-        ]
-        | None = None,
-        event_callback: Callable[
-            ["PandoraOnlineDevice", TrackingEvent],
-            Awaitable[None] | None,
-        ]
-        | None = None,
-        point_callback: Callable[
-            [
-                "PandoraOnlineDevice",
-                TrackingPoint,
-                CurrentState | None,
-                Mapping[str, Any] | None,
-            ],
-            Awaitable[None] | None,
-        ]
-        | None = None,
-        update_settings_callback: Callable[
-            ["PandoraOnlineDevice", Mapping[str, Any]],
-            Awaitable[None] | None,
-        ]
-        | None = None,
+        state_callback: (
+            Callable[
+                ["PandoraOnlineDevice", CurrentState, Mapping[str, Any]],
+                Awaitable[None] | None,
+            ]
+            | None
+        ) = None,
+        command_callback: (
+            Callable[
+                ["PandoraOnlineDevice", int, int, Any | None],
+                Awaitable[None] | None,
+            ]
+            | None
+        ) = None,
+        event_callback: (
+            Callable[
+                ["PandoraOnlineDevice", TrackingEvent],
+                Awaitable[None] | None,
+            ]
+            | None
+        ) = None,
+        point_callback: (
+            Callable[
+                [
+                    "PandoraOnlineDevice",
+                    TrackingPoint,
+                    CurrentState | None,
+                    Mapping[str, Any] | None,
+                ],
+                Awaitable[None] | None,
+            ]
+            | None
+        ) = None,
+        update_settings_callback: (
+            Callable[
+                ["PandoraOnlineDevice", Mapping[str, Any]],
+                Awaitable[None] | None,
+            ]
+            | None
+        ) = None,
         reconnect_on_device_online: bool = True,
         auto_restart: bool = False,
         auto_reauth: bool = True,
@@ -2130,7 +2141,7 @@ class PandoraOnlineDevice:
     def last_event(self, value: TrackingEvent | None) -> None:
         self._last_event = value
 
-    async def async_fetch_last_event(self) -> Optional[TrackingEvent]:
+    async def async_fetch_last_event(self) -> TrackingEvent | None:
         try:
             return next(iter(await self.async_fetch_events(0, None, 1)))
         except StopIteration:

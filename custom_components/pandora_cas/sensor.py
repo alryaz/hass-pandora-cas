@@ -1,10 +1,11 @@
 """Sensor platform for Pandora Car Alarm System."""
+
 __all__ = ("ENTITY_TYPES", "async_setup_entry")
 
 import logging
 from dataclasses import dataclass
 from functools import partial
-from typing import Any, Callable, Optional, Mapping, Hashable
+from typing import Any, Callable, Mapping, Hashable
 
 from homeassistant.components.sensor import (
     ENTITY_ID_FORMAT,
@@ -48,9 +49,10 @@ _LOGGER = logging.getLogger(__name__)
 class PandoraCASSensorEntityDescription(
     PandoraCASEntityDescription, SensorEntityDescription
 ):
-    icon_states: Optional[Mapping[Hashable, str]] = None
+    icon_states: Mapping[Hashable, str] | None = None
 
 
+# noinspection PyArgumentList
 ENTITY_TYPES = [
     PandoraCASSensorEntityDescription(
         key="mileage",
@@ -372,7 +374,7 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
     def __init__(self, *args, extra_identifier: Any = None, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-        self._points_listener: Optional[Callable] = None
+        self._points_listener: Callable[[], None] | None = None
         self._extra_identifier = extra_identifier
         self._last_timestamp = None
 
@@ -481,7 +483,7 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
 
         await super().async_will_remove_from_hass()
 
-    def get_native_value(self) -> Optional[Any]:
+    def get_native_value(self) -> Any | None:
         native_value = super().get_native_value()
         if self.entity_description.key == "tachometer":
             if native_value:

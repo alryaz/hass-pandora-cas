@@ -1,9 +1,10 @@
 """Device tracker for Pandora Car Alarm System component"""
+
 __all__ = ("ENTITY_TYPES", "async_setup_entry")
 
 import base64
 import logging
-from typing import Mapping, Any, Optional
+from typing import Mapping, Any
 
 from haversine import haversine, Unit
 from homeassistant.components.device_tracker import (
@@ -50,6 +51,7 @@ async def async_setup_entry(
     return True
 
 
+# noinspection PyArgumentList
 ENTITY_TYPES = [
     PandoraCASEntityDescription(
         key="pandora",
@@ -151,7 +153,7 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
         return self._last_longitude
 
     @property
-    def final_car_type(self) -> Optional[str]:
+    def final_car_type(self) -> str | None:
         if (
             cursor_type := self._device_config[CONF_CUSTOM_CURSOR_TYPE]
         ) == DEFAULT_CURSOR_TYPE:
@@ -161,7 +163,7 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
         return None
 
     @property
-    def entity_picture(self) -> Optional[str]:
+    def entity_picture(self) -> str | None:
         if (
             cursor := self._device_config[CONF_CUSTOM_CURSOR_TYPE]
         ) == DISABLED_CURSOR_TYPE:

@@ -1,8 +1,9 @@
 """Device triggers for Pandora Car Alarm system component."""
+
 __all__ = ("TRIGGER_SCHEMA", "async_get_triggers", "async_attach_trigger")
 
 import logging
-from typing import Optional, Final
+from typing import Final
 
 import voluptuous as vol
 from homeassistant.components.device_automation import (
@@ -53,7 +54,7 @@ DEVICE: Final = "device"
 
 def async_get_pandora_id_by_device_id(
     hass: HomeAssistant, device_id: str
-) -> Optional[int]:
+) -> int | None:
     if device := async_get_device_registry(hass).async_get(device_id):
         for identifier in device.identifiers:
             if len(identifier) != 2 or identifier[0] != DOMAIN:

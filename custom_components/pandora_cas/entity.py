@@ -6,7 +6,6 @@ from datetime import datetime
 from enum import Flag
 from typing import (
     Type,
-    Optional,
     Callable,
     ClassVar,
     Collection,
@@ -14,7 +13,6 @@ from typing import (
     Union,
     Mapping,
     final,
-    List,
     Awaitable,
     TYPE_CHECKING,
     Final,
@@ -35,7 +33,6 @@ from homeassistant.helpers.update_coordinator import (
 )
 from homeassistant.util import slugify
 
-
 from custom_components.pandora_cas.api import (
     PandoraOnlineDevice,
     Features,
@@ -46,6 +43,7 @@ from custom_components.pandora_cas.const import (
     DOMAIN,
     ATTR_COMMAND_ID,
     CONF_OFFLINE_AS_UNAVAILABLE,
+    DEFAULT_WAITER_TIMEOUT,
 )
 
 if TYPE_CHECKING:
@@ -55,7 +53,7 @@ _LOGGER: Final = logging.getLogger(__name__)
 
 
 def parse_description_command_id(
-    value: Any, device_type: Optional[str] = None
+    value: Any, device_type: str | None = None
 ) -> int:
     """Retrieve command from definition."""
     if value is None:
@@ -100,14 +98,17 @@ async def async_platform_setup_entry(
         # Apply filters
         for entity_description in entity_class.ENTITY_TYPES:
             if (
-                (entity_description.entity_registry_enabled_default is True)
+                entity_description.entity_registry_enabled_default is True
                 and (features := entity_description.features) is not None
-                and (device.features is None or not features & device.features)
             ):
-                entity_description = dataclasses.replace(
-                    entity_description,
-                    entity_registry_enabled_default=False,
-                )
+                if (
+                    device_features := device.features
+                ) is None or not features & device_features:
+                    # noinspection PyArgumentList
+                    entity_description = dataclasses.replace(
+                        entity_description,
+                        entity_registry_enabled_default=False,
+                    )
 
             new_entities.append(
                 entity_class(coordinator, device, entity_description)
@@ -125,12 +126,12 @@ async def async_platform_setup_entry(
 
 @dataclass
 class PandoraCASEntityDescription(EntityDescription):
-    attribute: Optional[str] = None
-    attribute_source: Optional[str] = "state"
+    attribute: str | None = None
+    attribute_source: str | None = "state"
     online_sensitive: bool = True
-    features: Optional[Features] = None
+    features: Features | None = None
     assumed_state: bool = False
-    compatible_types: Collection[Union[str, None]] = (
+    compatible_types: Collection[str | None] = (
         PandoraDeviceTypes.ALARM,
         None,
     )
@@ -142,8 +143,8 @@ class PandoraCASEntityDescription(EntityDescription):
             self.translation_key = self.key
 
 
-CommandType = Union[CommandID, int, Callable[[PandoraOnlineDevice], Awaitable]]
-CommandOptions = Union[CommandType, Mapping[str, CommandType]]
+CommandType = CommandID | int | Callable[[PandoraOnlineDevice], Awaitable]
+CommandOptions = CommandType | Mapping[str, CommandType]
 
 
 class BasePandoraCASEntity(Entity):
@@ -175,9 +176,9 @@ class BasePandoraCASEntity(Entity):
 class PandoraCASEntity(
     BasePandoraCASEntity, CoordinatorEntity["PandoraCASUpdateCoordinator"]
 ):
-    ENTITY_TYPES: ClassVar[
-        Collection[PandoraCASEntityDescription]
-    ] = NotImplemented
+    ENTITY_TYPES: ClassVar[Collection[PandoraCASEntityDescription]] = (
+        NotImplemented
+    )
 
     entity_description: PandoraCASEntityDescription
     _attr_native_value: Any
@@ -212,8 +213,8 @@ class PandoraCASEntity(
 
         # Command execution management
         self._last_command_failed = False
-        self._command_waiter: Optional[Callable[[], None]] = None
-        self._command_listeners: Optional[List[Callable[[], None]]] = None
+        self._command_waiter: Callable[[], None] | None = None
+        self._command_listeners: list[Callable[[], None]] | None = None
 
         # First attributes update
         self._attr_native_value = None
@@ -237,7 +238,7 @@ class PandoraCASEntity(
             or not self._device_config[CONF_OFFLINE_AS_UNAVAILABLE]
         )
 
-    def get_native_value(self) -> Optional[Any]:
+    def get_native_value(self) -> Any | None:
         """Update entity from upstream device data."""
         source = self.pandora_device
         if (asg := self.entity_description.attribute_source) is not None:
@@ -272,7 +273,7 @@ class PandoraCASEntity(
             self._attr_native_value = value
 
     @property
-    def coordinator_device_data(self) -> Optional[Mapping[str, Any]]:
+    def coordinator_device_data(self) -> Mapping[str, Any] | None:
         if not (coordinator_data := self.coordinator.data):
             return
 
@@ -311,13 +312,14 @@ class PandoraCASEntity(
             waiter()
             self._command_waiter = None
 
+    # noinspection PyUnusedLocal
     @callback
     def _process_command_response(self, event: Union[Event, datetime]) -> None:
         self.logger.debug("Resetting command event")
         self.reset_command_event()
         self.async_write_ha_state()
 
-    def _add_command_listener(self, command: Optional[CommandOptions]) -> None:
+    def _add_command_listener(self, command: CommandOptions | None) -> None:
         if command is None:
             return None
         command_id = parse_description_command_id(
@@ -363,7 +365,7 @@ class PandoraCASEntity(
         if (waiter := self._command_waiter) is not None:
             waiter()
         self._command_waiter = async_call_later(
-            self.hass, 15.0, self._process_command_response
+            self.hass, DEFAULT_WAITER_TIMEOUT, self._process_command_response
         )
 
         # Commit current state
@@ -391,14 +393,14 @@ class PandoraCASEntity(
 
 @dataclass
 class PandoraCASBooleanEntityDescription(PandoraCASEntityDescription):
-    icon_on: Optional[str] = None
-    icon_off: Optional[str] = None
-    icon_turning_on: Optional[str] = "mdi:progress-clock"
-    icon_turning_off: Optional[str] = None
-    flag: Optional[Flag] = None
+    icon_on: str | None = None
+    icon_off: str | None = None
+    icon_turning_on: str | None = "mdi:progress-clock"
+    icon_turning_off: str | None = None
+    flag: Flag | None = None
     inverse: bool = False
-    command_on: Optional[CommandOptions] = None
-    command_off: Optional[CommandOptions] = None
+    command_on: CommandOptions | None = None
+    command_off: CommandOptions | None = None
 
 
 class PandoraCASBooleanEntity(PandoraCASEntity):
@@ -411,9 +413,9 @@ class PandoraCASBooleanEntity(PandoraCASEntity):
 
         self._is_turning_on = False
         self._is_turning_off = False
-        self._command_waiter: Optional[Callable[[], ...]] = None
-        self._command_on_listener: Optional[Callable[[], ...]] = None
-        self._command_off_listener: Optional[Callable[[], ...]] = None
+        self._command_waiter: Callable[[], ...] | None = None
+        self._command_on_listener: Callable[[], ...] | None = None
+        self._command_off_listener: Callable[[], ...] | None = None
 
     @property
     def icon(self) -> str | None:
@@ -456,7 +458,7 @@ class PandoraCASBooleanEntity(PandoraCASEntity):
 
         await self.run_device_command(command_id)
 
-    def get_native_value(self) -> Optional[Any]:
+    def get_native_value(self) -> Any | None:
         value = super().get_native_value()
 
         if value is None:

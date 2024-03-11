@@ -1,4 +1,5 @@
 """Switch entity for Pandora Car Alarm System."""
+
 __all__ = ("ENTITY_TYPES", "async_setup_entry")
 
 import dataclasses
@@ -6,7 +7,7 @@ import logging
 from asyncio import run_coroutine_threadsafe
 from dataclasses import dataclass
 from functools import partial
-from typing import Any, Optional, TYPE_CHECKING, Final
+from typing import Any, TYPE_CHECKING, Final
 
 from homeassistant.components.lock import (
     LockEntity,
@@ -19,12 +20,12 @@ from custom_components.pandora_cas.api import (
     CommandID,
     PandoraOnlineDevice,
 )
+from custom_components.pandora_cas.const import CONF_FORCE_LOCK_ICONS
 from custom_components.pandora_cas.entity import (
     async_platform_setup_entry,
     PandoraCASBooleanEntityDescription,
     PandoraCASBooleanEntity,
 )
-from custom_components.pandora_cas.const import CONF_FORCE_LOCK_ICONS
 
 if TYPE_CHECKING:
     from custom_components.pandora_cas import PandoraCASUpdateCoordinator
@@ -36,10 +37,11 @@ _LOGGER: Final = logging.getLogger(__name__)
 class PandoraCASLockEntityDescription(
     PandoraCASBooleanEntityDescription, LockEntityDescription
 ):
-    icon_turning_on: Optional[str] = None
-    icon_turning_off: Optional[str] = None
+    icon_turning_on: str | None = None
+    icon_turning_off: str | None = None
 
 
+# noinspection PyArgumentList
 ENTITY_TYPES = [
     PandoraCASLockEntityDescription(
         key="central_lock",

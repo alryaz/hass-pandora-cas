@@ -1,4 +1,5 @@
 """Binary sensor platform for Pandora Car Alarm System."""
+
 __all__ = ("ENTITY_TYPES", "async_setup_entry")
 
 import asyncio
@@ -23,7 +24,7 @@ from custom_components.pandora_cas.entity import (
 
 _LOGGER = logging.getLogger(__name__)
 
-
+# noinspection PyArgumentList
 ENTITY_TYPES = [
     PandoraCASBooleanEntityDescription(
         key="active_security",
@@ -153,7 +154,7 @@ class PandoraCASSwitch(PandoraCASBooleanEntity, SwitchEntity):
             self.async_turn_off(), self.hass.loop
         ).result()
 
-    def get_native_value(self) -> Optional[Any]:
+    def get_native_value(self) -> Any | None:
         if (
             self.entity_description.key == "engine"
             and self._device_config[CONF_ENGINE_STATE_BY_RPM]

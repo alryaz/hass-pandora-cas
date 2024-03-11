@@ -65,8 +65,8 @@ class ImagesDefaultDict(dict):
     def get_image(
         self,
         car_type: str,
-        fill: Optional[str] = None,
-        rotation: Optional[float] = None,
+        fill: str | None = None,
+        rotation: float | None = None,
     ) -> str:
         base_code, base_rotation = self[car_type]
         return base_code.format(

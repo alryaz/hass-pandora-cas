@@ -1,4 +1,5 @@
 """Config flow for Pandora Car Alarm System component."""
+
 __all__ = ("PandoraCASConfigFlow",)
 
 import logging
@@ -44,7 +45,24 @@ from custom_components.pandora_cas import (
     DEVICE_OPTIONS_SCHEMA,
 )
 from custom_components.pandora_cas.api import PandoraOnlineAccount
-from custom_components.pandora_cas.const import *
+from custom_components.pandora_cas.const import (
+    CONF_CUSTOM_CURSOR_TYPE,
+    DEFAULT_CURSOR_TYPE,
+    CONF_CUSTOM_CURSOR_DEVICES,
+    CONF_CUSTOM_CURSORS,
+    METHOD_COMBO,
+    CONF_DISABLE_WEBSOCKETS,
+    METHOD_MANUAL,
+    METHOD_POLL,
+    METHOD_LISTEN,
+    DOMAIN,
+    CONF_IGNORE_UPDATES_ENGINE_OFF,
+    CONF_POLLING_INTERVAL,
+    MIN_POLLING_INTERVAL,
+    CONF_EFFECTIVE_READ_TIMEOUT,
+    MIN_EFFECTIVE_READ_TIMEOUT,
+    DEFAULT_LANGUAGE,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -198,6 +216,7 @@ class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
             step_id=STEP_USER, data_schema=schema, errors=errors
         )
 
+    # noinspection PyUnusedLocal
     async def async_step_reauth(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
@@ -253,8 +272,9 @@ STEP_INTEGRATION_OPTIONS_SCHEMA: Final = (
     )
 )
 
-
 STEP_DEVICE_OPTIONS: Final = "device_options"
+
+
 # STEP_DEVICE_OPTIONS_SCHEMA: Final = DEVICE_OPTIONS_SCHEMA
 
 
@@ -279,15 +299,16 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
                 for identifier in device.identifiers:
                     if len(identifier) != 2 or identifier[0] != DOMAIN:
                         continue
-                    self.device_options[
-                        str(identifier[1])
-                    ] = f"{device.name} ({identifier[1]})"
+                    self.device_options[str(identifier[1])] = (
+                        f"{device.name} ({identifier[1]})"
+                    )
 
             for pandora_id in self.options.get(CONF_DEVICES) or {}:
                 self.device_options.setdefault(
                     str(pandora_id), f"<unknown> ({pandora_id})"
                 )
 
+    # noinspection PyUnusedLocal
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
@@ -299,6 +320,7 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
             menu_options.append(STEP_SAVE)
         return self.async_show_menu(step_id="init", menu_options=menu_options)
 
+    # noinspection PyUnusedLocal
     async def async_step_save(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:

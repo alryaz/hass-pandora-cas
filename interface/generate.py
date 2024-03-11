@@ -1,7 +1,7 @@
 import os
 from base64 import b64encode
 from io import BytesIO
-from typing import Any, Dict, Iterator, List, Mapping, Optional, Tuple, Union
+from typing import Any, Iterator, Mapping, Union
 
 import PIL.ImageChops
 import attr
@@ -31,7 +31,7 @@ SAVE_FORMAT = "webp"
 
 class ForProcessing:
     def __init__(
-        self, *, base_style: Optional[Mapping[str, Any]] = None
+        self, *, base_style: Mapping[str, Any] | None = None
     ) -> None:
         self._base_style = _BASE_STYLE
         if base_style:
@@ -65,7 +65,7 @@ class ForProcessing:
         }
 
     def get_style(
-        self, style: Optional[Mapping[str, Any]] = None
+        self, style: Mapping[str, Any] | None = None
     ) -> dict[str, Any]:
         return (
             dict(self._base_style)
@@ -74,7 +74,7 @@ class ForProcessing:
         )
 
     def _merge_style_kwarg(
-        self, kwargs: dict[str, Any], style: Optional[Mapping[str, Any]] = None
+        self, kwargs: dict[str, Any], style: Mapping[str, Any] | None = None
     ) -> None:
         final_styles = dict(self._base_style)
         final_styles.update(style or {})
@@ -123,7 +123,7 @@ class ForAnimation(ForProcessing):
         self,
         *image_names: str,
         use_full_width: bool = False,
-        duration: Optional[Union[int, List[int], Tuple[int, ...]]] = 1.0,
+        duration: Union[int, list[int], tuple[int, ...]] | None = 1.0,
         **kwargs,
     ) -> None:
         image_names = tuple(image_names)
@@ -137,7 +137,7 @@ class ForAnimation(ForProcessing):
         self.duration = duration
 
     @property
-    def file_names(self) -> Tuple[str, ...]:
+    def file_names(self) -> tuple[str, ...]:
         return tuple(x if "." in x else x + ".png" for x in self._image_names)
 
     def as_dict(
@@ -205,33 +205,33 @@ class ForTrimming(ForAnimation):
         super().__init__(*args, use_full_width=True, **kwargs)
 
 
-_TImage = Optional[Union[ForProcessing, str, dict[str, Any]]]
-_TBinary = Tuple[_TImage, _TImage]
+_TImage = ForProcessing | str | dict[str, Any] | None
+_TBinary = tuple[_TImage, _TImage]
 
 
 @attr.s(slots=True)
 class CarType:
     body: str = attr.ib()
-    driver_door: Optional[_TBinary] = attr.ib(default=None)
-    passenger_door: Optional[_TBinary] = attr.ib(default=None)
-    left_back_door: Optional[_TBinary] = attr.ib(default=None)
-    right_back_door: Optional[_TBinary] = attr.ib(default=None)
-    trunk: Optional[_TBinary] = attr.ib(default=None)
-    hood: Optional[_TBinary] = attr.ib(default=None)
-    parking: Optional[_TBinary] = attr.ib(default=None)
-    brakes: Optional[_TBinary] = attr.ib(default=None)
-    ignition: Optional[_TBinary] = attr.ib(default=None)
+    driver_door: _TBinary | None = attr.ib(default=None)
+    passenger_door: _TBinary | None = attr.ib(default=None)
+    left_back_door: _TBinary | None = attr.ib(default=None)
+    right_back_door: _TBinary | None = attr.ib(default=None)
+    trunk: _TBinary | None = attr.ib(default=None)
+    hood: _TBinary | None = attr.ib(default=None)
+    parking: _TBinary | None = attr.ib(default=None)
+    brakes: _TBinary | None = attr.ib(default=None)
+    ignition: _TBinary | None = attr.ib(default=None)
 
-    engine: Optional[_TBinary] = attr.ib(default=None)
-    engine_hood_open: Optional[_TBinary] = attr.ib(default=None)
+    engine: _TBinary | None = attr.ib(default=None)
+    engine_hood_open: _TBinary | None = attr.ib(default=None)
 
-    alarm: Optional[_TBinary] = attr.ib(default=None)
-    active_security: Optional[_TBinary] = attr.ib(default=None)
-    service_mode: Optional[_TBinary] = attr.ib(default=None)
+    alarm: _TBinary | None = attr.ib(default=None)
+    active_security: _TBinary | None = attr.ib(default=None)
+    service_mode: _TBinary | None = attr.ib(default=None)
 
     @staticmethod
     def condition_elements(
-        elements: Union[List[dict[str, Any]], dict[str, Any]],
+        elements: Union[list[dict[str, Any]], dict[str, Any]],
         condition_1: dict[str, Any],
         *conditions: dict[str, Any],
     ):
@@ -558,8 +558,8 @@ class CarType:
     def as_dict_gauges(
         self,
         pandora_id: str,
-        severity_tacho: Optional[Mapping[str, int]] = None,
-        severity_fuel: Optional[Mapping[str, int]] = None,
+        severity_tacho: Mapping[str, int] | None = None,
+        severity_fuel: Mapping[str, int] | None = None,
     ):
         tacho_dict = {
             "type": "gauge",
@@ -629,8 +629,8 @@ class CarType:
         self,
         src_path: str,
         pandora_id: str,
-        severity_tacho: Optional[Mapping[str, int]] = None,
-        severity_fuel: Optional[Mapping[str, int]] = None,
+        severity_tacho: Mapping[str, int] | None = None,
+        severity_fuel: Mapping[str, int] | None = None,
     ):
         return {
             "type": "vertical-stack",

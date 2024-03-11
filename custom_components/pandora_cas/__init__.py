@@ -27,21 +27,18 @@ import logging
 from datetime import timedelta, datetime
 from functools import partial
 from json import JSONDecodeError
+from time import time
 from typing import (
     Any,
     Mapping,
     Type,
     TypeVar,
     Awaitable,
-    Tuple,
     Literal,
-    Optional,
     MutableMapping,
-    Final,
 )
 
 import aiohttp
-from time import time
 import voluptuous as vol
 from homeassistant.config_entries import (
     ConfigEntry,
@@ -99,7 +96,6 @@ from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
 
 _LOGGER: Final = logging.getLogger(__name__)
 
-
 BASE_INTEGRATION_OPTIONS_SCHEMA: Final = vol.Schema(
     {
         vol.Optional(CONF_VERIFY_SSL, default=True): cv.boolean,
@@ -117,7 +113,9 @@ BASE_INTEGRATION_OPTIONS_SCHEMA: Final = vol.Schema(
 
 INTEGRATION_OPTIONS_SCHEMA: Final = BASE_INTEGRATION_OPTIONS_SCHEMA.extend(
     {
-        vol.Optional(CONF_DISABLE_WEBSOCKETS, default=False): cv.boolean,
+        vol.Optional(
+            CONF_DISABLE_WEBSOCKETS, default=DEFAULT_DISABLE_WEBSOCKETS
+        ): cv.boolean,
     },
     extra=vol.REMOVE_EXTRA,
 )
@@ -586,61 +584,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
 
     # Setup update coordinator
-    hass.data.setdefault(DOMAIN, {})[
-        entry.entry_id
-    ] = coordinator = PandoraCASUpdateCoordinator(
-        hass, account, update_interval, logger=logger
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator = (
+        PandoraCASUpdateCoordinator(
+            hass, account, update_interval, logger=logger
+        )
     )
     await coordinator.async_config_entry_first_refresh()
-
-    # Start listening for updates if enabled
-    if not options[CONF_DISABLE_WEBSOCKETS]:
-
-        async def _listen_configuration_entry():
-            callback_args = dict(
-                state_callback=partial(
-                    async_state_delegator, hass, entry, logger=logger
-                ),
-                command_callback=partial(
-                    async_command_delegator, hass, entry, logger=logger
-                ),
-                event_callback=partial(
-                    async_event_delegator, hass, entry, logger=logger
-                ),
-                point_callback=partial(
-                    async_point_delegator, hass, entry, logger=logger
-                ),
-                update_settings_callback=partial(
-                    async_update_settings_delegator, hass, logger=logger
-                ),
-                effective_read_timeout=max(
-                    MIN_EFFECTIVE_READ_TIMEOUT,
-                    options[CONF_EFFECTIVE_READ_TIMEOUT],
-                ),
-                auto_restart=True,
-                auto_reauth=True,
-            )
-            while True:
-                try:
-                    await account.async_listen_for_updates(**callback_args)
-                except asyncio.CancelledError:
-                    raise
-                except AuthenticationError as exc:
-                    raise ConfigEntryAuthFailed(str(exc)) from exc
-                except BaseException as exc:
-                    _LOGGER.warning(
-                        f"Exception occurred on WS listener "
-                        f"for entry {entry.entry_id}: {exc}",
-                        exc_info=exc,
-                    )
-                    continue
-
-        # noinspection PyTypeChecker
-        entry.async_create_background_task(
-            hass,
-            _listen_configuration_entry(),
-            f"Pandora CAS entry {entry.entry_id} listener",
-        )
 
     # Forward entry setup to sensor platform
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -839,172 +788,6 @@ def event_enum_to_type(
     return slugify(primary_event_id.name.lower())
 
 
-@callback
-def async_state_delegator(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    device: PandoraOnlineDevice,
-    _: CurrentState,
-    state_args: Mapping[str, Any],
-    *,
-    logger: logging.Logger | logging.LoggerAdapter = _LOGGER,
-) -> None:
-    logger.debug(
-        f"Received WebSockets state update for "
-        f"device {device.device_id}: {state_args}"
-    )
-    try:
-        coordinator = hass.data[DOMAIN][entry.entry_id]
-    except LookupError:
-        logger.error("Coordinator not found")
-    else:
-        coordinator.async_set_updated_data(
-            (True, {device.device_id: state_args})
-        )
-
-
-# noinspection PyUnusedLocal
-@callback
-def async_command_delegator(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    device: PandoraOnlineDevice,
-    command_id: int,
-    result: int,
-    reply: Any,
-    *,
-    logger: logging.Logger | logging.LoggerAdapter = _LOGGER,
-) -> None:
-    """Pass command execution data to Home Assistant event bus."""
-    hass.bus.async_fire(
-        EVENT_TYPE_COMMAND,
-        {
-            "device_id": device.device_id,
-            "command_id": command_id,
-            "result": result,
-            "reply": reply,
-        },
-    )
-
-
-# noinspection PyUnusedLocal
-@callback
-def async_event_delegator(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    device: PandoraOnlineDevice,
-    event: TrackingEvent,
-    *,
-    logger: logging.Logger | logging.LoggerAdapter = _LOGGER,
-) -> None:
-    """Pass event data to Home Assistant event bus."""
-    logger.debug(
-        f"Firing event {EVENT_TYPE_EVENT}[{event.event_id_primary}/"
-        f"{event.event_id_secondary}] for device {event.device_id}"
-    )
-    language = get_config_entry_language(entry)
-    hass.bus.async_fire(
-        EVENT_TYPE_EVENT,
-        {
-            CONF_EVENT_TYPE: event_enum_to_type(event.primary_event_enum),
-            ATTR_DEVICE_ID: device.device_id,
-            "event_id_primary": (p := event.event_id_primary),
-            "event_id_secondary": (s := event.event_id_secondary),
-            ATTR_TITLE_PRIMARY: None
-            if p is None
-            else get_web_translations_value(
-                hass,
-                language,
-                f"event-name-{p}",
-            ),
-            ATTR_TITLE_SECONDARY: None
-            if s is None
-            else get_web_translations_value(
-                hass,
-                language,
-                f"event-subname-{p}-{s}",
-            ),
-            ATTR_LATITUDE: event.latitude,
-            ATTR_LONGITUDE: event.longitude,
-            "gsm_level": event.gsm_level,
-            "fuel": event.fuel,
-            "exterior_temperature": event.exterior_temperature,
-            "engine_temperature": event.engine_temperature,
-        },
-    )
-
-    # @TODO: add time_fired parameter
-
-
-# noinspection PyUnusedLocal
-@callback
-def async_update_settings_delegator(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    device: PandoraOnlineDevice,
-    update_settings: Mapping[str, Any],
-    *,
-    logger: logging.Logger | logging.LoggerAdapter = _LOGGER,
-) -> None:
-    """Pass event data to Home Assistant event bus."""
-    # logger.debug(
-    #     f"Firing event {EVENT_TYPE_EVENT}[{event.event_id_primary}/"
-    #     f"{event.event_id_secondary}] for device {event.device_id}"
-    # )
-    # hass.bus.async_fire(
-    #     EVENT_TYPE_EVENT,
-    #     {
-    #         CONF_EVENT_TYPE: event_enum_to_type(PrimaryEventID.SETTINGS_CHANGED),
-    #         ATTR_DEVICE_ID: device.device_id,
-    #         "event_id_primary": int(PrimaryEventID.SETTINGS_CHANGED),
-    #         "event_id_secondary": event.event_id_secondary,
-    #     },
-    # )
-
-    logger.debug(
-        "Update-Settings event received from WS, but I don't yet"
-        "know what to do with it. Pls suggest."
-    )
-
-    # @TODO: add time_fired parameter
-    pass
-
-
-# noinspection PyUnusedLocal
-def async_point_delegator(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    device: PandoraOnlineDevice,
-    point: TrackingPoint,
-    state: Optional[CurrentState],
-    state_args: Optional[Mapping[str, Any]],
-    *,
-    logger: logging.Logger | logging.LoggerAdapter = _LOGGER,
-) -> None:
-    logger.debug(
-        f"Firing event {EVENT_TYPE_POINT}[{point.track_id}/"
-        f"{point.timestamp}] for device {point.device_id}"
-    )
-    hass.bus.async_fire(
-        EVENT_TYPE_POINT,
-        {
-            "device_id": point.device_id,
-            "timestamp": point.timestamp,
-            "track_id": point.track_id,
-            "fuel": point.fuel,
-            "speed": point.speed,
-            "max_speed": point.max_speed,
-            "length": point.length,
-        },
-    )
-
-    if state_args:
-        logger.debug(f"Updating device {point.device_id} state through point")
-        async_state_delegator(
-            hass, entry, device, state, state_args, logger=logger
-        )
-
-
 _T = TypeVar("_T")
 
 
@@ -1022,7 +805,7 @@ async def async_run_pandora_coro(coro: Awaitable[_T]) -> _T:
 
 
 class PandoraCASUpdateCoordinator(
-    DataUpdateCoordinator[Tuple[bool, Mapping[int, Mapping[str, Any]]]]
+    DataUpdateCoordinator[tuple[bool, Mapping[int, Mapping[str, Any]]]]
 ):
     def __init__(
         self,
@@ -1035,6 +818,24 @@ class PandoraCASUpdateCoordinator(
         self._device_configs = {}
         super().__init__(
             hass, logger, name=DOMAIN, update_interval=update_interval
+        )
+
+    async def async_config_entry_first_refresh(self) -> None:
+        await super().async_config_entry_first_refresh()
+
+        disable_websockets = (self.config_entry.options or {}).get(
+            CONF_DISABLE_WEBSOCKETS
+        )
+        if disable_websockets is None:
+            disable_websockets = DEFAULT_DISABLE_WEBSOCKETS
+        if disable_websockets:
+            return
+
+        self.logger.debug(f"Setting up background WS listener task")
+        self.config_entry.async_create_background_task(
+            self.hass,
+            self.async_listen_config_entry(),
+            f"Pandora CAS entry {self.config_entry.entry_id} listener",
         )
 
     @property
@@ -1054,9 +855,188 @@ class PandoraCASUpdateCoordinator(
             self._device_configs[device_id] = config
             return config
 
+    async def async_listen_config_entry(self):
+        effective_read_timeout = self.config_entry.options.get(
+            CONF_EFFECTIVE_READ_TIMEOUT
+        )
+        if effective_read_timeout is None:
+            effective_read_timeout = DEFAULT_EFFECTIVE_READ_TIMEOUT
+        effective_read_timeout = max(
+            MIN_EFFECTIVE_READ_TIMEOUT, effective_read_timeout
+        )
+
+        while True:
+            try:
+                await self.account.async_listen_for_updates(
+                    state_callback=self._handle_ws_state,
+                    command_callback=self._handle_ws_command,
+                    event_callback=self._handle_ws_event,
+                    point_callback=self._handle_ws_point,
+                    update_settings_callback=self._handle_ws_settings,
+                    effective_read_timeout=effective_read_timeout,
+                    auto_reauth=True,
+                    auto_restart=True,
+                )
+            except asyncio.CancelledError:
+                raise
+            except AuthenticationError as exc:
+                raise ConfigEntryAuthFailed(str(exc)) from exc
+            except BaseException as exc:
+                self.logger.warning(
+                    f"Exception occurred on WS listener: {exc}",
+                    exc_info=exc,
+                )
+                continue
+
+    # noinspection PyUnusedLocal
+    @callback
+    def _handle_ws_state(
+        self,
+        device: PandoraOnlineDevice,
+        state: CurrentState,
+        state_args: Mapping[str, Any],
+    ) -> None:
+        self.logger.debug(
+            f"Received WS state update for device {device.device_id}: {state_args}"
+        )
+        self.async_set_updated_data((True, {device.device_id: state_args}))
+
+    @callback
+    def _handle_ws_command(
+        self,
+        device: PandoraOnlineDevice,
+        command_id: int,
+        result: int,
+        reply: Any,
+    ) -> None:
+        """Pass command execution data to Home Assistant event bus."""
+        self.logger.debug(
+            f"Firing command {command_id} event for device {device.device_id}"
+        )
+        self.hass.bus.async_fire(
+            EVENT_TYPE_COMMAND,
+            {
+                ATTR_DEVICE_ID: device.device_id,
+                ATTR_COMMAND_ID: command_id,
+                ATTR_RESULT: result,
+                ATTR_REPLY: reply,
+            },
+        )
+
+    @callback
+    def _handle_ws_event(
+        self,
+        device: PandoraOnlineDevice,
+        event: TrackingEvent,
+    ) -> None:
+        """Pass event data to Home Assistant event bus."""
+        self.logger.debug(
+            f"Firing event {EVENT_TYPE_EVENT}[{event.event_id_primary}/"
+            f"{event.event_id_secondary}] for device {event.device_id}"
+        )
+        language = get_config_entry_language(self.config_entry)
+
+        self.hass.bus.async_fire(
+            EVENT_TYPE_EVENT,
+            {
+                CONF_EVENT_TYPE: event_enum_to_type(event.primary_event_enum),
+                ATTR_DEVICE_ID: device.device_id,
+                ATTR_EVENT_ID_PRIMARY: (p := event.event_id_primary),
+                ATTR_EVENT_ID_SECONDARY: (s := event.event_id_secondary),
+                ATTR_TITLE_PRIMARY: (
+                    None
+                    if p is None
+                    else get_web_translations_value(
+                        self.hass,
+                        language,
+                        f"event-name-{p}",
+                    )
+                ),
+                ATTR_TITLE_SECONDARY: (
+                    None
+                    if s is None
+                    else get_web_translations_value(
+                        self.hass,
+                        language,
+                        f"event-subname-{p}-{s}",
+                    )
+                ),
+                ATTR_LATITUDE: event.latitude,
+                ATTR_LONGITUDE: event.longitude,
+                "gsm_level": event.gsm_level,
+                "fuel": event.fuel,
+                "exterior_temperature": event.exterior_temperature,
+                "engine_temperature": event.engine_temperature,
+            },
+        )
+
+        # @TODO: add time_fired parameter
+
+    # noinspection PyUnusedLocal
+    @callback
+    def _handle_ws_point(
+        self,
+        device: PandoraOnlineDevice,
+        point: TrackingPoint,
+        state: CurrentState | None = None,
+        state_args: Mapping[str, Any] | None = None,
+    ) -> None:
+        self.logger.debug(
+            f"Firing event {EVENT_TYPE_POINT}[{point.track_id}/"
+            f"{point.timestamp}] for device {point.device_id}"
+        )
+        self.hass.bus.async_fire(
+            EVENT_TYPE_POINT,
+            {
+                ATTR_DEVICE_ID: point.device_id,
+                ATTR_TIMESTAMP: point.timestamp,
+                ATTR_TRACK_ID: point.track_id,
+                "fuel": point.fuel,
+                "speed": point.speed,
+                "max_speed": point.max_speed,
+                "length": point.length,
+            },
+        )
+
+        if state_args:
+            self.logger.debug(
+                f"Updating device {point.device_id} state through point"
+            )
+            self._handle_ws_state(device, device.state, state_args)
+
+    # noinspection PyUnusedLocal
+    @callback
+    def _handle_ws_settings(
+        self,
+        device: PandoraOnlineDevice,
+        update_settings: Mapping[str, Any],
+    ) -> None:
+        """Pass event data to Home Assistant event bus."""
+        # logger.debug(
+        #     f"Firing event {EVENT_TYPE_EVENT}[{event.event_id_primary}/"
+        #     f"{event.event_id_secondary}] for device {event.device_id}"
+        # )
+        # hass.bus.async_fire(
+        #     EVENT_TYPE_EVENT,
+        #     {
+        #         CONF_EVENT_TYPE: event_enum_to_type(PrimaryEventID.SETTINGS_CHANGED),
+        #         ATTR_DEVICE_ID: device.device_id,
+        #         "event_id_primary": int(PrimaryEventID.SETTINGS_CHANGED),
+        #         "event_id_secondary": event.event_id_secondary,
+        #     },
+        # )
+
+        self.logger.debug(
+            "Update-Settings event received from WS, but I don't yet"
+            "know what to do with it. Pls suggest."
+        )
+
+        # @TODO: add time_fired parameter
+        pass
+
     async def _async_update_data(
         self,
-    ) -> Tuple[Literal[False], Mapping[int, Mapping[str, Any]]]:
+    ) -> tuple[Literal[False], Mapping[int, Mapping[str, Any]]]:
         """Fetch data for sub-entities."""
         # @TODO: manual polling updates!
         try:

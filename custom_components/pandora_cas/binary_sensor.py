@@ -1,9 +1,10 @@
 """Binary sensor platform for Pandora Car Alarm System."""
+
 __all__ = ("ENTITY_TYPES", "async_setup_entry")
 
 import logging
 from functools import partial
-from typing import Mapping, Any, Dict
+from typing import Mapping, Any
 
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
@@ -29,6 +30,7 @@ _ICON_CAR_GLASS_OFF = "mdi:car-windshield"
 _ICON_SAFETY_BELT_ON = "mdi:seatbelt"
 _ICON_SAFETY_BELT_OFF = "mdi:car-seat"
 
+# noinspection PyArgumentList
 ENTITY_TYPES = [
     PandoraCASBooleanEntityDescription(
         key="connection_state",

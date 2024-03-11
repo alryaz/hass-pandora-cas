@@ -1,54 +1,3 @@
-__all__ = (
-    "DOMAIN",
-    "PLATFORMS",
-    "MIN_EFFECTIVE_READ_TIMEOUT",
-    "MIN_POLLING_INTERVAL",
-    "DEFAULT_EFFECTIVE_READ_TIMEOUT",
-    "DEFAULT_POLLING_INTERVAL",
-    "DEFAULT_LANGUAGE",
-    "CONF_COORDINATES_DEBOUNCE",
-    "CONF_CUSTOM_CURSORS",
-    "CONF_CUSTOM_CURSOR_DEVICES",
-    "CONF_CUSTOM_CURSOR_TYPE",
-    "CONF_DISABLE_CURSOR_ROTATION",
-    "CONF_DISABLE_WEBSOCKETS",
-    "CONF_EFFECTIVE_READ_TIMEOUT",
-    "CONF_ENGINE_STATE_BY_RPM",
-    "CONF_EVENT_TYPE",
-    "CONF_FUEL_IS_LITERS",
-    "CONF_IGNORE_UPDATES_ENGINE_OFF",
-    "CONF_IGNORE_WS_COORDINATES",
-    "CONF_MILEAGE_CAN_MILES",
-    "CONF_MILEAGE_MILES",
-    "CONF_OFFLINE_AS_UNAVAILABLE",
-    "CONF_POLLING_INTERVAL",
-    "CONF_RPM_COEFFICIENT",
-    "CONF_RPM_OFFSET",
-    "CONF_FORCE_LOCK_ICONS",
-    "DATA_WEB_TRANSLATIONS",
-    "DATA_WEB_TRANSLATIONS_STORE",
-    "DEFAULT_COORDINATES_SMOOTHING",
-    "DEFAULT_CURSOR_TYPE",
-    "DISABLED_CURSOR_TYPE",
-    "ATTR_CARDINAL",
-    "ATTR_COMMAND_ID",
-    "ATTR_DEVICE_ID",
-    "ATTR_GSM_LEVEL",
-    "ATTR_KEY_NUMBER",
-    "ATTR_PHONE_NUMBER",
-    "ATTR_ROTATION",
-    "ATTR_TAG_NUMBER",
-    "ATTR_TITLE_PRIMARY",
-    "ATTR_TITLE_SECONDARY",
-    "EVENT_TYPE_COMMAND",
-    "EVENT_TYPE_EVENT",
-    "EVENT_TYPE_POINT",
-    "METHOD_COMBO",
-    "METHOD_POLL",
-    "METHOD_LISTEN",
-    "METHOD_MANUAL",
-    "ALL_METHODS",
-)
 from typing import Final
 
 from homeassistant.const import Platform
@@ -73,6 +22,8 @@ MIN_POLLING_INTERVAL: Final = 3.0
 DEFAULT_EFFECTIVE_READ_TIMEOUT: Final = 180.0
 DEFAULT_POLLING_INTERVAL: Final = 6.0
 DEFAULT_LANGUAGE: Final = "en"
+DEFAULT_DISABLE_WEBSOCKETS: Final = False
+DEFAULT_WAITER_TIMEOUT: Final = 15.0
 
 # Configuration parameters
 CONF_COORDINATES_DEBOUNCE: Final = "coordinates_debounce"
@@ -103,19 +54,24 @@ DISABLED_CURSOR_TYPE: Final = "disabled"
 ATTR_CARDINAL: Final = "cardinal"
 ATTR_COMMAND_ID: Final = "command_id"
 ATTR_DEVICE_ID: Final = "device_id"
+ATTR_EVENT_ID_PRIMARY: Final = "event_id_primary"
+ATTR_EVENT_ID_SECONDARY: Final = "event_id_secondary"
 ATTR_GSM_LEVEL: Final = "gsm_level"
 ATTR_KEY_NUMBER: Final = "key_number"
 ATTR_PHONE_NUMBER: Final = "phone_number"
+ATTR_REPLY: Final = "reply"
+ATTR_RESULT: Final = "result"
 ATTR_ROTATION: Final = "rotation"
 ATTR_TAG_NUMBER: Final = "tag_number"
+ATTR_TIMESTAMP: Final = "timestamp"
 ATTR_TITLE_PRIMARY: Final = "title_primary"
 ATTR_TITLE_SECONDARY: Final = "title_secondary"
+ATTR_TRACK_ID: Final = "track_id"
 
 # Home Assistant bus event identifiers
 EVENT_TYPE_COMMAND: Final = DOMAIN + "_command"
 EVENT_TYPE_EVENT: Final = DOMAIN + "_event"
 EVENT_TYPE_POINT: Final = DOMAIN + "_point"
-
 
 METHOD_COMBO: Final = "combo"
 METHOD_POLL: Final = "poll"
