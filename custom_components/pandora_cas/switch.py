@@ -125,6 +125,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.can_climate_glass_heat,
         command_on=CommandID.CLIMATE_GLASS_HEAT_TURN_ON,
         command_off=CommandID.CLIMATE_GLASS_HEAT_TURN_OFF,
+        entity_registry_enabled_default=False,
     ),
     PandoraCASBooleanEntityDescription(
         key="climate_steering_heating",
@@ -134,6 +135,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.can_climate_glass_heat,
         command_on=CommandID.CLIMATE_STEERING_HEAT_TURN_ON,
         command_off=CommandID.CLIMATE_STEERING_HEAT_TURN_OFF,
+        entity_registry_enabled_default=False,
     ),
     PandoraCASBooleanEntityDescription(
         key="climate_air_conditioning",
@@ -143,6 +145,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.can_climate_ac,
         command_on=CommandID.CLIMATE_AC_TURN_ON,
         command_off=CommandID.CLIMATE_AC_TURN_OFF,
+        entity_registry_enabled_default=False,
     ),
     PandoraCASBooleanEntityDescription(
         key="climate_system",
@@ -152,6 +155,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.can_climate_ac,
         command_on=CommandID.CLIMATE_SYS_TURN_ON,
         command_off=CommandID.CLIMATE_SYS_TURN_OFF,
+        entity_registry_enabled_default=False,
     ),
     PandoraCASBooleanEntityDescription(
         key="climate_defroster",
@@ -161,6 +165,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.can_climate_ac,
         command_on=CommandID.CLIMATE_DEFROSTER_TURN_ON,
         command_off=CommandID.CLIMATE_DEFROSTER_TURN_OFF,
+        entity_registry_enabled_default=False,
     ),
     PandoraCASBooleanEntityDescription(
         key="climate_battery_heating",
@@ -169,6 +174,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.can_climate_ac,
         command_on=CommandID.CLIMATE_DEFROSTER_TURN_ON,
         command_off=CommandID.CLIMATE_DEFROSTER_TURN_OFF,
+        entity_registry_enabled_default=False,
     ),
 ]
 

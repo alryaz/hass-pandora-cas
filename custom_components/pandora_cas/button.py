@@ -108,12 +108,14 @@ ENTITY_TYPES = [
         name="Climate Comfort",
         icon="mdi:palm-tree",
         command=CommandID.CLIMATE_MODE_COMFORT,
+        entity_registry_enabled_default=False,
     ),
     PandoraCASButtonEntityDescription(
         key="climate_interior_ventilation",
         name="Climate Interior Ventilation",
         icon="mdi:fan",
         command=CommandID.CLIMATE_MODE_VENT,
+        entity_registry_enabled_default=False,
     ),
 ]
 
