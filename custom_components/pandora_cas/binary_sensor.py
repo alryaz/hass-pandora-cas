@@ -10,6 +10,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     ENTITY_ID_FORMAT,
     BinarySensorDeviceClass,
+    BinarySensorEntityDescription,
 )
 from homeassistant.const import EntityCategory
 from homeassistant.helpers.typing import StateType
@@ -31,9 +32,16 @@ _ICON_CAR_GLASS_OFF = "mdi:car-windshield"
 _ICON_SAFETY_BELT_ON = "mdi:seatbelt"
 _ICON_SAFETY_BELT_OFF = "mdi:car-seat"
 
+
+class PandoraCASBinarySensorEntityDescription(
+    PandoraCASBooleanEntityDescription, BinarySensorEntityDescription
+):
+    """Binary sensor entity description base class."""
+
+
 # noinspection PyArgumentList
 ENTITY_TYPES = [
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="connection_state",
         name="Connection state",
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
@@ -42,14 +50,14 @@ ENTITY_TYPES = [
         entity_category=EntityCategory.DIAGNOSTIC,
         online_sensitive=False,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="moving",
         name="Moving",
         device_class=BinarySensorDeviceClass.MOTION,
         attribute=CurrentState.is_moving,
     ),
     # Status-related sensors
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="driver_door",
         name="Driver Door",
         icon=_ICON_CAR_DOOR_ON,
@@ -58,7 +66,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.bit_state,
         flag=BitStatus.DOOR_DRIVER_OPEN,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="passenger_door",
         name="Passenger Door",
         icon=_ICON_CAR_DOOR_ON,
@@ -67,7 +75,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.bit_state,
         flag=BitStatus.DOOR_PASSENGER_OPEN,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="left_back_door",
         name="Left Back Door",
         icon=_ICON_CAR_DOOR_ON,
@@ -76,7 +84,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.bit_state,
         flag=BitStatus.DOOR_BACK_LEFT_OPEN,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="right_back_door",
         name="Right Back Door",
         icon=_ICON_CAR_DOOR_ON,
@@ -85,7 +93,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.bit_state,
         flag=BitStatus.DOOR_BACK_RIGHT_OPEN,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="driver_glass",
         name="Driver Glass",
         icon=_ICON_CAR_GLASS_ON,
@@ -94,7 +102,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.can_glass_driver,
         entity_registry_enabled_default=False,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="passenger_glass",
         name="Passenger Glass",
         icon=_ICON_CAR_GLASS_ON,
@@ -103,7 +111,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.can_glass_passenger,
         entity_registry_enabled_default=False,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="left_back_glass",
         name="Left Back Glass",
         icon=_ICON_CAR_GLASS_ON,
@@ -112,7 +120,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.can_glass_back_left,
         entity_registry_enabled_default=False,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="right_back_glass",
         name="Right Back Glass",
         icon=_ICON_CAR_GLASS_ON,
@@ -121,7 +129,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.can_glass_back_right,
         entity_registry_enabled_default=False,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="driver_safety_belt",
         name="Driver Safety Belt",
         icon=_ICON_SAFETY_BELT_ON,
@@ -131,7 +139,7 @@ ENTITY_TYPES = [
         entity_registry_enabled_default=False,
         inverse=True,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="passenger_safety_belt",
         name="Passenger Safety Belt",
         icon=_ICON_SAFETY_BELT_ON,
@@ -141,7 +149,7 @@ ENTITY_TYPES = [
         entity_registry_enabled_default=False,
         inverse=True,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="left_back_safety_belt",
         name="Left Back Safety Belt",
         icon=_ICON_SAFETY_BELT_ON,
@@ -151,7 +159,7 @@ ENTITY_TYPES = [
         entity_registry_enabled_default=False,
         inverse=True,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="right_back_safety_belt",
         name="Right Back Safety Belt",
         icon=_ICON_SAFETY_BELT_ON,
@@ -161,7 +169,7 @@ ENTITY_TYPES = [
         entity_registry_enabled_default=False,
         inverse=True,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="center_back_safety_belt",
         name="Center Back Safety Belt",
         icon=_ICON_SAFETY_BELT_ON,
@@ -171,7 +179,7 @@ ENTITY_TYPES = [
         entity_registry_enabled_default=False,
         inverse=True,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="seat_taken",
         name="Seat Taken",
         icon="mdi:seat-passenger",
@@ -180,7 +188,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.can_seat_taken,
         entity_registry_enabled_default=False,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="trunk",
         name="Trunk",
         icon="mdi:car-back",
@@ -188,7 +196,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.bit_state,
         flag=BitStatus.TRUNK_OPEN,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="hood",
         name="Hood",
         icon="mdi:car",
@@ -196,28 +204,28 @@ ENTITY_TYPES = [
         attribute=CurrentState.bit_state,
         flag=BitStatus.HOOD_OPEN,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="parking",
         name="Parking Mode",
         icon="mdi:car-brake-parking",
         attribute=CurrentState.bit_state,
         flag=BitStatus.HANDBRAKE_ENGAGED,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="brakes",
         name="Brakes",
         icon="mdi:car-brake-hold",
         attribute=CurrentState.bit_state,
         flag=BitStatus.BRAKES_ENGAGED,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="ignition",
         name="Ignition",
         icon="mdi:key-variant",
         attribute=CurrentState.bit_state,
         flag=BitStatus.IGNITION,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="exterior_lights",
         name="Exterior Lights",
         icon="mdi:car-light-high",
@@ -225,7 +233,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.bit_state,
         flag=BitStatus.EXTERIOR_LIGHTS_ACTIVE,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="evacuation_mode",
         name="Evacuation Mode",
         icon="mdi:train-car-flatbed-car",
@@ -233,14 +241,14 @@ ENTITY_TYPES = [
         attribute=CurrentState.bit_state,
         flag=BitStatus.EVACUATION_MODE_ACTIVE,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="ev_charging_connected",
         name="EV Charging Connected",
         icon="mdi:ev-station",
         attribute=CurrentState.ev_charging_connected,
         entity_registry_enabled_default=False,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="can_low_liquid",
         name="CAN Low Liquid",
         icon="mdi:wiper",
@@ -250,7 +258,7 @@ ENTITY_TYPES = [
         attribute=CurrentState.can_low_liquid,
         entity_registry_enabled_default=False,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASBinarySensorEntityDescription(
         key="engine_locked",
         name="Engine Locked",
         icon_off="mdi:check-circle",
@@ -265,6 +273,8 @@ ENTITY_TYPES = [
 class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
     ENTITY_TYPES = ENTITY_TYPES
     ENTITY_ID_FORMAT = ENTITY_ID_FORMAT
+
+    entity_description: PandoraCASBinarySensorEntityDescription
 
     @property
     def is_on(self) -> bool | None:
