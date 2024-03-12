@@ -25,22 +25,17 @@ _BASE_STYLE = {
     "filter": "none",
 }
 
-
 SAVE_FORMAT = "webp"
 
 
 class ForProcessing:
-    def __init__(
-        self, *, base_style: Mapping[str, Any] | None = None
-    ) -> None:
+    def __init__(self, *, base_style: Mapping[str, Any] | None = None) -> None:
         self._base_style = _BASE_STYLE
         if base_style:
             self._base_style.update(base_style)
 
     @classmethod
-    def image_as_data_uri(
-        cls, image: Union[bytes, BytesIO, Image.Image]
-    ) -> str:
+    def image_as_data_uri(cls, image: Union[bytes, BytesIO, Image.Image]) -> str:
         if isinstance(image, Image.Image):
             buffered = BytesIO()
             image.save(buffered, format=SAVE_FORMAT)
@@ -64,13 +59,9 @@ class ForProcessing:
             **kwargs,
         }
 
-    def get_style(
-        self, style: Mapping[str, Any] | None = None
-    ) -> dict[str, Any]:
+    def get_style(self, style: Mapping[str, Any] | None = None) -> dict[str, Any]:
         return (
-            dict(self._base_style)
-            if style is None
-            else {**self._base_style, **style}
+            dict(self._base_style) if style is None else {**self._base_style, **style}
         )
 
     def _merge_style_kwarg(
@@ -192,9 +183,7 @@ class ForAnimation(ForProcessing):
             append_images=list(cropped_frames_iter),
             format=SAVE_FORMAT,
             save_all=True,
-            duration=len(cropped_frames)
-            if duration_coef is None
-            else duration_coef,
+            duration=len(cropped_frames) if duration_coef is None else duration_coef,
         )
 
         return self.make_image_dict(bytes_io, **kwargs)
@@ -268,9 +257,9 @@ class CarType:
         }
 
     def as_dict_picture(self, src_path: str, pandora_id: str, **kwargs):
-        body_image = PIL.Image.open(
-            os.path.join(src_path, self.body + ".png")
-        ).convert("RGBA")
+        body_image = PIL.Image.open(os.path.join(src_path, self.body + ".png")).convert(
+            "RGBA"
+        )
 
         elements = []
         yaml_dict = {
@@ -285,9 +274,7 @@ class CarType:
                 pic_val = ForSimple(pic_val)
 
             if isinstance(pic_val, ForProcessing):
-                return pic_val.as_dict(
-                    src_path, pandora_id, body_image, **kwargs_
-                )
+                return pic_val.as_dict(src_path, pandora_id, body_image, **kwargs_)
 
             raise TypeError
 
@@ -428,9 +415,7 @@ class CarType:
 
             if alarm_elements:
                 if pic_off:
-                    alarm_elements.append(
-                        _pic_to_dict(pic_off, entity=as_entity_id)
-                    )
+                    alarm_elements.append(_pic_to_dict(pic_off, entity=as_entity_id))
                 as_elements.append(
                     self.condition_elements(
                         alarm_elements, self.entity_is_not(as_entity_id, "on")
@@ -708,9 +693,7 @@ CAR_TYPES = {
         ignition=(None, ForTrimming("ignition_dark")),
         engine=(
             None,
-            ForTrimming(
-                "engine_start_dark", "engine_start_rotated_dark", duration=200
-            ),
+            ForTrimming("engine_start_dark", "engine_start_rotated_dark", duration=200),
         ),
         engine_hood_open=(
             None,
@@ -781,18 +764,14 @@ def main():
         card_str = dump(card_config, allow_unicode=True)
         if args.copy_card == key_type:
             to_copy = card_str
-        with open(
-            os.path.join(cards_path, file_name), "w", encoding="utf-8"
-        ) as f:
+        with open(os.path.join(cards_path, file_name), "w", encoding="utf-8") as f:
             f.write(card_str)
 
         stack_config = car_type.as_dict(SRC_PATH, pandora_id)
         stack_str = dump(stack_config, allow_unicode=True)
         if args.copy_stack == key_type:
             to_copy = stack_str
-        with open(
-            os.path.join(stacks_path, file_name), "w", encoding="utf-8"
-        ) as f:
+        with open(os.path.join(stacks_path, file_name), "w", encoding="utf-8") as f:
             f.write(stack_str)
 
         panel_config = {
@@ -807,9 +786,7 @@ def main():
                             "view_layout": {"position": "main"},
                             "hours_to_show": 24,
                             "entities": [
-                                {
-                                    "entity": f"device_tracker.{pandora_id}_pandora"
-                                }
+                                {"entity": f"device_tracker.{pandora_id}_pandora"}
                             ],
                         },
                         {
@@ -840,11 +817,7 @@ def main():
         pyperclip.copy(to_copy)
         copy_key = args.copy_card or args.copy_dashboard or args.copy_stack
         copy_type = (
-            "card"
-            if args.copy_card
-            else "stack"
-            if args.copy_stack
-            else "dashboard"
+            "card" if args.copy_card else "stack" if args.copy_stack else "dashboard"
         )
         print(f"Copied '{copy_key}' {copy_type} configuration to clipboard")
 
