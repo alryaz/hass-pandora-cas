@@ -183,7 +183,7 @@ class PandoraCASNumber(PandoraCASEntity, NumberEntity):
                 param = self.entity_description.attribute
             if (converter := self.entity_description.converter) is not None:
                 value = converter(value)
-            coroutine = self.run_device_command(command_set, {param: value})
+            coroutine = self.run_device_command(command_set, {str(param): value})
         else:
             commands = calculate_incremental_sequence(
                 self.native_value,
