@@ -188,9 +188,9 @@ class PandoraCASNumber(PandoraCASEntity, NumberEntity):
             commands = calculate_incremental_sequence(
                 self.native_value,
                 value,
-                self.entity_description.min_value,
-                self.entity_description.max_value,
-                self.entity_description.step,
+                self.entity_description.native_min_value,
+                self.entity_description.native_max_value,
+                self.entity_description.native_step,
                 command_set,
                 self.entity_description.command_init,
                 incremental,
