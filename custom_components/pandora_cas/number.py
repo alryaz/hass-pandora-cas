@@ -196,7 +196,12 @@ class PandoraCASNumber(PandoraCASEntity, NumberEntity):
                 incremental,
             )
             if commands:
+                self.logger.debug(
+                    f"Calculated execution sequence: {', '.join(map(str, commands))}"
+                )
                 coroutine = self.run_device_command_sequence(commands)
+            else:
+                self.logger.debug(f"Calculated execution sequence is empty")
 
         if coroutine is not None:
             self._is_setting = True
