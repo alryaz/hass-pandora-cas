@@ -113,7 +113,10 @@ def calculate_incremental_sequence(
 
     commands = []
 
-    if (current is None) or (cmd_init is not None and incremental and current < target):
+    if (current is None) or (
+        cmd_init is not None
+        and ((target == 0) or (current > target if incremental else current < target))
+    ):
         commands.append(cmd_init)
         current = minimum
 
