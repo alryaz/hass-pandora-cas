@@ -5,22 +5,17 @@ __all__ = ("ENTITY_TYPES", "async_setup_entry")
 import asyncio
 import logging
 from functools import partial
-from typing import Any, Optional
+from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, ENTITY_ID_FORMAT
 
 from custom_components.pandora_cas.const import CONF_ENGINE_STATE_BY_RPM
-from custom_components.pandora_cas.api import (
-    BitStatus,
-    CommandID,
-    Features,
-    PandoraDeviceTypes,
-)
 from custom_components.pandora_cas.entity import (
     async_platform_setup_entry,
     PandoraCASBooleanEntityDescription,
     PandoraCASBooleanEntity,
 )
+from pandora_cas.enums import PandoraDeviceTypes, CommandID, BitStatus, Features
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -144,24 +139,18 @@ class PandoraCASSwitch(PandoraCASBooleanEntity, SwitchEntity):
 
     def turn_on(self, **kwargs: Any) -> None:
         """Compatibility for synchronous turn on calls."""
-        asyncio.run_coroutine_threadsafe(
-            self.async_turn_on(), self.hass.loop
-        ).result()
+        asyncio.run_coroutine_threadsafe(self.async_turn_on(), self.hass.loop).result()
 
     def turn_off(self, **kwargs: Any) -> None:
         """Compatibility for synchronous turn off calls."""
-        asyncio.run_coroutine_threadsafe(
-            self.async_turn_off(), self.hass.loop
-        ).result()
+        asyncio.run_coroutine_threadsafe(self.async_turn_off(), self.hass.loop).result()
 
     def get_native_value(self) -> Any | None:
         if (
             self.entity_description.key == "engine"
             and self._device_config[CONF_ENGINE_STATE_BY_RPM]
         ):
-            if (
-                current_rpm := self.pandora_device.state.engine_rpm
-            ) is not None:
+            if (current_rpm := self.pandora_device.state.engine_rpm) is not None:
                 return current_rpm > 0
         return super().get_native_value()
 

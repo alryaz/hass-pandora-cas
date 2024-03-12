@@ -35,9 +35,7 @@ async def async_setup_entry(
     from custom_components.pandora_cas import PandoraCASUpdateCoordinator
 
     new_entities = []
-    coordinator: PandoraCASUpdateCoordinator = hass.data[DOMAIN][
-        entry.entry_id
-    ]
+    coordinator: PandoraCASUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
     for device in coordinator.account.devices.values():
         # Add device tracker
         for entity_type in ENTITY_TYPES:
@@ -181,9 +179,7 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
                     (
                         device.state.rotation
                         if device.state
-                        and not self._device_config[
-                            CONF_DISABLE_CURSOR_ROTATION
-                        ]
+                        and not self._device_config[CONF_DISABLE_CURSOR_ROTATION]
                         else None
                     )
                     or 0,

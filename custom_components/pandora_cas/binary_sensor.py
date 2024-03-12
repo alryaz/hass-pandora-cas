@@ -14,12 +14,12 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.const import EntityCategory
 from homeassistant.helpers.typing import StateType
 
-from .api import BitStatus
-from .entity import (
+from custom_components.pandora_cas.entity import (
     async_platform_setup_entry,
     PandoraCASBooleanEntity,
     PandoraCASBooleanEntityDescription,
 )
+from pandora_cas.enums import BitStatus
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -286,9 +286,7 @@ class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
                 attributes["ready_status"] = state.ev_status_ready
             else:
                 attributes.update(
-                    dict.fromkeys(
-                        ("slow_charging", "fast_charging", "ready_status")
-                    )
+                    dict.fromkeys(("slow_charging", "fast_charging", "ready_status"))
                 )
 
         # # @TODO: fix for StateType typing

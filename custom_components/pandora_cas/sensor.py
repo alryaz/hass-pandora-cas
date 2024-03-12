@@ -34,7 +34,7 @@ from homeassistant.core import Event, callback
 from homeassistant.helpers.typing import StateType
 from homeassistant.util.dt import utc_from_timestamp
 
-from custom_components.pandora_cas.api import BalanceState
+from pandora_cas.data import BalanceState
 from custom_components.pandora_cas.const import *
 from custom_components.pandora_cas.entity import (
     async_platform_setup_entry,
@@ -379,10 +379,7 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
         self._last_timestamp = None
 
         key = self.entity_description.key
-        if (
-            key.startswith("mileage")
-            and self._device_config[CONF_MILEAGE_MILES]
-        ) or (
+        if (key.startswith("mileage") and self._device_config[CONF_MILEAGE_MILES]) or (
             key.startswith("can_mileage")
             and self._device_config[CONF_MILEAGE_CAN_MILES]
         ):
@@ -462,10 +459,7 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
 
             @callback
             def _event_filter(event: Event):
-                return (
-                    event.data.get("device_id")
-                    == self.pandora_device.device_id
-                )
+                return event.data.get("device_id") == self.pandora_device.device_id
 
             async def _schedule_update(*_):
                 self.async_schedule_update_ha_state()

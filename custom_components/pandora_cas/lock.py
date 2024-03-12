@@ -15,17 +15,14 @@ from homeassistant.components.lock import (
     LockEntityDescription,
 )
 
-from custom_components.pandora_cas.api import (
-    BitStatus,
-    CommandID,
-    PandoraOnlineDevice,
-)
 from custom_components.pandora_cas.const import CONF_FORCE_LOCK_ICONS
 from custom_components.pandora_cas.entity import (
     async_platform_setup_entry,
     PandoraCASBooleanEntityDescription,
     PandoraCASBooleanEntity,
 )
+from pandora_cas.device import PandoraOnlineDevice
+from pandora_cas.enums import CommandID, BitStatus
 
 if TYPE_CHECKING:
     from custom_components.pandora_cas import PandoraCASUpdateCoordinator

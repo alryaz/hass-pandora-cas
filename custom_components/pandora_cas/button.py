@@ -17,11 +17,6 @@ from homeassistant.const import EntityCategory
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 
-from custom_components.pandora_cas.api import (
-    CommandID,
-    PandoraDeviceTypes,
-    PandoraOnlineDevice,
-)
 from custom_components.pandora_cas.entity import (
     async_platform_setup_entry,
     PandoraCASEntity,
@@ -29,6 +24,8 @@ from custom_components.pandora_cas.entity import (
     CommandOptions,
     parse_description_command_id,
 )
+from pandora_cas.device import PandoraOnlineDevice
+from pandora_cas.enums import PandoraDeviceTypes, CommandID
 
 _LOGGER: Final = logging.getLogger(__name__)
 
@@ -138,10 +135,7 @@ class PandoraCASButton(PandoraCASEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         """Proxy method to run disable boolean command."""
-        if (
-            self._is_pressing
-            and not self.entity_description.allow_simultaneous_presses
-        ):
+        if self._is_pressing and not self.entity_description.allow_simultaneous_presses:
             raise HomeAssistantError(
                 "Simultaneous commands not allowed, wait until command completes"
             )
@@ -153,9 +147,7 @@ class PandoraCASButton(PandoraCASEntity, ButtonEntity):
 
     def press(self) -> None:
         """Compatibility for synchronous turn on calls."""
-        asyncio.run_coroutine_threadsafe(
-            self.async_press(), self.hass.loop
-        ).result()
+        asyncio.run_coroutine_threadsafe(self.async_press(), self.hass.loop).result()
 
     def update_native_value(self) -> bool:
         """Native value for this entity type does not get updated.

@@ -27,19 +27,17 @@ from homeassistant.helpers.trigger import TriggerActionType, TriggerInfo
 from homeassistant.helpers.typing import ConfigType
 
 from custom_components.pandora_cas import event_enum_to_type
-from custom_components.pandora_cas.api import PrimaryEventID
 from custom_components.pandora_cas.const import (
     EVENT_TYPE_EVENT,
     DOMAIN,
     CONF_EVENT_TYPE,
 )
+from pandora_cas.enums import PrimaryEventID
 
 _LOGGER: Final = logging.getLogger(__name__)
 
 TRIGGER_ID_MAPPING = {
-    event_enum_to_type(e): e
-    for e in PrimaryEventID
-    if e != PrimaryEventID.UNKNOWN
+    event_enum_to_type(e): e for e in PrimaryEventID if e != PrimaryEventID.UNKNOWN
 }
 
 TRIGGER_TYPES: Final = set(TRIGGER_ID_MAPPING)
@@ -72,9 +70,7 @@ async def async_get_triggers(
 
     # Find API device object by HA device ID
     if async_get_pandora_id_by_device_id(hass, device_id) is None:
-        raise InvalidDeviceAutomationConfig(
-            f"Not a {DOMAIN} device {device_id}"
-        )
+        raise InvalidDeviceAutomationConfig(f"Not a {DOMAIN} device {device_id}")
     return [
         {
             CONF_PLATFORM: DEVICE,
@@ -99,9 +95,7 @@ async def async_attach_trigger(
             hass, device_id := config[CONF_DEVICE_ID]
         )
     ) is None:
-        raise InvalidDeviceAutomationConfig(
-            f"Not a {DOMAIN} device {device_id}"
-        )
+        raise InvalidDeviceAutomationConfig(f"Not a {DOMAIN} device {device_id}")
 
     event_config = event_trigger.TRIGGER_SCHEMA(
         {

@@ -1,13 +1,18 @@
 {
     "domain": "pandora_cas",
     "name": "Pandora Car Alarm System",
-    "codeowners": ["@alryaz"],
+    "codeowners": [
+        "@alryaz"
+    ],
     "config_flow": true,
     "dependencies": [],
     "documentation": "https://github.com/alryaz/hass-pandora-cas",
     "integration_type": "hub",
     "iot_class": "cloud_push",
     "issue_tracker": "https://github.com/alryaz/hass-pandora-cas/issues",
-    "requirements": ["haversine~=2.8.0"],
-    "version": "2024.3.0"
+    "requirements": [
+        "haversine~=2.8.0",
+        "pandora-cas==0.0.1"
+    ],
+    "version": "2024.3.1"
 }

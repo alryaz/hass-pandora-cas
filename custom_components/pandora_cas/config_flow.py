@@ -44,7 +44,6 @@ from custom_components.pandora_cas import (
     BASE_INTEGRATION_OPTIONS_SCHEMA,
     DEVICE_OPTIONS_SCHEMA,
 )
-from custom_components.pandora_cas.api import PandoraOnlineAccount
 from custom_components.pandora_cas.const import (
     CONF_CUSTOM_CURSOR_TYPE,
     DEFAULT_CURSOR_TYPE,
@@ -63,6 +62,7 @@ from custom_components.pandora_cas.const import (
     MIN_EFFECTIVE_READ_TIMEOUT,
     DEFAULT_LANGUAGE,
 )
+from pandora_cas.account import PandoraOnlineAccount
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -71,9 +71,7 @@ async def async_options_flow_init_step_validate(
     handler: SchemaCommonFlowHandler,
     user_input: dict[str, Any],
 ) -> dict[str, Any]:
-    cursor_type = (
-        user_input.pop(CONF_CUSTOM_CURSOR_TYPE, None) or DEFAULT_CURSOR_TYPE
-    )
+    cursor_type = user_input.pop(CONF_CUSTOM_CURSOR_TYPE, None) or DEFAULT_CURSOR_TYPE
     if devices := user_input.pop(CONF_CUSTOM_CURSOR_DEVICES, None):
         custom_cursors = handler.options.setdefault(CONF_CUSTOM_CURSORS, {})
         if cursor_type == DEFAULT_CURSOR_TYPE:
@@ -183,9 +181,7 @@ class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
                 user_input[CONF_ACCESS_TOKEN] = account.access_token
 
                 # Clear user input from data that is destined for options
-                options = {
-                    CONF_VERIFY_SSL: user_input.pop(CONF_VERIFY_SSL, True)
-                }
+                options = {CONF_VERIFY_SSL: user_input.pop(CONF_VERIFY_SSL, True)}
 
                 return self.async_create_entry(
                     title=user_input[CONF_USERNAME],
@@ -221,9 +217,7 @@ class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         if (
-            entry := self.hass.config_entries.async_get_entry(
-                self.context["entry_id"]
-            )
+            entry := self.hass.config_entries.async_get_entry(self.context["entry_id"])
         ).source == SOURCE_IMPORT:
             return self.async_abort(reason="yaml_not_supported")
         self._reauth_entry = entry
@@ -256,20 +250,18 @@ STEP_SAVE: Final = "save"
 DEFAULT_LANGUAGE_OPTIONS: Final = ("ru", "en", "it")
 
 STEP_INTEGRATION_OPTIONS: Final = "integration_options"
-STEP_INTEGRATION_OPTIONS_SCHEMA: Final = (
-    BASE_INTEGRATION_OPTIONS_SCHEMA.extend(
-        {
-            vol.Optional(CONF_METHOD, default=METHOD_COMBO): vol.In(
-                {
-                    METHOD_COMBO: "WebSockets + HTTP",
-                    METHOD_POLL: "HTTP",
-                    METHOD_LISTEN: "WebSockets",
-                    METHOD_MANUAL: "Manual / Вручную",
-                }
-            )
-        },
-        extra=vol.REMOVE_EXTRA,
-    )
+STEP_INTEGRATION_OPTIONS_SCHEMA: Final = BASE_INTEGRATION_OPTIONS_SCHEMA.extend(
+    {
+        vol.Optional(CONF_METHOD, default=METHOD_COMBO): vol.In(
+            {
+                METHOD_COMBO: "WebSockets + HTTP",
+                METHOD_POLL: "HTTP",
+                METHOD_LISTEN: "WebSockets",
+                METHOD_MANUAL: "Manual / Вручную",
+            }
+        )
+    },
+    extra=vol.REMOVE_EXTRA,
 )
 
 STEP_DEVICE_OPTIONS: Final = "device_options"
@@ -362,12 +354,8 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
                 CONF_IGNORE_UPDATES_ENGINE_OFF
             ].options:
                 domain, _, key = full_key.partition("__")
-                translation_path = (
-                    f"component.{DOMAIN}.entity.{domain}.{key}.name"
-                )
-                entity_name = (
-                    f"{domain}: {translations.get(translation_path) or key}"
-                )
+                translation_path = f"component.{DOMAIN}.entity.{domain}.{key}.name"
+                entity_name = f"{domain}: {translations.get(translation_path) or key}"
                 entity_types_options[full_key] = entity_name
             self.device_options_schema = DEVICE_OPTIONS_SCHEMA.extend(
                 {
@@ -387,15 +375,13 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
                 schema, self.options.get(CONF_DEVICES, {}).get(pandora_id, {})
             )
         else:
-            self.options.setdefault(CONF_DEVICES, {}).setdefault(
-                pandora_id, {}
-            ).update(user_input)
+            self.options.setdefault(CONF_DEVICES, {}).setdefault(pandora_id, {}).update(
+                user_input
+            )
             self.current_pandora_id = None
             return await self.async_step_init()
 
-        return self.async_show_form(
-            step_id=STEP_DEVICE_OPTIONS, data_schema=schema
-        )
+        return self.async_show_form(step_id=STEP_DEVICE_OPTIONS, data_schema=schema)
 
     async def async_step_integration_options(
         self, user_input: dict[str, Any] | None = None
@@ -421,9 +407,7 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
         if user_input.get(CONF_LANGUAGE) in DEFAULT_LANGUAGE_OPTIONS:
             schema = schema.extend(
                 {
-                    vol.Optional(
-                        CONF_LANGUAGE, default=DEFAULT_LANGUAGE
-                    ): vol.In(
+                    vol.Optional(CONF_LANGUAGE, default=DEFAULT_LANGUAGE): vol.In(
                         {
                             "ru": "Русский (ru)",
                             "en": "English (en)",
@@ -435,16 +419,12 @@ class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
 
         return self.async_show_form(
             step_id=STEP_INTEGRATION_OPTIONS,
-            data_schema=self.add_suggested_values_to_schema(
-                schema, user_input
-            ),
+            data_schema=self.add_suggested_values_to_schema(schema, user_input),
             errors=errors,
         )
 
     def __getattr__(self, attribute):
-        if isinstance(attribute, str) and attribute.startswith(
-            "async_step_device_"
-        ):
+        if isinstance(attribute, str) and attribute.startswith("async_step_device_"):
             pandora_id = attribute[18:]
             target_method = None
             if pandora_id.startswith("options_"):

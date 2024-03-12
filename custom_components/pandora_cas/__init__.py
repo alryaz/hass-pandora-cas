@@ -77,22 +77,13 @@ from homeassistant.helpers.update_coordinator import (
 from homeassistant.loader import bind_hass
 from homeassistant.util import slugify
 
-from custom_components.pandora_cas.api import (
-    AuthenticationError,
-    CommandID,
-    CurrentState,
-    DEFAULT_USER_AGENT,
-    PandoraOnlineAccount,
-    PandoraOnlineDevice,
-    PandoraOnlineException,
-    TrackingEvent,
-    TrackingPoint,
-    Features,
-    MalformedResponseError,
-    PrimaryEventID,
-)
 from custom_components.pandora_cas.const import *
 from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
+from pandora_cas.account import PandoraOnlineAccount
+from pandora_cas.data import CurrentState, TrackingEvent, TrackingPoint
+from pandora_cas.device import PandoraOnlineDevice
+from pandora_cas.enums import CommandID, PrimaryEventID
+from pandora_cas.errors import AuthenticationError, MalformedResponseError
 
 _LOGGER: Final = logging.getLogger(__name__)
 
@@ -135,9 +126,7 @@ DEVICE_OPTIONS_SCHEMA: Final = vol.Schema(
             CONF_COORDINATES_DEBOUNCE,
             default=DEFAULT_COORDINATES_SMOOTHING,
         ): cv.positive_float,
-        vol.Optional(
-            CONF_CUSTOM_CURSOR_TYPE, default=DEFAULT_CURSOR_TYPE
-        ): vol.In(
+        vol.Optional(CONF_CUSTOM_CURSOR_TYPE, default=DEFAULT_CURSOR_TYPE): vol.In(
             (
                 DEFAULT_CURSOR_TYPE,
                 DISABLED_CURSOR_TYPE,
@@ -145,9 +134,7 @@ DEVICE_OPTIONS_SCHEMA: Final = vol.Schema(
             )
         ),
         vol.Optional(CONF_DISABLE_CURSOR_ROTATION, default=False): cv.boolean,
-        vol.Optional(
-            CONF_IGNORE_UPDATES_ENGINE_OFF, default=list
-        ): cv.multi_select(
+        vol.Optional(CONF_IGNORE_UPDATES_ENGINE_OFF, default=list): cv.multi_select(
             [
                 f"{platform}__{entity_type.key}"
                 for platform in PLATFORMS
@@ -162,11 +149,7 @@ DEVICE_OPTIONS_SCHEMA: Final = vol.Schema(
 """Schema for device options coming from saved entry"""
 
 ENTRY_OPTIONS_SCHEMA: Final = INTEGRATION_OPTIONS_SCHEMA.extend(
-    {
-        vol.Optional(CONF_DEVICES, default=dict): {
-            cv.string: DEVICE_OPTIONS_SCHEMA
-        }
-    },
+    {vol.Optional(CONF_DEVICES, default=dict): {cv.string: DEVICE_OPTIONS_SCHEMA}},
     extra=vol.REMOVE_EXTRA,
 )
 """Schema for configuration entry options coming from saved entry"""
@@ -182,10 +165,7 @@ ENTRY_DATA_SCHEMA: Final = vol.Schema(
 """Schema for configuration entry data coming from saved entry"""
 
 CONFIG_ENTRY_SCHEMA: Final = vol.All(
-    *(
-        cv.removed(platform_id, raise_if_present=False)
-        for platform_id in PLATFORMS
-    ),
+    *(cv.removed(platform_id, raise_if_present=False) for platform_id in PLATFORMS),
     cv.removed(CONF_RPM_COEFFICIENT, raise_if_present=False),
     cv.removed(CONF_RPM_OFFSET, raise_if_present=False),
     *(
@@ -261,9 +241,7 @@ async def _async_register_services(hass: HomeAssistant) -> None:
     async def _execute_remote_command(
         call: "ServiceCall", command_id: int | CommandID | None = None
     ) -> None:
-        _LOGGER.debug(
-            f"Called service '{call.service}' with data: {dict(call.data)}"
-        )
+        _LOGGER.debug(f"Called service '{call.service}' with data: {dict(call.data)}")
 
         try:
             device_id = int(call.data[ATTR_DEVICE_ID])
@@ -280,9 +258,7 @@ async def _async_register_services(hass: HomeAssistant) -> None:
             )
             break
         else:
-            raise HomeAssistantError(
-                f"Device with ID '{device_id}' not found."
-            )
+            raise HomeAssistantError(f"Device with ID '{device_id}' not found.")
 
         if command_id is None:
             command_id = call.data[ATTR_COMMAND_ID]
@@ -451,25 +427,20 @@ async def async_load_web_translations(
                     f"occurred on {datetime.fromtimestamp(last_update).isoformat()}, "
                     f"assuming data is stale."
                 )
-            elif not isinstance(
-                (language_data := saved_data.get(language)), dict
-            ):
+            elif not isinstance((language_data := saved_data.get(language)), dict):
                 _LOGGER.warning(
                     f"Data for language {language} is missing, "
                     f"assuming storage is corrupt."
                 )
             else:
                 _LOGGER.info(
-                    f"Data for language {language} is recent, "
-                    f"no updates required."
+                    f"Data for language {language} is recent, " f"no updates required."
                 )
                 return saved_data[language]
     else:
         _LOGGER.info("Translation data store initialization required.")
 
-    _LOGGER.info(
-        f"Will attempt to download translations for language: {language}"
-    )
+    _LOGGER.info(f"Will attempt to download translations for language: {language}")
 
     try:
         async with async_get_clientsession(hass, verify_ssl).get(
@@ -532,9 +503,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Prepare necessary data
     data = ENTRY_DATA_SCHEMA(dict(entry.data))
-    options = ENTRY_OPTIONS_SCHEMA(
-        {} if entry.options is None else dict(entry.options)
-    )
+    options = ENTRY_OPTIONS_SCHEMA({} if entry.options is None else dict(entry.options))
     username = entry.data[CONF_USERNAME]
     access_token = data.get(CONF_ACCESS_TOKEN)
 
@@ -579,15 +548,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     update_interval = None
     if not entry.pref_disable_polling:
         update_interval = timedelta(seconds=options[CONF_POLLING_INTERVAL])
-        logger.debug(
-            f"Setting up polling to refresh at {update_interval} interval"
-        )
+        logger.debug(f"Setting up polling to refresh at {update_interval} interval")
 
     # Setup update coordinator
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator = (
-        PandoraCASUpdateCoordinator(
-            hass, account, update_interval, logger=logger
-        )
+        PandoraCASUpdateCoordinator(hass, account, update_interval, logger=logger)
     )
     await coordinator.async_config_entry_first_refresh()
 
@@ -689,9 +654,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     )
                 else:
                     # Remove obsolete device if both found
-                    logger.info(
-                        f"Removing obsolete device entry for {pandora_id}"
-                    )
+                    logger.info(f"Removing obsolete device entry for {pandora_id}")
                     dev_reg.async_remove_device(remove_id)
 
         for pandora_id, device_id in entries_to_update.items():
@@ -722,9 +685,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             ] = cursor_type
 
         # Transition global offline_as_unavailable
-        if (
-            v := new_options.pop(CONF_OFFLINE_AS_UNAVAILABLE, None)
-        ) is not None:
+        if (v := new_options.pop(CONF_OFFLINE_AS_UNAVAILABLE, None)) is not None:
             _add_new_devices_option(CONF_OFFLINE_AS_UNAVAILABLE, v)
 
         entry.version = 9
@@ -816,9 +777,7 @@ class PandoraCASUpdateCoordinator(
     ) -> None:
         self.account = account
         self._device_configs = {}
-        super().__init__(
-            hass, logger, name=DOMAIN, update_interval=update_interval
-        )
+        super().__init__(hass, logger, name=DOMAIN, update_interval=update_interval)
 
     async def async_config_entry_first_refresh(self) -> None:
         await super().async_config_entry_first_refresh()
@@ -848,9 +807,7 @@ class PandoraCASUpdateCoordinator(
             return self._device_configs[device_id]
         except KeyError:
             config = DEVICE_OPTIONS_SCHEMA(
-                self.config_entry.options.get(CONF_DEVICES, {}).get(
-                    device_id, {}
-                )
+                self.config_entry.options.get(CONF_DEVICES, {}).get(device_id, {})
             )
             self._device_configs[device_id] = config
             return config
@@ -861,9 +818,7 @@ class PandoraCASUpdateCoordinator(
         )
         if effective_read_timeout is None:
             effective_read_timeout = DEFAULT_EFFECTIVE_READ_TIMEOUT
-        effective_read_timeout = max(
-            MIN_EFFECTIVE_READ_TIMEOUT, effective_read_timeout
-        )
+        effective_read_timeout = max(MIN_EFFECTIVE_READ_TIMEOUT, effective_read_timeout)
 
         while True:
             try:
@@ -927,7 +882,7 @@ class PandoraCASUpdateCoordinator(
     def _handle_ws_event(
         self,
         device: PandoraOnlineDevice,
-        event: TrackingEvent,
+        event: "TrackingEvent",
     ) -> None:
         """Pass event data to Home Assistant event bus."""
         self.logger.debug(
@@ -999,9 +954,7 @@ class PandoraCASUpdateCoordinator(
         )
 
         if state_args:
-            self.logger.debug(
-                f"Updating device {point.device_id} state through point"
-            )
+            self.logger.debug(f"Updating device {point.device_id} state through point")
             self._handle_ws_state(device, device.state, state_args)
 
     # noinspection PyUnusedLocal

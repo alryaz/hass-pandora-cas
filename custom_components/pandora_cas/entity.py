@@ -28,23 +28,17 @@ from homeassistant.helpers.entity_platform import (
 )
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.typing import StateType
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-)
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import slugify
 
-from custom_components.pandora_cas.api import (
-    PandoraOnlineDevice,
-    Features,
-    CommandID,
-    PandoraDeviceTypes,
-)
 from custom_components.pandora_cas.const import (
     DOMAIN,
     ATTR_COMMAND_ID,
     CONF_OFFLINE_AS_UNAVAILABLE,
     DEFAULT_WAITER_TIMEOUT,
 )
+from pandora_cas.device import PandoraOnlineDevice
+from pandora_cas.enums import PandoraDeviceTypes, CommandID, Features
 
 if TYPE_CHECKING:
     from custom_components.pandora_cas import PandoraCASUpdateCoordinator
@@ -52,9 +46,7 @@ if TYPE_CHECKING:
 _LOGGER: Final = logging.getLogger(__name__)
 
 
-def parse_description_command_id(
-    value: Any, device_type: str | None = None
-) -> int:
+def parse_description_command_id(value: Any, device_type: str | None = None) -> int:
     """Retrieve command from definition."""
     if value is None:
         raise NotImplementedError("command not defined")
@@ -91,9 +83,7 @@ async def async_platform_setup_entry(
     )
 
     new_entities = []
-    coordinator: "PandoraCASUpdateCoordinator" = hass.data[DOMAIN][
-        entry.entry_id
-    ]
+    coordinator: "PandoraCASUpdateCoordinator" = hass.data[DOMAIN][entry.entry_id]
     for device in coordinator.account.devices.values():
         # Apply filters
         for entity_description in entity_class.ENTITY_TYPES:
@@ -110,9 +100,7 @@ async def async_platform_setup_entry(
                         entity_registry_enabled_default=False,
                     )
 
-            new_entities.append(
-                entity_class(coordinator, device, entity_description)
-            )
+            new_entities.append(entity_class(coordinator, device, entity_description))
 
     if new_entities:
         async_add_entities(new_entities)
@@ -176,9 +164,7 @@ class BasePandoraCASEntity(Entity):
 class PandoraCASEntity(
     BasePandoraCASEntity, CoordinatorEntity["PandoraCASUpdateCoordinator"]
 ):
-    ENTITY_TYPES: ClassVar[Collection[PandoraCASEntityDescription]] = (
-        NotImplemented
-    )
+    ENTITY_TYPES: ClassVar[Collection[PandoraCASEntityDescription]] = NotImplemented
 
     entity_description: PandoraCASEntityDescription
     _attr_native_value: Any
@@ -322,9 +308,7 @@ class PandoraCASEntity(
     def _add_command_listener(self, command: CommandOptions | None) -> None:
         if command is None:
             return None
-        command_id = parse_description_command_id(
-            command, self.pandora_device.type
-        )
+        command_id = parse_description_command_id(command, self.pandora_device.type)
         if not isinstance(command_id, int):
             return None
         if (listeners := self._command_listeners) is None:
@@ -354,9 +338,7 @@ class PandoraCASEntity(
             if asyncio.iscoroutinefunction(command):
                 result = command(self.pandora_device)
             else:
-                result = self.hass.async_add_executor_job(
-                    command, self.pandora_device
-                )
+                result = self.hass.async_add_executor_job(command, self.pandora_device)
 
         else:
             raise TypeError("command type not supported")

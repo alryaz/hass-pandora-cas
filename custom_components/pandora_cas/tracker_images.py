@@ -4,8 +4,7 @@ import logging
 import re
 from os import listdir
 from os.path import dirname, join, isfile
-from typing import Final, Optional
-
+from typing import Final
 
 DEFAULT_CURSORS_PATH: Final = join(dirname(__file__), "cursors")
 
@@ -16,9 +15,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ImagesDefaultDict(dict):
-    def __init__(
-        self, default_cursor: str, autoload: bool = True, **kwargs
-    ) -> None:
+    def __init__(self, default_cursor: str, autoload: bool = True, **kwargs) -> None:
         super().__init__(**kwargs)
         self.default_cursor = default_cursor
         if autoload:
@@ -34,10 +31,9 @@ class ImagesDefaultDict(dict):
 
     def load_image_registry(self, path: str = DEFAULT_CURSORS_PATH) -> None:
         for file in listdir(path):
-            if not (
-                file.endswith(".svg") and isfile(file_path := join(path, file))
-            ):
+            if not (file.endswith(".svg") and isfile(file_path := join(path, file))):
                 continue
+            # noinspection PyUnboundLocalVariable
             with open(file_path, "r", encoding="utf8") as fp:
                 image_contents = fp.read()
             if not (m := _RE_TRANSFORMATION.search(image_contents)):
