@@ -15,6 +15,7 @@ from custom_components.pandora_cas.entity import (
     PandoraCASBooleanEntityDescription,
     PandoraCASBooleanEntity,
 )
+from pandora_cas.data import CurrentState
 from pandora_cas.enums import PandoraDeviceTypes, CommandID, BitStatus, Features
 
 _LOGGER = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ ENTITY_TYPES = [
         icon="mdi:shield-car",
         icon_off="mdi:shield-off",
         icon_turning_on="mdi:shield-sync",
-        attribute="bit_state",
+        attribute=CurrentState.bit_state,
         flag=BitStatus.ACTIVE_SECURITY_ENABLED,
         command_on=CommandID.ENABLE_ACTIVE_SECURITY,
         command_off=CommandID.DISABLE_ACTIVE_SECURITY,
@@ -40,7 +41,7 @@ ENTITY_TYPES = [
         icon_off="mdi:map-marker-off",
         icon_turning_on="mdi:map-marker-plus",
         icon_turning_off="mdi:map-marker-minus",
-        attribute="bit_state",
+        attribute=CurrentState.bit_state,
         flag=BitStatus.TRACKING_ENABLED,
         command_on=CommandID.ENABLE_TRACKING,
         command_off=CommandID.DISABLE_TRACKING,
@@ -52,7 +53,7 @@ ENTITY_TYPES = [
         icon="mdi:radiator-disabled",
         icon_on="mdi:radiator",
         icon_off="mdi:radiator-off",
-        attribute="bit_state",
+        attribute=CurrentState.bit_state,
         flag=BitStatus.BLOCK_HEATER_ACTIVE,
         command_on={
             None: CommandID.TURN_ON_BLOCK_HEATER,
@@ -69,7 +70,7 @@ ENTITY_TYPES = [
         name="Engine",
         icon_off="mdi:engine-off",
         icon="mdi:engine",
-        attribute="bit_state",
+        attribute=CurrentState.bit_state,
         flag=BitStatus.ENGINE_RUNNING,
         command_on=CommandID.START_ENGINE,
         command_off=CommandID.STOP_ENGINE,
@@ -80,7 +81,7 @@ ENTITY_TYPES = [
         key="service_mode",
         name="Service Mode",
         icon_off="mdi:wrench",
-        attribute="bit_state",
+        attribute=CurrentState.bit_state,
         flag=BitStatus.SERVICE_MODE_ACTIVE,
         command_on={
             None: CommandID.ENABLE_SERVICE_MODE,
@@ -95,7 +96,7 @@ ENTITY_TYPES = [
         key="ext_channel",
         name="Extra Channel",
         icon="mdi:export",
-        attribute="bit_state",
+        attribute=CurrentState.bit_state,
         command_on=CommandID.TURN_ON_EXT_CHANNEL,
         command_off=CommandID.TURN_OFF_EXT_CHANNEL,
         features=Features.EXT_CHANNEL,

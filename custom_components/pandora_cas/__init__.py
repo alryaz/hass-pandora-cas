@@ -239,7 +239,9 @@ SERVICE_PREDEFINED_COMMAND_SCHEMA = vol.All(
 @bind_hass
 async def _async_register_services(hass: HomeAssistant) -> None:
     async def _execute_remote_command(
-        call: "ServiceCall", command_id: int | CommandID | None = None
+        call: "ServiceCall",
+        command_id: int | CommandID | None = None,
+        params: Mapping[str, Any] | None = None,
     ) -> None:
         _LOGGER.debug(f"Called service '{call.service}' with data: {dict(call.data)}")
 
@@ -263,7 +265,7 @@ async def _async_register_services(hass: HomeAssistant) -> None:
         if command_id is None:
             command_id = call.data[ATTR_COMMAND_ID]
 
-        result = device.async_remote_command(command_id, ensure_complete=False)
+        result = device.async_remote_command(command_id, params, ensure_complete=False)
         if asyncio.iscoroutine(result):
             await result
 

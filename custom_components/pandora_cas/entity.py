@@ -4,6 +4,7 @@ import logging
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Flag
+from types import MemberDescriptorType
 from typing import (
     Type,
     Callable,
@@ -114,8 +115,8 @@ async def async_platform_setup_entry(
 
 @dataclass
 class PandoraCASEntityDescription(EntityDescription):
-    attribute: str | None = None
-    attribute_source: str | None = "state"
+    attribute: str | MemberDescriptorType | None = None
+    attribute_source: str | MemberDescriptorType | None = "state"
     online_sensitive: bool = True
     features: Features | None = None
     assumed_state: bool = False
@@ -127,6 +128,10 @@ class PandoraCASEntityDescription(EntityDescription):
 
     def __post_init__(self):
         """Set translation key to entity description key."""
+        if isinstance(self.attribute, MemberDescriptorType):
+            self.attribute = self.attribute.__name__
+        if isinstance(self.attribute_source, MemberDescriptorType):
+            self.attribute_source = self.attribute_source.__name__
         if not self.translation_key:
             self.translation_key = self.key
 
@@ -323,14 +328,16 @@ class PandoraCASEntity(
             )
         )
 
-    async def run_device_command(self, command: CommandOptions):
+    async def run_device_command(
+        self, command: CommandOptions, params: Mapping[str, Any] | None = None
+    ):
         if command is None:
             raise ValueError("command not provided")
 
         # Use integer enumerations as direct command identifiers
         if isinstance(command, (int, CommandID)):
             result = self.pandora_device.async_remote_command(
-                command, ensure_complete=False
+                command, ensure_complete=False, params=params
             )
 
         # Treat callables as separate options

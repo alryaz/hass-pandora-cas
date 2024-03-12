@@ -21,6 +21,7 @@ from custom_components.pandora_cas.entity import (
     PandoraCASBooleanEntityDescription,
     PandoraCASBooleanEntity,
 )
+from pandora_cas.data import CurrentState
 from pandora_cas.device import PandoraOnlineDevice
 from pandora_cas.enums import CommandID, BitStatus
 
@@ -44,7 +45,7 @@ ENTITY_TYPES = [
         key="central_lock",
         name="Central Lock",
         online_sensitive=True,
-        attribute="bit_state",
+        attribute=CurrentState.bit_state,
         flag=BitStatus.LOCKED,
         command_on=CommandID.LOCK,
         command_off=CommandID.UNLOCK,
