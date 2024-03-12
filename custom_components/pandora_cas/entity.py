@@ -330,7 +330,10 @@ class PandoraCASEntity(
         )
 
     async def run_device_command(
-        self, command: CommandOptions, params: Mapping[str, Any] | None = None
+        self,
+        command: CommandOptions,
+        params: Mapping[str, Any] | None = None,
+        ensure_complete: bool = False,
     ):
         if command is None:
             raise ValueError("command not provided")
@@ -338,7 +341,7 @@ class PandoraCASEntity(
         # Use integer enumerations as direct command identifiers
         if isinstance(command, (int, CommandID)):
             result = self.pandora_device.async_remote_command(
-                command, ensure_complete=False, params=params
+                command, params, ensure_complete=ensure_complete
             )
 
         # Treat callables as separate options
@@ -371,11 +374,19 @@ class PandoraCASEntity(
             self.async_write_ha_state()
             raise
 
-    async def run_device_command_sequence(self, commands: Sequence[CommandOptions]):
+    async def run_device_command_sequence(
+        self,
+        commands: Sequence[CommandOptions],
+        ensure_complete: bool = True,
+        interval: float | None = None,
+    ):
         if not commands:
             raise ValueError("commands not provided")
 
-        coroutines = [self.run_device_command(command) for command in commands]
+        coroutines = [
+            self.run_device_command(command, ensure_complete=ensure_complete)
+            for command in commands
+        ]
 
         for index, coroutine in enumerate(coroutines):
             try:
@@ -384,6 +395,9 @@ class PandoraCASEntity(
                 for coroutine in coroutines[index + 1 :]:
                     coroutine.close()
                 raise e
+            else:
+                if interval is not None and (index + 1) < len(coroutines):
+                    await asyncio.sleep(interval)
 
     async def async_will_remove_from_hass(self) -> None:
         if (waiter := self._command_waiter) is not None:
