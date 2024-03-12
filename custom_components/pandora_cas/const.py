@@ -68,6 +68,7 @@ ATTR_TIMESTAMP: Final = "timestamp"
 ATTR_TITLE_PRIMARY: Final = "title_primary"
 ATTR_TITLE_SECONDARY: Final = "title_secondary"
 ATTR_TRACK_ID: Final = "track_id"
+ATTR_CODES: Final = "codes"
 
 # Home Assistant bus event identifiers
 EVENT_TYPE_COMMAND: Final = DOMAIN + "_command"

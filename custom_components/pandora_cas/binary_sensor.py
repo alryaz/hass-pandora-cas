@@ -15,6 +15,7 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.const import EntityCategory
 from homeassistant.helpers.typing import StateType
 
+from custom_components.pandora_cas.const import ATTR_CODES
 from custom_components.pandora_cas.entity import (
     async_platform_setup_entry,
     PandoraCASBooleanEntity,
@@ -267,6 +268,13 @@ ENTITY_TYPES = [
         attribute=CurrentState.bit_state,
         flag=BitStatus.ENGINE_LOCKED,
     ),
+    PandoraCASBinarySensorEntityDescription(
+        key="heater_errors",
+        name="Heater Errors",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        attribute=CurrentState.heater_errors,
+        entity_registry_enabled_default=False,
+    ),
 ]
 
 
@@ -299,6 +307,11 @@ class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
                 attributes.update(
                     dict.fromkeys(("slow_charging", "fast_charging", "ready_status"))
                 )
+
+        elif key == "heater_errors":
+            attributes[ATTR_CODES] = (
+                sorted(state.heater_errors) if (self.available and state) else None
+            )
 
         # # @TODO: fix for StateType typing
         # elif key == "connection_state":

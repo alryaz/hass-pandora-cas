@@ -286,6 +286,14 @@
       }
     },
     "button": {
+      "enable_stealth_mode": {
+        "name": "Enable Stealth Mode",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
       "erase_errors": {
         "name": "Erase Errors",
         "state_attributes": {

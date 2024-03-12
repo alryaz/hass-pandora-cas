@@ -117,6 +117,12 @@ ENTITY_TYPES = [
         command=CommandID.CLIMATE_MODE_VENT,
         entity_registry_enabled_default=False,
     ),
+    PandoraCASButtonEntityDescription(
+        key="enable_stealth_mode",
+        name="Enable Stealth Mode",
+        icon="mdi:chip",
+        command=CommandID.ENABLE_STEALTH_MODE,
+    ),
 ]
 
 
