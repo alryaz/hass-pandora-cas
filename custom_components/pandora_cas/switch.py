@@ -140,8 +140,8 @@ ENTITY_TYPES = [
     PandoraCASBooleanEntityDescription(
         key="climate_air_conditioning",
         name="Climate Air Conditioning",
-        icon="mdi:steering",
-        icon_off="mdi:steering-off",
+        icon="mdi:air-conditioner",
+        icon_off="mdi:fan-off",
         attribute=CurrentState.can_climate_ac,
         command_on=CommandID.CLIMATE_AC_TURN_ON,
         command_off=CommandID.CLIMATE_AC_TURN_OFF,
