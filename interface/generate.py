@@ -8,8 +8,7 @@ import attr
 from PIL import Image
 
 
-class NotSet(object):
-    ...
+class NotSet(object): ...
 
 
 NOT_SET = NotSet()
