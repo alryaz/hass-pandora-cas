@@ -59,6 +59,7 @@ ENTITY_TYPES: list[PandoraCASNumberEntityDescription] = [
         native_unit_of_measurement=UnitOfTemperature.CELSIUS,
         device_class=NumberDeviceClass.TEMPERATURE,
         mode=NumberMode.SLIDER,
+        entity_registry_enabled_default=False,
     ),
     PandoraCASNumberEntityDescription(
         key="climate_seat_heating",
@@ -71,6 +72,7 @@ ENTITY_TYPES: list[PandoraCASNumberEntityDescription] = [
         native_max_value=0,
         native_step=1,
         mode=NumberMode.SLIDER,
+        entity_registry_enabled_default=False,
     ),
     PandoraCASNumberEntityDescription(
         key="climate_seat_ventilation",
@@ -83,6 +85,7 @@ ENTITY_TYPES: list[PandoraCASNumberEntityDescription] = [
         native_max_value=0,
         native_step=1,
         mode=NumberMode.SLIDER,
+        entity_registry_enabled_default=False,
     ),
 ]
 
