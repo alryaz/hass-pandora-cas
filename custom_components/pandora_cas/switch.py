@@ -7,7 +7,11 @@ import logging
 from functools import partial
 from typing import Any
 
-from homeassistant.components.switch import SwitchEntity, ENTITY_ID_FORMAT
+from homeassistant.components.switch import (
+    SwitchEntity,
+    ENTITY_ID_FORMAT,
+    SwitchEntityDescription,
+)
 
 from custom_components.pandora_cas.const import CONF_ENGINE_STATE_BY_RPM
 from custom_components.pandora_cas.entity import (
@@ -20,9 +24,16 @@ from pandora_cas.enums import PandoraDeviceTypes, CommandID, BitStatus, Features
 
 _LOGGER = logging.getLogger(__name__)
 
+
+class PandoraCASSwitchEntityDescription(
+    PandoraCASBooleanEntityDescription, SwitchEntityDescription
+):
+    """Switch entity description for Pandora"""
+
+
 # noinspection PyArgumentList
 ENTITY_TYPES = [
-    PandoraCASBooleanEntityDescription(
+    PandoraCASSwitchEntityDescription(
         key="active_security",
         name="Active Security",
         icon="mdi:shield-car",
@@ -34,7 +45,7 @@ ENTITY_TYPES = [
         command_off=CommandID.DISABLE_ACTIVE_SECURITY,
         features=Features.ACTIVE_SECURITY,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASSwitchEntityDescription(
         key="tracking",
         name="Tracking",
         icon="mdi:map-marker-path",
@@ -47,7 +58,7 @@ ENTITY_TYPES = [
         command_off=CommandID.DISABLE_TRACKING,
         features=Features.TRACKING,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASSwitchEntityDescription(
         key="block_heater",
         name="Block Heater",
         icon="mdi:radiator-disabled",
@@ -65,7 +76,7 @@ ENTITY_TYPES = [
         },
         features=Features.BLOCK_HEATER,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASSwitchEntityDescription(
         key="engine",
         name="Engine",
         icon_off="mdi:engine-off",
@@ -77,7 +88,7 @@ ENTITY_TYPES = [
         force_update_method_call=True,
         # features=Features.AUTO_START,  # @TODO: check whether true
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASSwitchEntityDescription(
         key="service_mode",
         name="Service Mode",
         icon_off="mdi:wrench",
@@ -92,7 +103,7 @@ ENTITY_TYPES = [
             PandoraDeviceTypes.NAV12: CommandID.DISABLE_SERVICE_MODE,
         },
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASSwitchEntityDescription(
         key="ext_channel",
         name="Extra Channel",
         icon="mdi:export",
@@ -102,7 +113,7 @@ ENTITY_TYPES = [
         features=Features.EXT_CHANNEL,
         assumed_state=True,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASSwitchEntityDescription(
         key="status_output",
         name="Status Output",
         icon="mdi:led-off",
@@ -118,7 +129,7 @@ ENTITY_TYPES = [
         },
         assumed_state=True,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASSwitchEntityDescription(
         key="climate_glass_heating",
         name="Climate Glass Heating",
         icon="mdi:mirror",
@@ -127,7 +138,7 @@ ENTITY_TYPES = [
         command_off=CommandID.CLIMATE_GLASS_HEAT_TURN_OFF,
         entity_registry_enabled_default=False,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASSwitchEntityDescription(
         key="climate_steering_heating",
         name="Climate Steering Heating",
         icon="mdi:steering",
@@ -137,7 +148,7 @@ ENTITY_TYPES = [
         command_off=CommandID.CLIMATE_STEERING_HEAT_TURN_OFF,
         entity_registry_enabled_default=False,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASSwitchEntityDescription(
         key="climate_air_conditioning",
         name="Climate Air Conditioning",
         icon="mdi:air-conditioner",
@@ -147,7 +158,7 @@ ENTITY_TYPES = [
         command_off=CommandID.CLIMATE_AC_TURN_OFF,
         entity_registry_enabled_default=False,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASSwitchEntityDescription(
         key="climate_system",
         name="Climate System",
         icon="mdi:hvac",
@@ -157,7 +168,7 @@ ENTITY_TYPES = [
         command_off=CommandID.CLIMATE_SYS_TURN_OFF,
         entity_registry_enabled_default=False,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASSwitchEntityDescription(
         key="climate_defroster",
         name="Climate Defroster",
         icon="mdi:defrost-front",
@@ -167,7 +178,7 @@ ENTITY_TYPES = [
         command_off=CommandID.CLIMATE_DEFROSTER_TURN_OFF,
         entity_registry_enabled_default=False,
     ),
-    PandoraCASBooleanEntityDescription(
+    PandoraCASSwitchEntityDescription(
         key="climate_battery_heating",
         name="Climate Battery Heating",
         icon="mdi:car-battery",
@@ -182,6 +193,8 @@ ENTITY_TYPES = [
 class PandoraCASSwitch(PandoraCASBooleanEntity, SwitchEntity):
     ENTITY_TYPES = ENTITY_TYPES
     ENTITY_ID_FORMAT = ENTITY_ID_FORMAT
+
+    entity_description: PandoraCASSwitchEntityDescription
 
     @property
     def is_on(self) -> bool | None:
