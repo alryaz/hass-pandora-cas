@@ -17,6 +17,7 @@ from typing import (
     Awaitable,
     TYPE_CHECKING,
     Final,
+    Sequence,
 )
 
 from homeassistant.config_entries import ConfigEntry
@@ -369,6 +370,20 @@ class PandoraCASEntity(
             self._last_command_failed = True
             self.async_write_ha_state()
             raise
+
+    async def run_device_command_sequence(self, commands: Sequence[CommandOptions]):
+        if not commands:
+            raise ValueError("commands not provided")
+
+        coroutines = [self.run_device_command(command) for command in commands]
+
+        for index, coroutine in enumerate(coroutines):
+            try:
+                await coroutine
+            except Exception as e:
+                for coroutine in coroutines[index + 1 :]:
+                    coroutine.close()
+                raise e
 
     async def async_will_remove_from_hass(self) -> None:
         if (waiter := self._command_waiter) is not None:

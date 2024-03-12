@@ -9,6 +9,7 @@ PLATFORMS: Final = (
     Platform.BUTTON,
     Platform.DEVICE_TRACKER,
     Platform.LOCK,
+    Platform.NUMBER,
     Platform.SENSOR,
     Platform.SWITCH,
 )
