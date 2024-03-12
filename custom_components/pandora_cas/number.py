@@ -26,7 +26,7 @@ from custom_components.pandora_cas.entity import (
     CommandOptions,
 )
 from pandora_cas.data import CurrentState
-from pandora_cas.enums import CommandParams
+from pandora_cas.enums import CommandParams, CommandID
 
 _LOGGER: Final = logging.getLogger(__name__)
 
@@ -51,6 +51,7 @@ ENTITY_TYPES: list[PandoraCASNumberEntityDescription] = [
         name="Climate Target Temperature",
         icon="mdi:thermometer",
         attribute=CurrentState.can_climate_temperature,
+        command_set=CommandID.CLIMATE_SET_TEMPERATURE,
         parameter=CommandParams.CLIMATE_TEMP,
         converter=int,
         native_min_value=0,
@@ -66,6 +67,8 @@ ENTITY_TYPES: list[PandoraCASNumberEntityDescription] = [
         name="Climate Seat Heating",
         icon="mdi:car-seat-heater",
         icon_min="mdi:car-seat",
+        command_set=CommandID.CLIMATE_SEAT_HEAT_TURN_ON,
+        command_init=CommandID.CLIMATE_SEAT_HEAT_TURN_OFF,
         attribute=CurrentState.can_climate_seat_heat_level,
         incremental=False,
         native_min_value=0,
@@ -79,6 +82,8 @@ ENTITY_TYPES: list[PandoraCASNumberEntityDescription] = [
         name="Climate Seat Ventilation",
         icon="mdi:car-seat-cooler",
         icon_min="mdi:car-seat",
+        command_set=CommandID.CLIMATE_SEAT_VENT_TURN_ON,
+        command_init=CommandID.CLIMATE_SEAT_VENT_TURN_OFF,
         attribute=CurrentState.can_climate_seat_vent_level,
         incremental=False,
         native_min_value=0,
