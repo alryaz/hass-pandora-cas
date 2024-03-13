@@ -35,31 +35,93 @@ jobs:
         id: previous_version
         run: echo "PREVIOUS_VERSION=$(git show HEAD~:custom_components/$DOMAIN/manifest.json | jq -r '.version')" >> $GITHUB_ENV
 
-      - name: Create Tag
+      - name: Collect Changes
         if: ${{ env.CURRENT_VERSION != env.PREVIOUS_VERSION }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const version = '${{ steps.current_version.outputs.version }}';
-            github.rest.git.createRef({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              ref: `refs/tags/v${version}`,
-              sha: '${{ github.sha }}'
-            });
+        id: collect_changes
+        run: |
+          PREVIOUS_TAG=$(git rev-list -n 1 v${{ env.PREVIOUS_VERSION }})
+          CURRENT_SHA=${{ github.sha }}
+          if [ -z "$PREVIOUS_TAG" ]; then
+            # Fallback in case there's no previous tag
+            CHANGELOG=$(git log --pretty=format:"%s%n%b" $(git rev-list --max-parents=0 HEAD)..$CURRENT_SHA)
+          else
+            CHANGELOG=$(git log --pretty=format:"%s%n%b" $PREVIOUS_TAG..$CURRENT_SHA)
+          fi
+          
+          # Initialize section variables
+          ALL_FEATURES=""
+          ALL_FIXES=""
+          ALL_CHANGES=""
+          ALL_OTHER=""
+
+          # Process each commit message
+          echo "Processing changelog"
+          echo "$CHANGELOG" | while IFS= read -r line; do
+            if [[ "$line" == "feat"* ]]; then
+              echo "Adding features line: $line"
+              ALL_FEATURES+="- $line\n"
+            elif [[ "$line" == "fix"* ]]; then
+              echo "Adding fixes line: $line"
+              ALL_FIXES+="- $line\n"
+            elif [[ "$line" == "refactor"* ]]; then
+              echo "Adding changes line: $line"
+              ALL_CHANGES+="- $line\n"
+            elif [[ ! -z "$line" ]]; then
+              echo "Adding others line: $line"
+              ALL_OTHER+="- $line\n"
+            fi
+          done
+
+          # Start with an empty formatted changelog
+          CHANGELOG=""
+
+          # Add sections if not empty
+          if [ ! -z "$ALL_FEATURES" ]; then
+            CHANGELOG+="## :new: Нововведения\n\n${ALL_FEATURES}\n"
+          else
+            echo "All features are empty: $ALL_FEATURES"
+          fi
+          if [ ! -z "$ALL_FIXES" ]; then
+            CHANGELOG+="## :bug: Исправления\n\n${ALL_FIXES}\n"
+          else
+            echo "All fixes are empty: $ALL_FIXES"
+          fi
+          if [ ! -z "$ALL_CHANGES" ]; then
+            CHANGELOG+="## :wrench: Изменения\n\n${ALL_CHANGES}"
+          else
+            echo "All changes are empty: $ALL_CHANGES"
+          fi
+          if [ ! -z "$ALL_OTHER" ]; then
+            CHANGELOG+="## :information_source: Примечания\n\n${ALL_OTHER}"
+          else
+            echo "All other are empty: $ALL_OTHER"
+          fi
+          
+          echo "Resulting changelog:"
+          echo "$CHANGELOG"
+          
+          echo "After removing spaces:"
+          echo "$CHANGELOG" | sed '$d'
+
+          # Save to GITHUB_ENV
+          {
+            echo 'CHANGELOG<<EOF'
+            echo -e "$CHANGELOG" | sed '$d'
+            echo 'EOF'
+          } >> $GITHUB_ENV
 
       - name: Create Pre-release
         if: ${{ env.CURRENT_VERSION != env.PREVIOUS_VERSION }}
         uses: actions/github-script@v7
         with:
           script: |
-            const version = '${{ steps.current_version.outputs.version }}';
+            const {CHANGELOG, CURRENT_VERSION} = process.env;
             github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              tag_name: `v${version}`,
-              name: `v${version}`,
-              body: "## :new: Нововведения\n\n<!-- ... -->\n\n## :bug: Исправления\n\n<!-- ... -->\n\n## :wrench: Изменения\n\n<!-- ... -->\n\n## :information_source: Примечания\n\n<!-- ... -->",
+              tag_name: `v${CURRENT_VERSION}`,
+              name: `v${CURRENT_VERSION}`,
+              body: `${CHANGELOG}`,
               draft: false,
               prerelease: true,
             });
