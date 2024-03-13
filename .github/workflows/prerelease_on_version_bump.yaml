@@ -22,32 +22,21 @@ jobs:
             echo "Error: There must be exactly one custom component directory." >&2
             exit 1
           fi
-          DOMAIN=$(basename $(find custom_components/* -maxdepth 0 -type d))
-          echo "::set-output name=domain::$DOMAIN"
+          echo "DOMAIN=$(basename $(find custom_components/* -maxdepth 0 -type d))" >> $GITHUB_ENV
 
       - name: Install JQ
         run: sudo apt-get install jq
 
       - name: Extract version from current commit
         id: current_version
-        run: |
-          DOMAIN=${{ steps.detect_integration.outputs.domain }}
-          VERSION=$(jq -r '.version' custom_components/$DOMAIN/manifest.json)
-          echo "::set-output name=version::$VERSION"
+        run: echo "CURRENT_VERSION=$(jq -r '.version' custom_components/$DOMAIN/manifest.json)" >> $GITHUB_ENV
 
       - name: Extract version from previous commit
         id: previous_version
-        run: |
-          DOMAIN=${{ steps.detect_integration.outputs.domain }}
-          PREV_VERSION=$(git show HEAD~:custom_components/$DOMAIN/manifest.json | jq -r '.version')
-          echo "::set-output name=version::$PREV_VERSION"
-
-      - name: Check if version changed
-        if: steps.current_version.outputs.version != steps.previous_version.outputs.version
-        run: echo "Version changed."
+        run: echo "PREVIOUS_VERSION=$(git show HEAD~:custom_components/$DOMAIN/manifest.json | jq -r '.version')" >> $GITHUB_ENV
 
       - name: Create Tag
-        if: steps.current_version.outputs.version != steps.previous_version.outputs.version
+        if: ${{ env.CURRENT_VERSION != env.PREVIOUS_VERSION }}
         uses: actions/github-script@v7
         with:
           script: |
@@ -60,7 +49,7 @@ jobs:
             });
 
       - name: Create Pre-release
-        if: steps.current_version.outputs.version != steps.previous_version.outputs.version
+        if: ${{ env.CURRENT_VERSION != env.PREVIOUS_VERSION }}
         uses: actions/github-script@v7
         with:
           script: |
