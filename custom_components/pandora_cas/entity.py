@@ -392,8 +392,8 @@ class PandoraCASEntity(
             try:
                 await coroutine
             except Exception as e:
-                for coroutine in coroutines[index + 1 :]:
-                    coroutine.close()
+                for next_coroutine in coroutines[index + 1 :]:
+                    next_coroutine.close()
                 raise e
             else:
                 if interval is not None and (index + 1) < len(coroutines):
