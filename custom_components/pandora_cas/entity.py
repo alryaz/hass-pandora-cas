@@ -93,9 +93,11 @@ async def async_platform_setup_entry(
                 entity_description.entity_registry_enabled_default is True
                 and (features := entity_description.features) is not None
             ):
-                if (
-                    device_features := device.features
-                ) is None or not features & device_features:
+                if isinstance(features, Features):
+                    features = (features,)
+                if (device_features := device.features) is None or not any(
+                    feature_set & device_features for feature_set in features
+                ):
                     # noinspection PyArgumentList
                     entity_description = dataclasses.replace(
                         entity_description,
@@ -119,7 +121,7 @@ class PandoraCASEntityDescription(EntityDescription):
     attribute: str | MemberDescriptorType | None = None
     attribute_source: str | MemberDescriptorType | None = "state"
     online_sensitive: bool = True
-    features: Features | None = None
+    features: Features | tuple[Features, ...] | None = None
     assumed_state: bool = False
     compatible_types: Collection[str | None] = (
         PandoraDeviceTypes.ALARM,
