@@ -844,8 +844,12 @@
       "description": "Execute primary user-defined action.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Additional Command 1"
@@ -854,8 +858,12 @@
       "description": "Execute secondary user-defined action.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Additional Command 2"
@@ -864,8 +872,12 @@
       "description": "Initiate telemetry retrieval operation (update data).",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Check"
@@ -874,8 +886,12 @@
       "description": "Execute command on the remote device: CLIMATE_AC_TURN_OFF (58634)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Ac Turn Off"
@@ -884,8 +900,12 @@
       "description": "Execute command on the remote device: CLIMATE_AC_TURN_ON (58633)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Ac Turn On"
@@ -894,8 +914,12 @@
       "description": "Execute command on the remote device: CLIMATE_BATTERY_HEAT_TURN_OFF (58648)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Battery Heat Turn Off"
@@ -904,8 +928,12 @@
       "description": "Execute command on the remote device: CLIMATE_BATTERY_HEAT_TURN_ON (58647)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Battery Heat Turn On"
@@ -914,8 +942,12 @@
       "description": "Execute command on the remote device: CLIMATE_DEFROSTER_TURN_OFF (58638)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Defroster Turn Off"
@@ -924,8 +956,12 @@
       "description": "Execute command on the remote device: CLIMATE_DEFROSTER_TURN_ON (58637)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Defroster Turn On"
@@ -934,8 +970,12 @@
       "description": "Execute command on the remote device: CLIMATE_GLASS_HEAT_TURN_OFF (58630)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Glass Heat Turn Off"
@@ -944,8 +984,12 @@
       "description": "Execute command on the remote device: CLIMATE_GLASS_HEAT_TURN_ON (58629)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Glass Heat Turn On"
@@ -954,8 +998,12 @@
       "description": "Execute command on the remote device: CLIMATE_MODE_COMFORT (58639)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Mode Comfort"
@@ -964,8 +1012,12 @@
       "description": "Execute command on the remote device: CLIMATE_MODE_VENT (58640)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Mode Vent"
@@ -974,8 +1026,12 @@
       "description": "Execute command on the remote device: CLIMATE_SEAT_HEAT_TURN_OFF (58626)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Seat Heat Turn Off"
@@ -984,8 +1040,12 @@
       "description": "Execute command on the remote device: CLIMATE_SEAT_HEAT_TURN_ON (58625)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Seat Heat Turn On"
@@ -994,8 +1054,12 @@
       "description": "Execute command on the remote device: CLIMATE_SEAT_VENT_TURN_OFF (58628)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Seat Vent Turn Off"
@@ -1004,8 +1068,12 @@
       "description": "Execute command on the remote device: CLIMATE_SEAT_VENT_TURN_ON (58627)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Seat Vent Turn On"
@@ -1018,8 +1086,12 @@
           "name": "Target Temperature"
         },
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Set Temperature"
@@ -1028,8 +1100,12 @@
       "description": "Execute command on the remote device: CLIMATE_STEERING_HEAT_TURN_OFF (58632)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Steering Heat Turn Off"
@@ -1038,8 +1114,12 @@
       "description": "Execute command on the remote device: CLIMATE_STEERING_HEAT_TURN_ON (58631)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Steering Heat Turn On"
@@ -1048,8 +1128,12 @@
       "description": "Execute command on the remote device: CLIMATE_SYS_TURN_OFF (58636)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Sys Turn Off"
@@ -1058,8 +1142,12 @@
       "description": "Execute command on the remote device: CLIMATE_SYS_TURN_ON (58635)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Climate Sys Turn On"
@@ -1068,8 +1156,12 @@
       "description": "Deactivate enhanced security measures.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Disable Active Security"
@@ -1078,8 +1170,12 @@
       "description": "Prevent real time telemetric connections with online services.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Disable Connection"
@@ -1088,8 +1184,12 @@
       "description": "Deactivate the service mode.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Disable Service Mode"
@@ -1098,8 +1198,12 @@
       "description": "Activate additional status output channel.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Disable Status Output"
@@ -1108,8 +1212,12 @@
       "description": "Deactivate the vehicle's tracking system.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Disable Tracking"
@@ -1118,8 +1226,12 @@
       "description": "Activate enhanced security measures.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Enable Active Security"
@@ -1128,8 +1240,12 @@
       "description": "Allow real time telemetric connections with online services.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Enable Connection"
@@ -1138,8 +1254,12 @@
       "description": "Active the service mode.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Enable Service Mode"
@@ -1148,8 +1268,12 @@
       "description": "Activate additional status output channel.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Enable Status Output"
@@ -1158,8 +1282,12 @@
       "description": "Execute command on the remote device: ENABLE_STEALTH_MODE (50)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Enable Stealth Mode"
@@ -1168,8 +1296,12 @@
       "description": "Activate the vehicle's tracking system.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Enable Tracking"
@@ -1178,8 +1310,12 @@
       "description": "Clear stored diagnostic trouble codes.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Erase Diagnostic Trouble Codes (DTC)"
@@ -1188,8 +1324,12 @@
       "description": "Engage the vehicle's security mechanism to prevent access.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Lock"
@@ -1198,8 +1338,12 @@
       "description": "Execute command on the remote device: NAV12_DISABLE_SERVICE_MODE (57374)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Nav12 Disable Service Mode"
@@ -1208,8 +1352,12 @@
       "description": "Execute command on the remote device: NAV12_DISABLE_STATUS_OUTPUT (57371)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Nav12 Disable Status Output"
@@ -1218,8 +1366,12 @@
       "description": "Execute command on the remote device: NAV12_ENABLE_SERVICE_MODE (57375)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Nav12 Enable Service Mode"
@@ -1228,8 +1380,12 @@
       "description": "Execute command on the remote device: NAV12_ENABLE_STATUS_OUTPUT (57372)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Nav12 Enable Status Output"
@@ -1238,8 +1394,12 @@
       "description": "Execute command on the remote device: NAV12_RESET_ERRORS (57408)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Nav12 Reset Errors"
@@ -1248,8 +1408,12 @@
       "description": "Execute command on the remote device: NAV12_TURN_OFF_BLOCK_HEATER (57353)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Nav12 Turn Off Block Heater"
@@ -1258,8 +1422,12 @@
       "description": "Execute command on the remote device: NAV12_TURN_ON_BLOCK_HEATER (57354)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Nav12 Turn On Block Heater"
@@ -1268,8 +1436,12 @@
       "description": "Execute command on the remote device: PS_CALL (256)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Ps Call"
@@ -1278,8 +1450,12 @@
       "description": "Retrieve diagnostic trouble codes.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Read Diagnostic Trouble Codes (DTC)"
@@ -1292,8 +1468,12 @@
           "name": "Command Identifier"
         },
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Remote Command"
@@ -1302,8 +1482,12 @@
       "description": "Commence the vehicle's engine remotely (autostart operation).",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Start Engine"
@@ -1312,8 +1496,12 @@
       "description": "Execute command on the remote device: STAY_HOME_PROPION (42)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Stay Home Propion"
@@ -1322,8 +1510,12 @@
       "description": "Halt the running vehicle engine remotely (autostart operation).",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Stop Engine"
@@ -1332,8 +1524,12 @@
       "description": "Activate the vehicle's horn as an alert.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Trigger Horn"
@@ -1342,8 +1538,12 @@
       "description": "Activate the vehicle's lights as an alert.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Trigger Light"
@@ -1352,8 +1552,12 @@
       "description": "Activate the trunk release mechanism.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Trigger Trunk"
@@ -1362,8 +1566,12 @@
       "description": "Execute command on the remote device: TURN_OFF_BLOCK_HEATER (22)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Turn Off Block Heater"
@@ -1382,8 +1590,12 @@
       "description": "Deactivate an external channel or accessory.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Turn Off Ext Channel"
@@ -1392,8 +1604,12 @@
       "description": "Execute command on the remote device: TURN_ON_BLOCK_HEATER (21)",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Turn On Block Heater"
@@ -1412,8 +1628,12 @@
       "description": "Activate an external channel or accessory.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Turn On Ext Channel"
@@ -1422,8 +1642,12 @@
       "description": "Disengage the vehicle's security mechanism to allow access.",
       "fields": {
         "device_id": {
-          "description": "Unique identifier of the target Pandora device.",
-          "name": "Pandora Device"
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
         }
       },
       "name": "Unlock"
