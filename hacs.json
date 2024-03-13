@@ -1,14 +1,14 @@
 {
-    "name": "Pandora Car Alarm System",
-    "content_in_root": false,
-    "zip_release": false,
-    "render_readme": true,
-    "homeassistant": "2023.9.0",
-    "country": [
-        "BY",
-        "IT",
-        "KZ",
-        "RU",
-        "UA"
-    ]
+  "name": "Pandora Car Alarm System",
+  "content_in_root": false,
+  "zip_release": false,
+  "render_readme": true,
+  "homeassistant": "2023.9.0",
+  "country": [
+    "BY",
+    "IT",
+    "KZ",
+    "RU",
+    "UA"
+  ]
 }
