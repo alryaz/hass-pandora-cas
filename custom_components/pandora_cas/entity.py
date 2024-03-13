@@ -1,3 +1,5 @@
+"""Base entity platform for Pandora Car Alarm system component."""
+
 import asyncio
 import dataclasses
 import logging
@@ -23,6 +25,7 @@ from typing import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_USERNAME, ATTR_DEVICE_ID
 from homeassistant.core import HomeAssistant, callback, Event
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import EntityDescription, DeviceInfo, Entity
 from homeassistant.helpers.entity_platform import (
     AddEntitiesCallback,
@@ -38,6 +41,7 @@ from custom_components.pandora_cas.const import (
     ATTR_COMMAND_ID,
     CONF_OFFLINE_AS_UNAVAILABLE,
     DEFAULT_WAITER_TIMEOUT,
+    EVENT_TYPE_COMMAND,
 )
 from pandora_cas.device import PandoraOnlineDevice
 from pandora_cas.enums import PandoraDeviceTypes, CommandID, Features
@@ -47,24 +51,96 @@ if TYPE_CHECKING:
 
 _LOGGER: Final = logging.getLogger(__name__)
 
+DeviceValidator = Callable[[PandoraOnlineDevice], bool]
+CommandType = CommandID | int | Callable[[PandoraOnlineDevice], Awaitable]
+CommandOptions = CommandType | Sequence[tuple[DeviceValidator | None, CommandType]]
 
-def parse_description_command_id(value: Any, device_type: str | None = None) -> int:
+
+# noinspection PyShadowingNames
+def check_for_device(
+    has_features: Features | None = None,
+    not_features: Features | None = None,
+    has_device_type: str | tuple[str, ...] | None = None,
+) -> DeviceValidator:
+    """
+    Creates a checker that checks something is suitable for device.
+    :param has_features: Has specified features.
+    :param not_features:
+    :param has_device_type:
+    :return:
+    """
+    if has_features is None and not_features is None and has_device_type is None:
+        raise ValueError(
+            "You must specify either has_features or not_features or has_device_type"
+        )
+
+    if isinstance(has_device_type, str):
+        has_device_type = (has_device_type,)
+
+    def _perform_check_on_device(device: PandoraOnlineDevice) -> bool:
+        if has_device_type is not None:
+            if device.type not in has_device_type:
+                return False
+        if not (has_features is None and not_features is None):
+            if (features := device.features) is None:
+                return False
+            if not (has_features is None or has_features & features):
+                return False
+            if not (not_features is None or not (not_features & features)):
+                return False
+        return True
+
+    return _perform_check_on_device
+
+
+def has_features(features: Features) -> DeviceValidator:
+    """Shortcut for has_features argument."""
+    return check_for_device(has_features=features)
+
+
+def not_features(features: Features) -> DeviceValidator:
+    """Shortcut for not_features argument."""
+    return check_for_device(not_features=features)
+
+
+def has_device_type(device_type: str | tuple[str, ...]) -> DeviceValidator:
+    """Shortcut for has_device_type argument."""
+    return check_for_device(has_device_type=device_type)
+
+
+def resolve_command_id(
+    device: PandoraOnlineDevice, value: Any, raise_exceptions: bool = False
+) -> int | None:
     """Retrieve command from definition."""
     if value is None:
-        raise NotImplementedError("command not defined")
+        return None
 
-    if isinstance(value, Mapping):
-        try:
-            value = value[device_type]
-        except KeyError:
-            if device_type is None:
-                raise NotImplementedError("command not defined")
+    if isinstance(value, list):
+        for condition, command in value:
+            if condition is None:
+                return command
             try:
-                value = value[None]
-            except KeyError:
-                raise NotImplementedError("command not defined")
+                if condition(device):
+                    return command
+            except BaseException as exc:
+                if raise_exceptions:
+                    raise
+                _LOGGER.warning(
+                    f"Exception occurred while checking command for device {device}: {exc}",
+                    exc_info=exc,
+                )
+        return None
 
-    return value if callable(value) else int(value)
+    try:
+        return value if callable(value) else int(value)
+    except BaseException as exc:
+        if raise_exceptions:
+            raise
+        _LOGGER.warning(
+            f"Exception occurred while checking command for device {device}: {exc}",
+            exc_info=exc,
+        )
+        return None
 
 
 async def async_platform_setup_entry(
@@ -137,10 +213,6 @@ class PandoraCASEntityDescription(EntityDescription):
             self.attribute_source = self.attribute_source.__name__
         if not self.translation_key:
             self.translation_key = self.key
-
-
-CommandType = CommandID | int | Callable[[PandoraOnlineDevice], Awaitable]
-CommandOptions = CommandType | Mapping[str, CommandType]
 
 
 class BasePandoraCASEntity(Entity):
@@ -316,14 +388,21 @@ class PandoraCASEntity(
     def _add_command_listener(self, command: CommandOptions | None) -> None:
         if command is None:
             return None
-        command_id = parse_description_command_id(command, self.pandora_device.type)
+
+        command_id = resolve_command_id(
+            self.pandora_device,
+            command,
+            raise_exceptions=False,
+        )
+
         if not isinstance(command_id, int):
             return None
+
         if (listeners := self._command_listeners) is None:
             self._command_listeners = listeners = []
         listeners.append(
             self.hass.bus.async_listen(
-                event_type=f"{DOMAIN}_command",
+                event_type=EVENT_TYPE_COMMAND,
                 listener=self._process_command_response,
                 event_filter=callback(
                     lambda x: int(x.data[ATTR_COMMAND_ID]) == command_id
@@ -464,14 +543,18 @@ class PandoraCASBooleanEntity(PandoraCASEntity):
         :param enable: Whether to run 'on' or 'off'.
         """
         # Determine command to run
-        command_id = parse_description_command_id(
+        command_id = resolve_command_id(
+            self.pandora_device,
             (
                 self.entity_description.command_on
                 if enable or self.entity_description.command_off is None
                 else self.entity_description.command_off
             ),
-            self.pandora_device.type,
+            raise_exceptions=False,
         )
+
+        if command_id is None:
+            raise HomeAssistantError("could not determine command to run")
 
         self._is_turning_on = enable
         self._is_turning_off = not enable

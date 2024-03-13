@@ -18,6 +18,7 @@ from custom_components.pandora_cas.entity import (
     async_platform_setup_entry,
     PandoraCASBooleanEntityDescription,
     PandoraCASBooleanEntity,
+    has_device_type,
 )
 from pandora_cas.data import CurrentState
 from pandora_cas.enums import PandoraDeviceTypes, CommandID, BitStatus, Features
@@ -66,14 +67,20 @@ ENTITY_TYPES = [
         icon_off="mdi:radiator-off",
         attribute=CurrentState.bit_state,
         flag=BitStatus.BLOCK_HEATER_ACTIVE,
-        command_on={
-            None: CommandID.TURN_ON_BLOCK_HEATER,
-            PandoraDeviceTypes.NAV12: CommandID.NAV12_TURN_ON_BLOCK_HEATER,
-        },
-        command_off={
-            None: CommandID.TURN_OFF_BLOCK_HEATER,
-            PandoraDeviceTypes.NAV12: CommandID.NAV12_TURN_OFF_BLOCK_HEATER,
-        },
+        command_on=[
+            (
+                has_device_type(PandoraDeviceTypes.NAV12),
+                CommandID.NAV12_TURN_ON_BLOCK_HEATER,
+            ),
+            (None, CommandID.TURN_ON_BLOCK_HEATER),
+        ],
+        command_off=[
+            (
+                has_device_type(PandoraDeviceTypes.NAV12),
+                CommandID.NAV12_TURN_OFF_BLOCK_HEATER,
+            ),
+            (None, CommandID.TURN_OFF_BLOCK_HEATER),
+        ],
         features=Features.HEATER,
     ),
     PandoraCASSwitchEntityDescription(
@@ -95,14 +102,17 @@ ENTITY_TYPES = [
         icon_off="mdi:wrench",
         attribute=CurrentState.bit_state,
         flag=BitStatus.SERVICE_MODE_ACTIVE,
-        command_on={
-            None: CommandID.ENABLE_SERVICE_MODE,
-            PandoraDeviceTypes.NAV12: CommandID.NAV12_ENABLE_SERVICE_MODE,
-        },
-        command_off={
-            None: CommandID.DISABLE_SERVICE_MODE,
-            PandoraDeviceTypes.NAV12: CommandID.DISABLE_SERVICE_MODE,
-        },
+        command_on=[
+            (
+                has_device_type(PandoraDeviceTypes.NAV12),
+                CommandID.NAV12_ENABLE_SERVICE_MODE,
+            ),
+            (None, CommandID.ENABLE_SERVICE_MODE),
+        ],
+        command_off=[
+            (has_device_type(PandoraDeviceTypes.NAV12), CommandID.DISABLE_SERVICE_MODE),
+            (None, CommandID.DISABLE_SERVICE_MODE),
+        ],
     ),
     PandoraCASSwitchEntityDescription(
         key="ext_channel",
@@ -120,14 +130,20 @@ ENTITY_TYPES = [
         icon="mdi:led-off",
         # icon_turning_on="",
         # icon_turning_off="",
-        command_on={
-            None: CommandID.ENABLE_STATUS_OUTPUT,
-            PandoraDeviceTypes.NAV12: CommandID.NAV12_ENABLE_STATUS_OUTPUT,
-        },
-        command_off={
-            None: CommandID.DISABLE_STATUS_OUTPUT,
-            PandoraDeviceTypes.NAV12: CommandID.NAV12_DISABLE_STATUS_OUTPUT,
-        },
+        command_on=[
+            (
+                has_device_type(PandoraDeviceTypes.NAV12),
+                CommandID.NAV12_ENABLE_STATUS_OUTPUT,
+            ),
+            (None, CommandID.ENABLE_STATUS_OUTPUT),
+        ],
+        command_off=[
+            (
+                has_device_type(PandoraDeviceTypes.NAV12),
+                CommandID.NAV12_DISABLE_STATUS_OUTPUT,
+            ),
+            (None, CommandID.DISABLE_STATUS_OUTPUT),
+        ],
         assumed_state=True,
     ),
     PandoraCASSwitchEntityDescription(

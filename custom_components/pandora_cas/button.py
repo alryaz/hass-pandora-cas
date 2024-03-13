@@ -22,7 +22,8 @@ from custom_components.pandora_cas.entity import (
     PandoraCASEntity,
     PandoraCASEntityDescription,
     CommandOptions,
-    parse_description_command_id,
+    resolve_command_id,
+    has_device_type,
 )
 from pandora_cas.device import PandoraOnlineDevice
 from pandora_cas.enums import PandoraDeviceTypes, CommandID
@@ -44,10 +45,10 @@ ENTITY_TYPES = [
     PandoraCASButtonEntityDescription(
         key="erase_errors",
         name="Erase Errors",
-        command={
-            None: CommandID.ERASE_DTC,
-            PandoraDeviceTypes.NAV12: CommandID.NAV12_RESET_ERRORS,
-        },
+        command=[
+            (has_device_type(PandoraDeviceTypes.NAV12), CommandID.NAV12_RESET_ERRORS),
+            (None, CommandID.ERASE_DTC),
+        ],
         entity_category=EntityCategory.DIAGNOSTIC,
         icon="mdi:eraser",
     ),
@@ -159,9 +160,14 @@ class PandoraCASButton(PandoraCASEntity, ButtonEntity):
             raise HomeAssistantError(
                 "Simultaneous commands not allowed, wait until command completes"
             )
-        command_id = parse_description_command_id(
-            self.entity_description.command, self.pandora_device.type
+        command_id = resolve_command_id(
+            self.pandora_device,
+            self.entity_description.command,
+            raise_exceptions=False,
         )
+        if command_id is None:
+            raise HomeAssistantError("could not determine command to run")
+
         self._is_pressing = True
         await self.run_device_command(command_id)
 
