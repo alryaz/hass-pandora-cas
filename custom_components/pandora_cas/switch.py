@@ -91,6 +91,7 @@ ENTITY_TYPES = [
     PandoraCASSwitchEntityDescription(
         key="service_mode",
         name="Service Mode",
+        icon="mdi:progress-wrench",
         icon_off="mdi:wrench",
         attribute=CurrentState.bit_state,
         flag=BitStatus.SERVICE_MODE_ACTIVE,
@@ -171,8 +172,8 @@ ENTITY_TYPES = [
     PandoraCASSwitchEntityDescription(
         key="climate_defroster",
         name="Climate Defroster",
-        icon="mdi:defrost-front",
-        icon_off="mdi:windshield-outline",
+        icon="mdi:car-defrost-front",
+        icon_off="mdi:car-windshield-outline",
         attribute=CurrentState.can_climate_defroster,
         command_on=CommandID.CLIMATE_DEFROSTER_TURN_ON,
         command_off=CommandID.CLIMATE_DEFROSTER_TURN_OFF,
