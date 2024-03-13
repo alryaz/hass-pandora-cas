@@ -1,4 +1,7 @@
-<img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/header.png" height="100" alt="Home Assistant + Pandora">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/header_dark.png">
+  <img alt="Home Assistant + Pandora" src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/header_light.png">
+</picture>
 
 # _Pandora Car Alarm System_ для _Home Assistant_
 
