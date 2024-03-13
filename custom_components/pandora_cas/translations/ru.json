@@ -933,6 +933,62 @@
       },
       "name": "Дополнительная команда №2"
     },
+    "benish_disable_engine_blocking": {
+      "description": "Выполнить команду на удалённом устройстве: BENISH_DISABLE_ENGINE_BLOCKING (57346)",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora, или объект устройства в Home Assistant.",
+          "name": "Устройство Pandora"
+        },
+        "ensure_complete": {
+          "description": "Ожидать окончания выполнения отправки команды.",
+          "name": "Ожидать завершения"
+        }
+      },
+      "name": "(BENISH) Выключить блокировку двигателя"
+    },
+    "benish_disable_service_mode": {
+      "description": "Выполнить команду на удалённом устройстве: BENISH_DISABLE_SERVICE_MODE (57632)",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora, или объект устройства в Home Assistant.",
+          "name": "Устройство Pandora"
+        },
+        "ensure_complete": {
+          "description": "Ожидать окончания выполнения отправки команды.",
+          "name": "Ожидать завершения"
+        }
+      },
+      "name": "(BENISH) Выключить режим ТО2"
+    },
+    "benish_enable_engine_blocking": {
+      "description": "Выполнить команду на удалённом устройстве: BENISH_ENABLE_ENGINE_BLOCKING (57347)",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora, или объект устройства в Home Assistant.",
+          "name": "Устройство Pandora"
+        },
+        "ensure_complete": {
+          "description": "Ожидать окончания выполнения отправки команды.",
+          "name": "Ожидать завершения"
+        }
+      },
+      "name": "(BENISH) Включить блокировку двигателя"
+    },
+    "benish_enable_service_mode": {
+      "description": "Выполнить команду на удалённом устройстве: BENISH_ENABLE_SERVICE_MODE (57633)",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora, или объект устройства в Home Assistant.",
+          "name": "Устройство Pandora"
+        },
+        "ensure_complete": {
+          "description": "Ожидать окончания выполнения отправки команды.",
+          "name": "Ожидать завершения"
+        }
+      },
+      "name": "(BENISH) Включить режим ТО2"
+    },
     "check": {
       "description": "Отправить команду на удалённое устройство для немедленной передачи текущего состояния всех имеющихся атрибутов на сервер.",
       "fields": {

@@ -868,6 +868,62 @@
       },
       "name": "Additional Command 2"
     },
+    "benish_disable_engine_blocking": {
+      "description": "Execute command on the remote device: BENISH_DISABLE_ENGINE_BLOCKING (57346)",
+      "fields": {
+        "device_id": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
+        }
+      },
+      "name": "Benish Disable Engine Blocking"
+    },
+    "benish_disable_service_mode": {
+      "description": "Execute command on the remote device: BENISH_DISABLE_SERVICE_MODE (57632)",
+      "fields": {
+        "device_id": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
+        }
+      },
+      "name": "Benish Disable Service Mode"
+    },
+    "benish_enable_engine_blocking": {
+      "description": "Execute command on the remote device: BENISH_ENABLE_ENGINE_BLOCKING (57347)",
+      "fields": {
+        "device_id": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
+        }
+      },
+      "name": "Benish Enable Engine Blocking"
+    },
+    "benish_enable_service_mode": {
+      "description": "Execute command on the remote device: BENISH_ENABLE_SERVICE_MODE (57633)",
+      "fields": {
+        "device_id": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "ensure_complete": {
+          "description": "Ensure the command gets sent successfully.",
+          "name": "Ensure completion"
+        }
+      },
+      "name": "Benish Enable Service Mode"
+    },
     "check": {
       "description": "Initiate telemetry retrieval operation (update data).",
       "fields": {

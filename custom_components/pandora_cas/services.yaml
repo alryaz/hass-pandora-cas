@@ -755,3 +755,51 @@ ps_call:
       default: false
       selector:
         boolean:
+benish_disable_service_mode:
+  fields:
+    device_id:
+      example: 1234567
+      selector:
+        device:
+          integration: pandora_cas
+    ensure_complete:
+      example: true
+      default: false
+      selector:
+        boolean:
+benish_enable_service_mode:
+  fields:
+    device_id:
+      example: 1234567
+      selector:
+        device:
+          integration: pandora_cas
+    ensure_complete:
+      example: true
+      default: false
+      selector:
+        boolean:
+benish_disable_engine_blocking:
+  fields:
+    device_id:
+      example: 1234567
+      selector:
+        device:
+          integration: pandora_cas
+    ensure_complete:
+      example: true
+      default: false
+      selector:
+        boolean:
+benish_enable_engine_blocking:
+  fields:
+    device_id:
+      example: 1234567
+      selector:
+        device:
+          integration: pandora_cas
+    ensure_complete:
+      example: true
+      default: false
+      selector:
+        boolean:
