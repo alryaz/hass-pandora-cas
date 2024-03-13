@@ -63,7 +63,7 @@ from homeassistant.exceptions import (
     ConfigEntryNotReady,
     HomeAssistantError,
 )
-from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import config_validation as cv, device_registry
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import (
     async_get as async_get_device_registry,
@@ -244,11 +244,26 @@ async def _async_execute_remote_command(
 ) -> None:
     _LOGGER.debug(f"Called service '{call.service}' with data: {dict(call.data)}")
 
+    # Infer device identifier
     try:
         device_id = int(call.data[ATTR_DEVICE_ID])
     except (TypeError, ValueError, LookupError):
-        raise HomeAssistantError("Invalid device ID provided")
+        dr = device_registry.async_get(hass)
+        device_entry = dr.async_get(call.data[ATTR_DEVICE_ID])
+        for domain, value in device_entry.identifiers:
+            if domain == DOMAIN:
+                try:
+                    device_id = int(value)
+                except (TypeError, ValueError):
+                    pass
+                else:
+                    break
+        else:
+            raise HomeAssistantError(
+                f"Invalid device ID '{call.data[ATTR_DEVICE_ID]}' provided"
+            )
 
+    # Find device by identifier
     for config_entry_id, coordinator in hass.data.get(DOMAIN, {}).items():
         try:
             device = coordinator.account.devices[device_id]
