@@ -10,9 +10,6 @@ __all__ = (
     "ENTRY_OPTIONS_SCHEMA",
     "INTEGRATION_OPTIONS_SCHEMA",
     "PandoraCASUpdateCoordinator",
-    "SERVICE_PREDEFINED_COMMAND_SCHEMA",
-    "SERVICE_REMOTE_COMMAND",
-    "SERVICE_REMOTE_COMMAND_SCHEMA",
     "async_migrate_entry",
     "async_run_pandora_coro",
     "async_setup",
@@ -24,10 +21,7 @@ __all__ = (
 import asyncio
 import importlib
 import logging
-from datetime import timedelta, datetime
-from functools import partial
-from json import JSONDecodeError
-from time import time
+from datetime import timedelta
 from typing import (
     Any,
     Mapping,
@@ -46,7 +40,6 @@ from homeassistant.config_entries import (
     current_entry,
 )
 from homeassistant.const import (
-    ATTR_ID,
     CONF_PASSWORD,
     CONF_USERNAME,
     CONF_VERIFY_SSL,
@@ -57,33 +50,36 @@ from homeassistant.const import (
     CONF_LANGUAGE,
     ATTR_DEVICE_ID,
 )
-from homeassistant.core import ServiceCall, HomeAssistant, callback
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import (
     ConfigEntryAuthFailed,
     ConfigEntryNotReady,
-    HomeAssistantError,
 )
-from homeassistant.helpers import config_validation as cv, device_registry
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import (
     async_get as async_get_device_registry,
     async_entries_for_config_entry,
 )
-from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
-from homeassistant.loader import bind_hass
 from homeassistant.util import slugify
 
 from custom_components.pandora_cas.const import *
+from custom_components.pandora_cas.services import async_register_services
 from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
+from custom_components.pandora_cas.translations import (
+    async_load_web_translations,
+    get_config_entry_language,
+    get_web_translations_value,
+)
 from pandora_cas.account import PandoraOnlineAccount
 from pandora_cas.data import CurrentState, TrackingEvent, TrackingPoint
 from pandora_cas.device import PandoraOnlineDevice
-from pandora_cas.enums import CommandID, PrimaryEventID
+from pandora_cas.enums import PrimaryEventID
 from pandora_cas.errors import AuthenticationError, MalformedResponseError
 
 _LOGGER: Final = logging.getLogger(__name__)
@@ -190,132 +186,10 @@ CONFIG_SCHEMA: Final = vol.Schema(
 """Schema for domain data coming from YAML"""
 
 
-def _determine_command_by_slug(command_slug: str) -> int:
-    enum_member = command_slug.upper().strip()
-    for key, value in CommandID.__members__.items():
-        if key == enum_member:
-            return value
-
-    raise vol.Invalid("invalid command identifier")
-
-
-SERVICE_PREDEFINED_COMMAND_SCHEMA = vol.All(
-    vol.Schema(
-        {
-            vol.Exclusive(ATTR_DEVICE_ID, ATTR_DEVICE_ID): cv.string,
-            vol.Exclusive(ATTR_ID, ATTR_DEVICE_ID): cv.string,
-        },
-        extra=vol.ALLOW_EXTRA,
-    ),
-    cv.deprecated(ATTR_ID, ATTR_DEVICE_ID),
-    vol.Schema(
-        {
-            vol.Required(ATTR_DEVICE_ID): cv.string,
-        },
-        extra=vol.ALLOW_EXTRA,
-    ),
-)
-
-SERVICE_REMOTE_COMMAND = "remote_command"
-SERVICE_REMOTE_COMMAND_SCHEMA = vol.All(
-    SERVICE_PREDEFINED_COMMAND_SCHEMA,
-    vol.Schema(
-        {
-            vol.Required(ATTR_COMMAND_ID): vol.Any(
-                cv.positive_int,
-                vol.All(cv.string, _determine_command_by_slug),
-            ),
-        },
-        extra=vol.ALLOW_EXTRA,
-    ),
-)
-
-
-def iterate_commands_to_register(cls=CommandID):
-    for key, value in cls.__members__.items():
-        yield slugify(key.lower()), value.value
-
-
-async def _async_execute_remote_command(
-    hass: HomeAssistant,
-    call: "ServiceCall",
-    command_id: int | CommandID | None = None,
-    params: Mapping[str, Any] | None = None,
-) -> None:
-    _LOGGER.debug(f"Called service '{call.service}' with data: {dict(call.data)}")
-
-    # Infer device identifier
-    try:
-        device_id = int(call.data[ATTR_DEVICE_ID])
-    except (TypeError, ValueError, LookupError):
-        dr = device_registry.async_get(hass)
-        device_entry = dr.async_get(call.data[ATTR_DEVICE_ID])
-        for domain, value in device_entry.identifiers:
-            if domain == DOMAIN:
-                try:
-                    device_id = int(value)
-                except (TypeError, ValueError):
-                    pass
-                else:
-                    break
-        else:
-            raise HomeAssistantError(
-                f"Invalid device ID '{call.data[ATTR_DEVICE_ID]}' provided"
-            )
-
-    # Find device by identifier
-    for config_entry_id, coordinator in hass.data.get(DOMAIN, {}).items():
-        try:
-            device = coordinator.account.devices[device_id]
-        except KeyError:
-            continue
-        _LOGGER.debug(
-            f"Found device '{device}' on coordinator '{coordinator}' for '{call.service}' service call"
-        )
-        break
-    else:
-        raise HomeAssistantError(f"Device with ID '{device_id}' not found.")
-
-    if command_id is None:
-        command_id = call.data[ATTR_COMMAND_ID]
-
-    result = device.async_remote_command(command_id, params, ensure_complete=False)
-    if asyncio.iscoroutine(result):
-        await result
-
-
-@bind_hass
-async def _async_register_services(hass: HomeAssistant) -> None:
-    # register the remote services
-    _register_service = hass.services.async_register
-
-    _register_service(
-        DOMAIN,
-        SERVICE_REMOTE_COMMAND,
-        partial(_async_execute_remote_command, hass),
-        schema=SERVICE_REMOTE_COMMAND_SCHEMA,
-    )
-
-    for command_slug, command_id in iterate_commands_to_register():
-        _LOGGER.debug(
-            f"Registering remote command: {command_slug} (command_id={command_id})"
-        )
-        _register_service(
-            DOMAIN,
-            command_slug,
-            partial(
-                _async_execute_remote_command,
-                hass,
-                command_id=command_id,
-            ),
-            schema=SERVICE_PREDEFINED_COMMAND_SCHEMA,
-        )
-
-
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Activate Pandora Car Alarm System component"""
     # Register services
-    hass.async_create_task(_async_register_services(hass))
+    hass.async_create_task(async_register_services(hass))
 
     # YAML configuration loader
     if not (domain_config := config.get(DOMAIN)):
@@ -373,145 +247,6 @@ class ConfigEntryLoggerAdapter(logging.LoggerAdapter):
         self, msg: Any, kwargs: MutableMapping[str, Any]
     ) -> tuple[Any, MutableMapping[str, Any]]:
         return "[%s] %s" % (self.config_entry.entry_id[-6:], msg), kwargs
-
-
-def get_config_entry_language(entry: ConfigEntry) -> str:
-    """Get web translations language from configuration entry options."""
-    if entry.options is None:
-        return DEFAULT_LANGUAGE
-    return entry.options.get(CONF_LANGUAGE) or DEFAULT_LANGUAGE
-
-
-def get_web_translations_value(
-    hass: HomeAssistant, language: str, key: str
-) -> str | None:
-    """Retrieve value from web translations language dictionary."""
-    try:
-        web_translations = hass.data[DATA_WEB_TRANSLATIONS]
-    except KeyError:
-        return None
-
-    try:
-        return web_translations[language][key]
-    except KeyError:
-        if language != DEFAULT_LANGUAGE:
-            return get_web_translations_value(hass, DEFAULT_LANGUAGE, key)
-        raise
-
-
-async def async_load_web_translations(
-    hass: HomeAssistant, language: str, verify_ssl: bool = True
-) -> dict[str, str]:
-    """Load web translations."""
-    if (language := language.lower()) == "last_update":
-        raise ValueError("how?")
-
-    try:
-        # Retrieve initialized store
-        store = hass.data[DATA_WEB_TRANSLATIONS_STORE]
-    except KeyError:
-        hass.data[DATA_WEB_TRANSLATIONS_STORE] = store = Store(
-            hass,
-            1,
-            DATA_WEB_TRANSLATIONS,
-        )
-
-    try:
-        # Retrieve cached data
-        saved_data = hass.data[DATA_WEB_TRANSLATIONS]
-    except KeyError:
-        # Retrieve stored data
-        saved_data = await store.async_load()
-
-        # Provide fallback for corrupt or empty data
-        if not isinstance(saved_data, dict):
-            saved_data = {}
-
-        # Cache loaded data
-        hass.data[DATA_WEB_TRANSLATIONS] = saved_data
-
-    language_data = None
-    if saved_data:
-        try:
-            last_update = float(saved_data["last_update"][language])
-        except (KeyError, ValueError, TypeError):
-            _LOGGER.info(
-                f"Data for language {language} is missing "
-                f"valid timestamp information."
-            )
-        else:
-            if (time() - last_update) > (7 * 24 * 60 * 60):
-                _LOGGER.info(
-                    f"Last data retrieval for language {language} "
-                    f"occurred on {datetime.fromtimestamp(last_update).isoformat()}, "
-                    f"assuming data is stale."
-                )
-            elif not isinstance((language_data := saved_data.get(language)), dict):
-                _LOGGER.warning(
-                    f"Data for language {language} is missing, "
-                    f"assuming storage is corrupt."
-                )
-            else:
-                _LOGGER.info(
-                    f"Data for language {language} is recent, " f"no updates required."
-                )
-                return saved_data[language]
-    else:
-        _LOGGER.info("Translation data store initialization required.")
-
-    _LOGGER.info(f"Will attempt to download translations for language: {language}")
-
-    try:
-        async with async_get_clientsession(hass, verify_ssl).get(
-            f"https://p-on.ru/local/web/{language}.json",
-        ) as response:
-            new_data = await response.json()
-    except (aiohttp.ClientError, JSONDecodeError):
-        if isinstance((language_data := saved_data.get(language)), dict):
-            _LOGGER.warning(
-                f"Could not download translations for language "
-                f"{language}, will fall back to stale data."
-            )
-            return language_data
-        elif language == DEFAULT_LANGUAGE:
-            _LOGGER.error(f"Failed loading fallback language")
-            raise
-        new_data = None
-
-    # Use fallback web translations because decoded data is bad
-    if not isinstance(new_data, dict):
-        _LOGGER.error(
-            f"Could not decode translations "
-            f"for language {language}, falling "
-            f"back to {DEFAULT_LANGUAGE}",
-        )
-        return await async_load_web_translations(
-            hass,
-            DEFAULT_LANGUAGE,
-            verify_ssl,
-        )
-
-    if not isinstance(language_data, dict):
-        saved_data[language] = language_data = {}
-
-    # Fix-ups (QoL) for data
-    for key, value in new_data.items():
-        if value is None or not (value := str(value).strip()):
-            continue
-        if key.startswith("event-name-"):
-            # Uppercase only first character
-            value = value[0].upper() + value[1:]
-        elif key.startswith("event-subname-"):
-            # Lowercase only first character
-            value = value[0].lower() + value[1:]
-        language_data[key] = value
-
-    saved_data.setdefault("last_update", {})[language] = time()
-
-    await store.async_save(saved_data)
-
-    _LOGGER.info(f"Data for language {language} updated successfully.")
-    return language_data
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -598,8 +333,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Migrate configuration entry to latest version."""
     logger = ConfigEntryLoggerAdapter(_LOGGER, entry)
-    logger.info(f"Upgrading from version {entry.version}")
+    logger.info(f"Upgrading entry {entry.entry_id} from version {entry.version}")
 
     args = {
         "data": (new_data := {**entry.data}),
@@ -756,7 +492,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.config_entries.async_update_entry(entry, **args)
 
-    _LOGGER.info(f"Upgraded configuration entry to version {entry.version}")
+    _LOGGER.info(f"Upgraded entry {entry.entry_id} to version {entry.version}")
 
     return True
 
@@ -772,6 +508,7 @@ _T = TypeVar("_T")
 
 
 async def async_run_pandora_coro(coro: Awaitable[_T]) -> _T:
+    """Wrapper to run Pandora coroutine and handle exceptions."""
     try:
         return await coro
     except AuthenticationError as exc:

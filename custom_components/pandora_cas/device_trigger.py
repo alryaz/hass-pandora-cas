@@ -10,19 +10,10 @@ from homeassistant.components.device_automation import (
     DEVICE_TRIGGER_BASE_SCHEMA,
     InvalidDeviceAutomationConfig,
 )
-from homeassistant.components.homeassistant.triggers import (
-    event as event_trigger,
-)
-from homeassistant.const import (
-    CONF_TYPE,
-    CONF_PLATFORM,
-    CONF_DEVICE_ID,
-    CONF_DOMAIN,
-)
+from homeassistant.components.homeassistant.triggers import event as event_trigger
+from homeassistant.const import CONF_TYPE, CONF_PLATFORM, CONF_DEVICE_ID, CONF_DOMAIN
 from homeassistant.core import HomeAssistant, CALLBACK_TYPE
-from homeassistant.helpers.device_registry import (
-    async_get as async_get_device_registry,
-)
+from homeassistant.helpers.device_registry import async_get as async_get_device_registry
 from homeassistant.helpers.trigger import TriggerActionType, TriggerInfo
 from homeassistant.helpers.typing import ConfigType
 

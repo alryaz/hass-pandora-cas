@@ -54,6 +54,7 @@ DISABLED_CURSOR_TYPE: Final = "disabled"
 # Entity & event attributes
 ATTR_CARDINAL: Final = "cardinal"
 ATTR_COMMAND_ID: Final = "command_id"
+ATTR_ENSURE_COMPLETE: Final = "ensure_complete"
 ATTR_EVENT_ID_PRIMARY: Final = "event_id_primary"
 ATTR_EVENT_ID_SECONDARY: Final = "event_id_secondary"
 ATTR_GSM_LEVEL: Final = "gsm_level"
