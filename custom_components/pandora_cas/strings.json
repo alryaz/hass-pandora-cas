@@ -843,6 +843,10 @@
     "additional_command_1": {
       "description": "Execute primary user-defined action.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -853,6 +857,10 @@
     "additional_command_2": {
       "description": "Execute secondary user-defined action.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -863,6 +871,10 @@
     "check": {
       "description": "Initiate telemetry retrieval operation (update data).",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -870,9 +882,283 @@
       },
       "name": "Check"
     },
+    "climate_ac_turn_off": {
+      "description": "Execute command on the remote device: CLIMATE_AC_TURN_OFF (58634)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Ac Turn Off"
+    },
+    "climate_ac_turn_on": {
+      "description": "Execute command on the remote device: CLIMATE_AC_TURN_ON (58633)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Ac Turn On"
+    },
+    "climate_battery_heat_turn_off": {
+      "description": "Execute command on the remote device: CLIMATE_BATTERY_HEAT_TURN_OFF (58648)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Battery Heat Turn Off"
+    },
+    "climate_battery_heat_turn_on": {
+      "description": "Execute command on the remote device: CLIMATE_BATTERY_HEAT_TURN_ON (58647)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Battery Heat Turn On"
+    },
+    "climate_defroster_turn_off": {
+      "description": "Execute command on the remote device: CLIMATE_DEFROSTER_TURN_OFF (58638)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Defroster Turn Off"
+    },
+    "climate_defroster_turn_on": {
+      "description": "Execute command on the remote device: CLIMATE_DEFROSTER_TURN_ON (58637)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Defroster Turn On"
+    },
+    "climate_glass_heat_turn_off": {
+      "description": "Execute command on the remote device: CLIMATE_GLASS_HEAT_TURN_OFF (58630)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Glass Heat Turn Off"
+    },
+    "climate_glass_heat_turn_on": {
+      "description": "Execute command on the remote device: CLIMATE_GLASS_HEAT_TURN_ON (58629)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Glass Heat Turn On"
+    },
+    "climate_mode_comfort": {
+      "description": "Execute command on the remote device: CLIMATE_MODE_COMFORT (58639)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Mode Comfort"
+    },
+    "climate_mode_vent": {
+      "description": "Execute command on the remote device: CLIMATE_MODE_VENT (58640)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Mode Vent"
+    },
+    "climate_seat_heat_turn_off": {
+      "description": "Execute command on the remote device: CLIMATE_SEAT_HEAT_TURN_OFF (58626)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Seat Heat Turn Off"
+    },
+    "climate_seat_heat_turn_on": {
+      "description": "Execute command on the remote device: CLIMATE_SEAT_HEAT_TURN_ON (58625)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Seat Heat Turn On"
+    },
+    "climate_seat_vent_turn_off": {
+      "description": "Execute command on the remote device: CLIMATE_SEAT_VENT_TURN_OFF (58628)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Seat Vent Turn Off"
+    },
+    "climate_seat_vent_turn_on": {
+      "description": "Execute command on the remote device: CLIMATE_SEAT_VENT_TURN_ON (58627)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Seat Vent Turn On"
+    },
+    "climate_set_temperature": {
+      "description": "Execute command on the remote device: CLIMATE_SET_TEMPERATURE (58624)",
+      "fields": {
+        "climate_temp": {
+          "description": "Target temperature to maintain within the interior.",
+          "name": "Target Temperature"
+        },
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Set Temperature"
+    },
+    "climate_steering_heat_turn_off": {
+      "description": "Execute command on the remote device: CLIMATE_STEERING_HEAT_TURN_OFF (58632)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Steering Heat Turn Off"
+    },
+    "climate_steering_heat_turn_on": {
+      "description": "Execute command on the remote device: CLIMATE_STEERING_HEAT_TURN_ON (58631)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Steering Heat Turn On"
+    },
+    "climate_sys_turn_off": {
+      "description": "Execute command on the remote device: CLIMATE_SYS_TURN_OFF (58636)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Sys Turn Off"
+    },
+    "climate_sys_turn_on": {
+      "description": "Execute command on the remote device: CLIMATE_SYS_TURN_ON (58635)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Climate Sys Turn On"
+    },
     "disable_active_security": {
       "description": "Deactivate enhanced security measures.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -883,6 +1169,10 @@
     "disable_connection": {
       "description": "Prevent real time telemetric connections with online services.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -893,6 +1183,10 @@
     "disable_service_mode": {
       "description": "Deactivate the service mode.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -903,6 +1197,10 @@
     "disable_status_output": {
       "description": "Activate additional status output channel.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -913,6 +1211,10 @@
     "disable_tracking": {
       "description": "Deactivate the vehicle's tracking system.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -923,6 +1225,10 @@
     "enable_active_security": {
       "description": "Activate enhanced security measures.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -933,6 +1239,10 @@
     "enable_connection": {
       "description": "Allow real time telemetric connections with online services.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -943,6 +1253,10 @@
     "enable_service_mode": {
       "description": "Active the service mode.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -953,6 +1267,10 @@
     "enable_status_output": {
       "description": "Activate additional status output channel.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -960,9 +1278,27 @@
       },
       "name": "Enable Status Output"
     },
+    "enable_stealth_mode": {
+      "description": "Execute command on the remote device: ENABLE_STEALTH_MODE (50)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Enable Stealth Mode"
+    },
     "enable_tracking": {
       "description": "Activate the vehicle's tracking system.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -973,6 +1309,10 @@
     "erase_dtc": {
       "description": "Clear stored diagnostic trouble codes.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -983,6 +1323,10 @@
     "lock": {
       "description": "Engage the vehicle's security mechanism to prevent access.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -990,9 +1334,125 @@
       },
       "name": "Lock"
     },
+    "nav12_disable_service_mode": {
+      "description": "Execute command on the remote device: NAV12_DISABLE_SERVICE_MODE (57374)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Nav12 Disable Service Mode"
+    },
+    "nav12_disable_status_output": {
+      "description": "Execute command on the remote device: NAV12_DISABLE_STATUS_OUTPUT (57371)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Nav12 Disable Status Output"
+    },
+    "nav12_enable_service_mode": {
+      "description": "Execute command on the remote device: NAV12_ENABLE_SERVICE_MODE (57375)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Nav12 Enable Service Mode"
+    },
+    "nav12_enable_status_output": {
+      "description": "Execute command on the remote device: NAV12_ENABLE_STATUS_OUTPUT (57372)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Nav12 Enable Status Output"
+    },
+    "nav12_reset_errors": {
+      "description": "Execute command on the remote device: NAV12_RESET_ERRORS (57408)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Nav12 Reset Errors"
+    },
+    "nav12_turn_off_block_heater": {
+      "description": "Execute command on the remote device: NAV12_TURN_OFF_BLOCK_HEATER (57353)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Nav12 Turn Off Block Heater"
+    },
+    "nav12_turn_on_block_heater": {
+      "description": "Execute command on the remote device: NAV12_TURN_ON_BLOCK_HEATER (57354)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Nav12 Turn On Block Heater"
+    },
+    "ps_call": {
+      "description": "Execute command on the remote device: PS_CALL (256)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Ps Call"
+    },
     "read_dtc": {
       "description": "Retrieve diagnostic trouble codes.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -1017,6 +1477,10 @@
     "start_engine": {
       "description": "Commence the vehicle's engine remotely (autostart operation).",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -1024,9 +1488,27 @@
       },
       "name": "Start Engine"
     },
+    "stay_home_propion": {
+      "description": "Execute command on the remote device: STAY_HOME_PROPION (42)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Stay Home Propion"
+    },
     "stop_engine": {
       "description": "Halt the running vehicle engine remotely (autostart operation).",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -1037,6 +1519,10 @@
     "trigger_horn": {
       "description": "Activate the vehicle's horn as an alert.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -1047,6 +1533,10 @@
     "trigger_light": {
       "description": "Activate the vehicle's lights as an alert.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -1057,12 +1547,30 @@
     "trigger_trunk": {
       "description": "Activate the trunk release mechanism.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
         }
       },
       "name": "Trigger Trunk"
+    },
+    "turn_off_block_heater": {
+      "description": "Execute command on the remote device: TURN_OFF_BLOCK_HEATER (22)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Turn Off Block Heater"
     },
     "turn_off_coolant_heater": {
       "description": "Stop the coolant heater operation.",
@@ -1077,12 +1585,30 @@
     "turn_off_ext_channel": {
       "description": "Deactivate an external channel or accessory.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
         }
       },
       "name": "Turn Off Ext Channel"
+    },
+    "turn_on_block_heater": {
+      "description": "Execute command on the remote device: TURN_ON_BLOCK_HEATER (21)",
+      "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Turn On Block Heater"
     },
     "turn_on_coolant_heater": {
       "description": "Start the coolant heater operation.",
@@ -1097,6 +1623,10 @@
     "turn_on_ext_channel": {
       "description": "Activate an external channel or accessory.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"
@@ -1107,6 +1637,10 @@
     "unlock": {
       "description": "Disengage the vehicle's security mechanism to allow access.",
       "fields": {
+        "device": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
         "device_id": {
           "description": "Unique numeric identifier of the target Pandora device.",
           "name": "Device Identifier"

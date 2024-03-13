@@ -14,8 +14,6 @@ remote_command:
           min: 0
           max: 99999999
           mode: box
-
-# Locking mechanism
 lock:
   description: Постановка на охрану / Lock vehicle
   fields:
@@ -24,7 +22,12 @@ lock:
       example: 1234567
       selector:
         text:
-
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 unlock:
   description: Снятие с охраны / Unlock vehicle
   fields:
@@ -33,8 +36,12 @@ unlock:
       example: 1234567
       selector:
         text:
-
-# Engine toggles
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 start_engine:
   description: Запуск двигателя / Start engine
   fields:
@@ -43,7 +50,12 @@ start_engine:
       example: 1234567
       selector:
         text:
-
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 stop_engine:
   description: Остановка двигателя / Stop engine
   fields:
@@ -52,8 +64,12 @@ stop_engine:
       example: 1234567
       selector:
         text:
-
-# Tracking toggle
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 enable_tracking:
   description: Включение отслеживания / Enable tracking
   fields:
@@ -62,7 +78,12 @@ enable_tracking:
       example: 1234567
       selector:
         text:
-
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 disable_tracking:
   description: Отключение отслеживания / Enable tracking
   fields:
@@ -71,8 +92,12 @@ disable_tracking:
       example: 1234567
       selector:
         text:
-
-# Active security toggle
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 enable_active_security:
   description: Включение активной защиты / Enable active security
   fields:
@@ -81,7 +106,12 @@ enable_active_security:
       example: 1234567
       selector:
         text:
-
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 disable_active_security:
   description: Отключение активной защиты / Disable active security
   fields:
@@ -90,8 +120,12 @@ disable_active_security:
       example: 1234567
       selector:
         text:
-
-# Coolant heater toggle
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 turn_on_coolant_heater:
   description: Включение предпускового подогрева / Enable coolant heater
   fields:
@@ -100,7 +134,6 @@ turn_on_coolant_heater:
       example: 1234567
       selector:
         text:
-
 turn_off_coolant_heater:
   description: Отключение предпускового подогрева / Disable coolant heater
   fields:
@@ -109,27 +142,36 @@ turn_off_coolant_heater:
       example: 1234567
       selector:
         text:
-
-# External (timer) channel toggle
 turn_on_ext_channel:
-  description: Включение дополнительного канала (внешнее устройство) / Enable extra channel (external device)
+  description: Включение дополнительного канала (внешнее устройство) / Enable extra
+    channel (external device)
   fields:
     device_id:
       description: Pandora device identifier (`PANDORA_ID`, `device_id`)
       example: 1234567
       selector:
         text:
-
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 turn_off_ext_channel:
-  description: Отключение дополнительного канала (внешнее устройство) / Disable extra channel (external device)
+  description: Отключение дополнительного канала (внешнее устройство) / Disable extra
+    channel (external device)
   fields:
     device_id:
       description: Pandora device identifier (`PANDORA_ID`, `device_id`)
       example: 1234567
       selector:
         text:
-
-# Service mode toggle
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 enable_service_mode:
   description: Включение сервисного режима ("режим ТО") / Enable service mode
   fields:
@@ -138,7 +180,12 @@ enable_service_mode:
       example: 1234567
       selector:
         text:
-
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 disable_service_mode:
   description: Отключение сервисного режима ("режим ТО") / Disable service mode
   fields:
@@ -147,27 +194,42 @@ disable_service_mode:
       example: 1234567
       selector:
         text:
-
-# Status output toggle
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 enable_status_output:
-  description: Включение статусного выхода (нештатный иммобилайзер) / Enable status output (external immobilizer)
+  description: Включение статусного выхода (нештатный иммобилайзер) / Enable status
+    output (external immobilizer)
   fields:
     device_id:
       description: Pandora device identifier (`PANDORA_ID`, `device_id`)
       example: 1234567
       selector:
         text:
-
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 disable_status_output:
-  description: Выключение статусного выхода (нештатный иммобилайзер) / Disable status output (external immobilizer)
+  description: Выключение статусного выхода (нештатный иммобилайзер) / Disable status
+    output (external immobilizer)
   fields:
     device_id:
       description: Pandora device identifier (`PANDORA_ID`, `device_id`)
       example: 1234567
       selector:
         text:
-
-# Various commands
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 trigger_horn:
   description: Издать звук сиреной / Trigger alarm sound
   fields:
@@ -176,7 +238,12 @@ trigger_horn:
       example: 1234567
       selector:
         text:
-
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 trigger_light:
   description: Включить освещение фарами / Trigger exterior lighting
   fields:
@@ -185,7 +252,12 @@ trigger_light:
       example: 1234567
       selector:
         text:
-
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 trigger_trunk:
   description: Открыть багажник / Open trunk
   fields:
@@ -194,7 +266,12 @@ trigger_trunk:
       example: 1234567
       selector:
         text:
-
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 check:
   description: Отправить команду CHECK / Send CHECK command
   fields:
@@ -203,7 +280,12 @@ check:
       example: 1234567
       selector:
         text:
-
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 erase_dtc:
   description: Очистка кодов DTC / Erase DTC codes
   fields:
@@ -212,7 +294,12 @@ erase_dtc:
       example: 1234567
       selector:
         text:
-
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 read_dtc:
   description: Считывание кодов DTC / Read DTC codes
   fields:
@@ -221,8 +308,12 @@ read_dtc:
       example: 1234567
       selector:
         text:
-
-# Additional commands
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 additional_command_1:
   description: Дополнительная команда №1 / Additional command no. 1
   fields:
@@ -231,7 +322,12 @@ additional_command_1:
       example: 1234567
       selector:
         text:
-
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 additional_command_2:
   description: Дополнительная команда №2 / Additional command no. 2
   fields:
@@ -240,8 +336,12 @@ additional_command_2:
       example: 1234567
       selector:
         text:
-
-# Connection toggle
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 enable_connection:
   description: Форсировать передачу данных / Force data transmission
   fields:
@@ -250,7 +350,12 @@ enable_connection:
       example: 1234567
       selector:
         text:
-
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
 disable_connection:
   description: Приостановить передачу данных / Pause data transmission
   fields:
@@ -259,3 +364,452 @@ disable_connection:
       example: 1234567
       selector:
         text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+turn_on_block_heater:
+  description: Turn On Block Heater / Turn On Block Heater
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+turn_off_block_heater:
+  description: Turn Off Block Heater / Turn Off Block Heater
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+nav12_disable_service_mode:
+  description: Nav12 Disable Service Mode / Nav12 Disable Service Mode
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+nav12_enable_service_mode:
+  description: Nav12 Enable Service Mode / Nav12 Enable Service Mode
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+nav12_turn_off_block_heater:
+  description: Nav12 Turn Off Block Heater / Nav12 Turn Off Block Heater
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+nav12_turn_on_block_heater:
+  description: Nav12 Turn On Block Heater / Nav12 Turn On Block Heater
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+nav12_reset_errors:
+  description: Nav12 Reset Errors / Nav12 Reset Errors
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+nav12_enable_status_output:
+  description: Nav12 Enable Status Output / Nav12 Enable Status Output
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+nav12_disable_status_output:
+  description: Nav12 Disable Status Output / Nav12 Disable Status Output
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_set_temperature:
+  description: Climate Set Temperature / Climate Set Temperature
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+    climate_temp:
+      description: Target temperature to maintain within the interior.
+      example: 18
+      selector:
+        number:
+          min: 16
+          max: 33
+          step: 1
+          unit_of_measurement: °C
+climate_seat_heat_turn_on:
+  description: Climate Seat Heat Turn On / Climate Seat Heat Turn On
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_seat_heat_turn_off:
+  description: Climate Seat Heat Turn Off / Climate Seat Heat Turn Off
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_seat_vent_turn_on:
+  description: Climate Seat Vent Turn On / Climate Seat Vent Turn On
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_seat_vent_turn_off:
+  description: Climate Seat Vent Turn Off / Climate Seat Vent Turn Off
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_glass_heat_turn_on:
+  description: Climate Glass Heat Turn On / Climate Glass Heat Turn On
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_glass_heat_turn_off:
+  description: Climate Glass Heat Turn Off / Climate Glass Heat Turn Off
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_steering_heat_turn_on:
+  description: Climate Steering Heat Turn On / Climate Steering Heat Turn On
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_steering_heat_turn_off:
+  description: Climate Steering Heat Turn Off / Climate Steering Heat Turn Off
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_ac_turn_on:
+  description: Climate Ac Turn On / Climate Ac Turn On
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_ac_turn_off:
+  description: Climate Ac Turn Off / Climate Ac Turn Off
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_sys_turn_on:
+  description: Climate Sys Turn On / Climate Sys Turn On
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_sys_turn_off:
+  description: Climate Sys Turn Off / Climate Sys Turn Off
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_defroster_turn_on:
+  description: Climate Defroster Turn On / Climate Defroster Turn On
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_defroster_turn_off:
+  description: Climate Defroster Turn Off / Climate Defroster Turn Off
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_mode_comfort:
+  description: Climate Mode Comfort / Climate Mode Comfort
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_mode_vent:
+  description: Climate Mode Vent / Climate Mode Vent
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_battery_heat_turn_on:
+  description: Climate Battery Heat Turn On / Climate Battery Heat Turn On
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+climate_battery_heat_turn_off:
+  description: Climate Battery Heat Turn Off / Climate Battery Heat Turn Off
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+enable_stealth_mode:
+  description: Enable Stealth Mode / Enable Stealth Mode
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+stay_home_propion:
+  description: Stay Home Propion / Stay Home Propion
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
+ps_call:
+  description: Ps Call / Ps Call
+  fields:
+    device_id:
+      description: Pandora device identifier (`PANDORA_ID`, `device_id`)
+      example: 1234567
+      selector:
+        text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
