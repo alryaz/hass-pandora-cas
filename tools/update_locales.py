@@ -43,8 +43,8 @@ for platform in PLATFORMS:
 # Retrieve services
 commands: dict[int, str] = dict(map(reversed, m.iterate_commands_to_register()))
 
-default_attributes = {ATTR_DEVICE_ID: "Device Identifier"}
-default_attributes_per_language = {"ru": {ATTR_DEVICE_ID: "Идентификатор устройства"}}
+default_attributes = {ATTR_DEVICE_ID: "Pandora Device"}
+default_attributes_per_language = {"ru": {ATTR_DEVICE_ID: "Устройство Pandora"}}
 
 
 def get_translation_services(
@@ -73,18 +73,7 @@ def get_translation_services_fields(
     command_id: int, language: str | None = None
 ) -> dict[str, Any]:
     service_fields = {
-        ATTR_DEVICE_ID: (
-            {
-                "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
-                "name": "Идентификатор устройства",
-            }
-            if language == "ru"
-            else {
-                "description": "Unique numeric identifier of the target Pandora device.",
-                "name": "Device Identifier",
-            }
-        ),
-        "device": (
+        "device_id": (
             {
                 "description": "Объект / идентификатор устройства Home Assistant.",
                 "name": "Устройство Home Assistant",

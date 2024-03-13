@@ -80,7 +80,7 @@
         "name": "Brakes",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -88,7 +88,7 @@
         "name": "CAN Low Liquid",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -96,7 +96,7 @@
         "name": "Center Back Safety Belt",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -104,7 +104,7 @@
         "name": "Connection state",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -112,7 +112,7 @@
         "name": "Driver Door",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -120,7 +120,7 @@
         "name": "Driver Glass",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -128,7 +128,7 @@
         "name": "Driver Safety Belt",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -136,7 +136,7 @@
         "name": "Engine Locked",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -144,7 +144,7 @@
         "name": "EV Charging Connected",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -152,7 +152,7 @@
         "name": "Evacuation Mode",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -160,7 +160,7 @@
         "name": "Exterior Lights",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -168,7 +168,7 @@
         "name": "Heater Errors",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -176,7 +176,7 @@
         "name": "Hood",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -184,7 +184,7 @@
         "name": "Ignition",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -192,7 +192,7 @@
         "name": "Left Back Door",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -200,7 +200,7 @@
         "name": "Left Back Glass",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -208,7 +208,7 @@
         "name": "Left Back Safety Belt",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -216,7 +216,7 @@
         "name": "Moving",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -224,7 +224,7 @@
         "name": "Parking Mode",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -232,7 +232,7 @@
         "name": "Passenger Door",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -240,7 +240,7 @@
         "name": "Passenger Glass",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -248,7 +248,7 @@
         "name": "Passenger Safety Belt",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -256,7 +256,7 @@
         "name": "Right Back Door",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -264,7 +264,7 @@
         "name": "Right Back Glass",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -272,7 +272,7 @@
         "name": "Right Back Safety Belt",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -280,7 +280,7 @@
         "name": "Seat Taken",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -288,7 +288,7 @@
         "name": "Trunk",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       }
@@ -298,7 +298,7 @@
         "name": "Additional Command 1",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -306,7 +306,7 @@
         "name": "Additional Command 2",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -314,7 +314,7 @@
         "name": "Check",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -322,7 +322,7 @@
         "name": "Climate Comfort",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -330,7 +330,7 @@
         "name": "Climate Interior Ventilation",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -338,7 +338,7 @@
         "name": "Enable Stealth Mode",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -346,7 +346,7 @@
         "name": "Erase Errors",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -354,7 +354,7 @@
         "name": "Read Errors",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -362,7 +362,7 @@
         "name": "Trigger Horn",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -370,7 +370,7 @@
         "name": "Trigger Light",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -378,7 +378,7 @@
         "name": "Trigger Trunk",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -386,7 +386,7 @@
         "name": "Wake Up",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       }
@@ -396,7 +396,7 @@
         "name": "Pandora",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           },
           "direction": {
             "name": "Компас"
@@ -415,7 +415,7 @@
         "name": "Central Lock",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       }
@@ -425,7 +425,7 @@
         "name": "Climate Seat Heating",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -433,7 +433,7 @@
         "name": "Climate Seat Ventilation",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -441,7 +441,7 @@
         "name": "Climate Target Temperature",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       }
@@ -451,7 +451,7 @@
         "name": "Balance",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           },
           "phone_number": {
             "name": "Phone Number"
@@ -462,7 +462,7 @@
         "name": "Balance Secondary",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           },
           "phone_number": {
             "name": "Phone Number"
@@ -473,7 +473,7 @@
         "name": "Battery Temperature",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -481,7 +481,7 @@
         "name": "Battery voltage",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -489,7 +489,7 @@
         "name": "CAN Mileage",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -497,7 +497,7 @@
         "name": "CAN Mileage batt",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -505,7 +505,7 @@
         "name": "CAN Mileage to empty",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -513,7 +513,7 @@
         "name": "Engine Temperature",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -521,7 +521,7 @@
         "name": "Exterior Temperature",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -529,7 +529,7 @@
         "name": "Fuel Level",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -537,7 +537,7 @@
         "name": "Fuel Consumption",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -545,7 +545,7 @@
         "name": "GSM Level",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -553,7 +553,7 @@
         "name": "Interior Temperature",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -561,7 +561,7 @@
         "name": "Key Number",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -569,7 +569,7 @@
         "name": "Last Command Execution",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -577,7 +577,7 @@
         "name": "Last Online",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -585,7 +585,7 @@
         "name": "Last Settings Change",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -593,7 +593,7 @@
         "name": "Last State Update",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -601,7 +601,7 @@
         "name": "Left Back Tire Pressure",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -609,7 +609,7 @@
         "name": "Left Front Tire Pressure",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -617,7 +617,7 @@
         "name": "Mileage",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -625,7 +625,7 @@
         "name": "Reserve Tire Pressure",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -633,7 +633,7 @@
         "name": "Right Back Tire Pressure",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -641,7 +641,7 @@
         "name": "Right Front Tire Pressure",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -649,7 +649,7 @@
         "name": "State Of Charge",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -657,7 +657,7 @@
         "name": "Speed",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -665,7 +665,7 @@
         "name": "Tachometer",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -673,7 +673,7 @@
         "name": "Tag Number",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -681,7 +681,7 @@
         "name": "Track Distance",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       }
@@ -691,7 +691,7 @@
         "name": "Active Security",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -699,7 +699,7 @@
         "name": "Block Heater",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -707,7 +707,7 @@
         "name": "Climate Air Conditioning",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -715,7 +715,7 @@
         "name": "Climate Battery Heating",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -723,7 +723,7 @@
         "name": "Climate Defroster",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -731,7 +731,7 @@
         "name": "Climate Glass Heating",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -739,7 +739,7 @@
         "name": "Climate Steering Heating",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -747,7 +747,7 @@
         "name": "Climate System",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -755,7 +755,7 @@
         "name": "Engine",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -763,7 +763,7 @@
         "name": "Extra Channel",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -771,7 +771,7 @@
         "name": "Service Mode",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -779,7 +779,7 @@
         "name": "Status Output",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       },
@@ -787,7 +787,7 @@
         "name": "Tracking",
         "state_attributes": {
           "device_id": {
-            "name": "Device Identifier"
+            "name": "Pandora Device"
           }
         }
       }
@@ -843,13 +843,9 @@
     "additional_command_1": {
       "description": "Execute primary user-defined action.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Additional Command 1"
@@ -857,13 +853,9 @@
     "additional_command_2": {
       "description": "Execute secondary user-defined action.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Additional Command 2"
@@ -871,13 +863,9 @@
     "check": {
       "description": "Initiate telemetry retrieval operation (update data).",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Check"
@@ -885,13 +873,9 @@
     "climate_ac_turn_off": {
       "description": "Execute command on the remote device: CLIMATE_AC_TURN_OFF (58634)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Ac Turn Off"
@@ -899,13 +883,9 @@
     "climate_ac_turn_on": {
       "description": "Execute command on the remote device: CLIMATE_AC_TURN_ON (58633)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Ac Turn On"
@@ -913,13 +893,9 @@
     "climate_battery_heat_turn_off": {
       "description": "Execute command on the remote device: CLIMATE_BATTERY_HEAT_TURN_OFF (58648)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Battery Heat Turn Off"
@@ -927,13 +903,9 @@
     "climate_battery_heat_turn_on": {
       "description": "Execute command on the remote device: CLIMATE_BATTERY_HEAT_TURN_ON (58647)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Battery Heat Turn On"
@@ -941,13 +913,9 @@
     "climate_defroster_turn_off": {
       "description": "Execute command on the remote device: CLIMATE_DEFROSTER_TURN_OFF (58638)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Defroster Turn Off"
@@ -955,13 +923,9 @@
     "climate_defroster_turn_on": {
       "description": "Execute command on the remote device: CLIMATE_DEFROSTER_TURN_ON (58637)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Defroster Turn On"
@@ -969,13 +933,9 @@
     "climate_glass_heat_turn_off": {
       "description": "Execute command on the remote device: CLIMATE_GLASS_HEAT_TURN_OFF (58630)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Glass Heat Turn Off"
@@ -983,13 +943,9 @@
     "climate_glass_heat_turn_on": {
       "description": "Execute command on the remote device: CLIMATE_GLASS_HEAT_TURN_ON (58629)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Glass Heat Turn On"
@@ -997,13 +953,9 @@
     "climate_mode_comfort": {
       "description": "Execute command on the remote device: CLIMATE_MODE_COMFORT (58639)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Mode Comfort"
@@ -1011,13 +963,9 @@
     "climate_mode_vent": {
       "description": "Execute command on the remote device: CLIMATE_MODE_VENT (58640)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Mode Vent"
@@ -1025,13 +973,9 @@
     "climate_seat_heat_turn_off": {
       "description": "Execute command on the remote device: CLIMATE_SEAT_HEAT_TURN_OFF (58626)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Seat Heat Turn Off"
@@ -1039,13 +983,9 @@
     "climate_seat_heat_turn_on": {
       "description": "Execute command on the remote device: CLIMATE_SEAT_HEAT_TURN_ON (58625)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Seat Heat Turn On"
@@ -1053,13 +993,9 @@
     "climate_seat_vent_turn_off": {
       "description": "Execute command on the remote device: CLIMATE_SEAT_VENT_TURN_OFF (58628)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Seat Vent Turn Off"
@@ -1067,13 +1003,9 @@
     "climate_seat_vent_turn_on": {
       "description": "Execute command on the remote device: CLIMATE_SEAT_VENT_TURN_ON (58627)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Seat Vent Turn On"
@@ -1085,13 +1017,9 @@
           "description": "Target temperature to maintain within the interior.",
           "name": "Target Temperature"
         },
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Set Temperature"
@@ -1099,13 +1027,9 @@
     "climate_steering_heat_turn_off": {
       "description": "Execute command on the remote device: CLIMATE_STEERING_HEAT_TURN_OFF (58632)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Steering Heat Turn Off"
@@ -1113,13 +1037,9 @@
     "climate_steering_heat_turn_on": {
       "description": "Execute command on the remote device: CLIMATE_STEERING_HEAT_TURN_ON (58631)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Steering Heat Turn On"
@@ -1127,13 +1047,9 @@
     "climate_sys_turn_off": {
       "description": "Execute command on the remote device: CLIMATE_SYS_TURN_OFF (58636)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Sys Turn Off"
@@ -1141,13 +1057,9 @@
     "climate_sys_turn_on": {
       "description": "Execute command on the remote device: CLIMATE_SYS_TURN_ON (58635)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Climate Sys Turn On"
@@ -1155,13 +1067,9 @@
     "disable_active_security": {
       "description": "Deactivate enhanced security measures.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Disable Active Security"
@@ -1169,13 +1077,9 @@
     "disable_connection": {
       "description": "Prevent real time telemetric connections with online services.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Disable Connection"
@@ -1183,13 +1087,9 @@
     "disable_service_mode": {
       "description": "Deactivate the service mode.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Disable Service Mode"
@@ -1197,13 +1097,9 @@
     "disable_status_output": {
       "description": "Activate additional status output channel.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Disable Status Output"
@@ -1211,13 +1107,9 @@
     "disable_tracking": {
       "description": "Deactivate the vehicle's tracking system.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Disable Tracking"
@@ -1225,13 +1117,9 @@
     "enable_active_security": {
       "description": "Activate enhanced security measures.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Enable Active Security"
@@ -1239,13 +1127,9 @@
     "enable_connection": {
       "description": "Allow real time telemetric connections with online services.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Enable Connection"
@@ -1253,13 +1137,9 @@
     "enable_service_mode": {
       "description": "Active the service mode.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Enable Service Mode"
@@ -1267,13 +1147,9 @@
     "enable_status_output": {
       "description": "Activate additional status output channel.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Enable Status Output"
@@ -1281,13 +1157,9 @@
     "enable_stealth_mode": {
       "description": "Execute command on the remote device: ENABLE_STEALTH_MODE (50)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Enable Stealth Mode"
@@ -1295,13 +1167,9 @@
     "enable_tracking": {
       "description": "Activate the vehicle's tracking system.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Enable Tracking"
@@ -1309,13 +1177,9 @@
     "erase_dtc": {
       "description": "Clear stored diagnostic trouble codes.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Erase Diagnostic Trouble Codes (DTC)"
@@ -1323,13 +1187,9 @@
     "lock": {
       "description": "Engage the vehicle's security mechanism to prevent access.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Lock"
@@ -1337,13 +1197,9 @@
     "nav12_disable_service_mode": {
       "description": "Execute command on the remote device: NAV12_DISABLE_SERVICE_MODE (57374)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Nav12 Disable Service Mode"
@@ -1351,13 +1207,9 @@
     "nav12_disable_status_output": {
       "description": "Execute command on the remote device: NAV12_DISABLE_STATUS_OUTPUT (57371)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Nav12 Disable Status Output"
@@ -1365,13 +1217,9 @@
     "nav12_enable_service_mode": {
       "description": "Execute command on the remote device: NAV12_ENABLE_SERVICE_MODE (57375)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Nav12 Enable Service Mode"
@@ -1379,13 +1227,9 @@
     "nav12_enable_status_output": {
       "description": "Execute command on the remote device: NAV12_ENABLE_STATUS_OUTPUT (57372)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Nav12 Enable Status Output"
@@ -1393,13 +1237,9 @@
     "nav12_reset_errors": {
       "description": "Execute command on the remote device: NAV12_RESET_ERRORS (57408)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Nav12 Reset Errors"
@@ -1407,13 +1247,9 @@
     "nav12_turn_off_block_heater": {
       "description": "Execute command on the remote device: NAV12_TURN_OFF_BLOCK_HEATER (57353)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Nav12 Turn Off Block Heater"
@@ -1421,13 +1257,9 @@
     "nav12_turn_on_block_heater": {
       "description": "Execute command on the remote device: NAV12_TURN_ON_BLOCK_HEATER (57354)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Nav12 Turn On Block Heater"
@@ -1435,13 +1267,9 @@
     "ps_call": {
       "description": "Execute command on the remote device: PS_CALL (256)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Ps Call"
@@ -1449,13 +1277,9 @@
     "read_dtc": {
       "description": "Retrieve diagnostic trouble codes.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Read Diagnostic Trouble Codes (DTC)"
@@ -1468,8 +1292,8 @@
           "name": "Command Identifier"
         },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Remote Command"
@@ -1477,13 +1301,9 @@
     "start_engine": {
       "description": "Commence the vehicle's engine remotely (autostart operation).",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Start Engine"
@@ -1491,13 +1311,9 @@
     "stay_home_propion": {
       "description": "Execute command on the remote device: STAY_HOME_PROPION (42)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Stay Home Propion"
@@ -1505,13 +1321,9 @@
     "stop_engine": {
       "description": "Halt the running vehicle engine remotely (autostart operation).",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Stop Engine"
@@ -1519,13 +1331,9 @@
     "trigger_horn": {
       "description": "Activate the vehicle's horn as an alert.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Trigger Horn"
@@ -1533,13 +1341,9 @@
     "trigger_light": {
       "description": "Activate the vehicle's lights as an alert.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Trigger Light"
@@ -1547,13 +1351,9 @@
     "trigger_trunk": {
       "description": "Activate the trunk release mechanism.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Trigger Trunk"
@@ -1561,13 +1361,9 @@
     "turn_off_block_heater": {
       "description": "Execute command on the remote device: TURN_OFF_BLOCK_HEATER (22)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Turn Off Block Heater"
@@ -1576,8 +1372,8 @@
       "description": "Stop the coolant heater operation.",
       "fields": {
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Turn Off Coolant Heater"
@@ -1585,13 +1381,9 @@
     "turn_off_ext_channel": {
       "description": "Deactivate an external channel or accessory.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Turn Off Ext Channel"
@@ -1599,13 +1391,9 @@
     "turn_on_block_heater": {
       "description": "Execute command on the remote device: TURN_ON_BLOCK_HEATER (21)",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Turn On Block Heater"
@@ -1614,8 +1402,8 @@
       "description": "Start the coolant heater operation.",
       "fields": {
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Turn On Coolant Heater"
@@ -1623,13 +1411,9 @@
     "turn_on_ext_channel": {
       "description": "Activate an external channel or accessory.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Turn On Ext Channel"
@@ -1637,13 +1421,9 @@
     "unlock": {
       "description": "Disengage the vehicle's security mechanism to allow access.",
       "fields": {
-        "device": {
-          "description": "Home Assistant device object / identifier.",
-          "name": "Home Assistant Device"
-        },
         "device_id": {
-          "description": "Unique numeric identifier of the target Pandora device.",
-          "name": "Device Identifier"
+          "description": "Unique identifier of the target Pandora device.",
+          "name": "Pandora Device"
         }
       },
       "name": "Unlock"
