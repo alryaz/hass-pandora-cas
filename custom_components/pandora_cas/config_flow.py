@@ -33,9 +33,6 @@ from homeassistant.data_entry_flow import (
 from homeassistant.exceptions import ConfigEntryNotReady, ConfigEntryAuthFailed
 from homeassistant.helpers import device_registry
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.schema_config_entry_flow import (
-    SchemaCommonFlowHandler,
-)
 from homeassistant.helpers.translation import async_get_translations
 
 from custom_components.pandora_cas import (
@@ -45,10 +42,6 @@ from custom_components.pandora_cas import (
     DEVICE_OPTIONS_SCHEMA,
 )
 from custom_components.pandora_cas.const import (
-    CONF_CUSTOM_CURSOR_TYPE,
-    DEFAULT_CURSOR_TYPE,
-    CONF_CUSTOM_CURSOR_DEVICES,
-    CONF_CUSTOM_CURSORS,
     METHOD_COMBO,
     CONF_DISABLE_WEBSOCKETS,
     METHOD_MANUAL,
@@ -65,23 +58,6 @@ from custom_components.pandora_cas.const import (
 from pandora_cas.account import PandoraOnlineAccount
 
 _LOGGER = logging.getLogger(__name__)
-
-
-async def async_options_flow_init_step_validate(
-    handler: SchemaCommonFlowHandler,
-    user_input: dict[str, Any],
-) -> dict[str, Any]:
-    cursor_type = user_input.pop(CONF_CUSTOM_CURSOR_TYPE, None) or DEFAULT_CURSOR_TYPE
-    if devices := user_input.pop(CONF_CUSTOM_CURSOR_DEVICES, None):
-        custom_cursors = handler.options.setdefault(CONF_CUSTOM_CURSORS, {})
-        if cursor_type == DEFAULT_CURSOR_TYPE:
-            for device_id in devices:
-                custom_cursors.pop(device_id, None)
-        else:
-            for device_id in devices:
-                custom_cursors[device_id] = cursor_type
-
-    return user_input
 
 
 def determine_method(entry: ConfigEntry | dict | None = None):
