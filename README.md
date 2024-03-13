@@ -65,6 +65,10 @@ Connect_, и реализует часть его функционала. Для
     <img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/screenshot_default.png" alt="Скриншот: Панель со всеми поддерживаемыми элементами">
 </details>
 <details>
+    <summary>Вызов службы из панели разработчика</summary> 
+    <img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/screenshot_service_call.png" alt="Скриншот: Вызов службы из панели разработчика">
+</details>
+<details>
     <summary>Карточка устройства (тёмная тема)</summary> 
     <img src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/stack_default_dark.png" alt="Скриншот: Карточка устройства (тёмная тема)">
 </details>
@@ -364,20 +368,20 @@ lovelace UI и автоматизации.
 Assistant. Следующие данные
 будут доступны при получении события:
 
-| Параметр             |   Тип   | Описание                 |
-|----------------------|:-------:|--------------------------|
-| device_id            |  `int`  | Идентификатор устройства |
-| event_id_primary     |  `int`  | Первичный код события    |
-| event_id_secondary   |  `int`  | Вторичный код события    |
-| title_primary        | `str`, `None` | Заглавное наименование события |
+| Параметр             |      Тип      | Описание                        |
+|----------------------|:-------------:|---------------------------------|
+| device_id            |     `int`     | Идентификатор устройства        |
+| event_id_primary     |     `int`     | Первичный код события           |
+| event_id_secondary   |     `int`     | Вторичный код события           |
+| title_primary        | `str`, `None` | Заглавное наименование события  |
 | title_primary        | `str`, `None` | Уточняющее наименование события |
-| event_type           |  `str`  | Код типа события         |
-| latitude             | `float` | Широта                   | 
-| longitude            | `float` | Долгота                  |
-| gsm_level            |  `int`  | Уровень связи            |
-| fuel                 |  `int`  | Уровень топлива          |
-| exterior_temperature |  `int`  | Температура за бортом    |
-| engine_temperature   |  `int`  | Температура двигателя    |
+| event_type           |     `str`     | Код типа события                |
+| latitude             |    `float`    | Широта                          | 
+| longitude            |    `float`    | Долгота                         |
+| gsm_level            |     `int`     | Уровень связи                   |
+| fuel                 |     `int`     | Уровень топлива                 |
+| exterior_temperature |     `int`     | Температура за бортом           |
+| engine_temperature   |     `int`     | Температура двигателя           |
 
 Код типа события является строкой, которая поверхностно описывает смысл события
 (на английском языке). Полным списком кодов (кодификатором) возможно обзавестись
