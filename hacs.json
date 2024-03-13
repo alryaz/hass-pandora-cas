@@ -6,9 +6,33 @@
   "homeassistant": "2023.9.0",
   "country": [
     "BY",
+    "CA",
+    "CH",
+    "CY",
+    "CZ",
+    "DE",
+    "EE",
+    "ES",
+    "FR",
+    "GB"
+    "GR",
+    "HR",
+    "HU",
+    "IE",
+    "IL",
     "IT",
     "KZ",
+    "LT",
+    "LV",
+    "MK",
+    "MK",
+    "PL",
+    "PT",
+    "RO",
+    "RS",
     "RU",
+    "SI",
+    "SK",
     "UA"
   ]
 }
