@@ -55,6 +55,7 @@ from homeassistant.const import (
     ATTR_LONGITUDE,
     CONF_DEVICES,
     CONF_LANGUAGE,
+    ATTR_DEVICE_ID,
 )
 from homeassistant.core import ServiceCall, HomeAssistant, callback
 from homeassistant.exceptions import (

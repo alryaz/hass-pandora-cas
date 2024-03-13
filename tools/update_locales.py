@@ -5,11 +5,11 @@ import os.path
 from typing import Any
 
 import deepmerge
-from homeassistant.const import ATTR_NAME
+from homeassistant.const import ATTR_NAME, ATTR_DEVICE_ID
 from homeassistant.util.yaml import load_yaml_dict, save_yaml
 
 import custom_components.pandora_cas as m
-from custom_components.pandora_cas.const import PLATFORMS, ATTR_DEVICE_ID, DOMAIN
+from custom_components.pandora_cas.const import PLATFORMS, DOMAIN
 from custom_components.pandora_cas.entity import PandoraCASEntityDescription
 from pandora_cas.enums import CommandID, CommandParams
 
