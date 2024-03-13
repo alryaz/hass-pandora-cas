@@ -74,7 +74,7 @@ ENTITY_TYPES = [
             None: CommandID.TURN_OFF_BLOCK_HEATER,
             PandoraDeviceTypes.NAV12: CommandID.NAV12_TURN_OFF_BLOCK_HEATER,
         },
-        features=Features.BLOCK_HEATER,
+        features=Features.HEATER,
     ),
     PandoraCASSwitchEntityDescription(
         key="engine",
@@ -111,7 +111,7 @@ ENTITY_TYPES = [
         # attribute=CurrentState.bit_state,
         command_on=CommandID.TURN_ON_EXT_CHANNEL,
         command_off=CommandID.TURN_OFF_EXT_CHANNEL,
-        features=Features.EXT_CHANNEL,
+        features=Features.CHANNEL,
         assumed_state=True,
     ),
     PandoraCASSwitchEntityDescription(
