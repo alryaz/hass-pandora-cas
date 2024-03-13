@@ -1,0 +1,76 @@
+name: Prerelease on Version Bump
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  pre-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for all tags and branches
+
+      - name: Detect single custom component directory
+        id: detect_integration
+        run: |
+          DIR_COUNT=$(find custom_components -maxdepth 1 -type d | wc -l)
+          if [ "$DIR_COUNT" -ne "1" ]; then
+            echo "Error: There must be exactly one custom component directory." >&2
+            exit 1
+          fi
+          DOMAIN=$(basename $(find custom_components -maxdepth 1 -type d))
+          echo "::set-output name=domain::$DOMAIN"
+
+      - name: Install JQ
+        run: sudo apt-get install jq
+
+      - name: Extract version from current commit
+        id: current_version
+        run: |
+          DOMAIN=${{ steps.detect_integration.outputs.domain }}
+          VERSION=$(jq -r '.version' custom_components/$DOMAIN/manifest.json)
+          echo "::set-output name=version::$VERSION"
+
+      - name: Extract version from previous commit
+        id: previous_version
+        run: |
+          DOMAIN=${{ steps.detect_integration.outputs.domain }}
+          PREV_VERSION=$(git show HEAD~:custom_components/$DOMAIN/manifest.json | jq -r '.version')
+          echo "::set-output name=version::$PREV_VERSION"
+
+      - name: Check if version changed
+        if: steps.current_version.outputs.version != steps.previous_version.outputs.version
+        run: echo "Version changed."
+
+      - name: Create Tag
+        if: steps.current_version.outputs.version != steps.previous_version.outputs.version
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.current_version.outputs.version }}';
+            github.rest.git.createRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `refs/tags/v${version}`,
+              sha: '${{ github.sha }}'
+            });
+
+      - name: Create Pre-release
+        if: steps.current_version.outputs.version != steps.previous_version.outputs.version
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.current_version.outputs.version }}';
+            github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `v${version}`,
+              name: `v${version}`,
+              body: "## :new: Нововведения\n\n<!-- ... -->\n\n## :bug: Исправления\n\n<!-- ... -->\n\n## :wrench: Изменения\n\n<!-- ... -->\n\n## :information_source: Примечания\n\n<!-- ... -->",
+              draft: false,
+              prerelease: true,
+            });
