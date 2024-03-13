@@ -198,17 +198,13 @@ def _determine_command_by_slug(command_slug: str) -> int:
     raise vol.Invalid("invalid command identifier")
 
 
-SERVICE_REMOTE_COMMAND = "remote_command"
-SERVICE_REMOTE_COMMAND_SCHEMA = vol.All(
+SERVICE_PREDEFINED_COMMAND_SCHEMA = vol.All(
     vol.Schema(
         {
-            vol.Exclusive(ATTR_DEVICE_ID, "device_id"): cv.string,
-            vol.Exclusive(ATTR_ID, "device_id"): cv.string,
-            vol.Required(ATTR_COMMAND_ID): vol.Any(
-                cv.positive_int,
-                vol.All(cv.string, _determine_command_by_slug),
-            ),
-        }
+            vol.Exclusive(ATTR_DEVICE_ID, ATTR_DEVICE_ID): cv.string,
+            vol.Exclusive(ATTR_ID, ATTR_DEVICE_ID): cv.string,
+        },
+        extra=vol.ALLOW_EXTRA,
     ),
     cv.deprecated(ATTR_ID, ATTR_DEVICE_ID),
     vol.Schema(
@@ -219,17 +215,15 @@ SERVICE_REMOTE_COMMAND_SCHEMA = vol.All(
     ),
 )
 
-SERVICE_PREDEFINED_COMMAND_SCHEMA = vol.All(
+SERVICE_REMOTE_COMMAND = "remote_command"
+SERVICE_REMOTE_COMMAND_SCHEMA = vol.All(
+    SERVICE_PREDEFINED_COMMAND_SCHEMA,
     vol.Schema(
         {
-            vol.Exclusive(ATTR_DEVICE_ID, "device_id"): cv.string,
-            vol.Exclusive(ATTR_ID, "device_id"): cv.string,
-        }
-    ),
-    cv.deprecated(ATTR_ID, ATTR_DEVICE_ID),
-    vol.Schema(
-        {
-            vol.Required(ATTR_DEVICE_ID): cv.string,
+            vol.Required(ATTR_COMMAND_ID): vol.Any(
+                cv.positive_int,
+                vol.All(cv.string, _determine_command_by_slug),
+            ),
         },
         extra=vol.ALLOW_EXTRA,
     ),
