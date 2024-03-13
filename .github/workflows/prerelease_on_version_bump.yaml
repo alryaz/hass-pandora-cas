@@ -17,12 +17,12 @@ jobs:
       - name: Detect single custom component directory
         id: detect_integration
         run: |
-          DIR_COUNT=$(find custom_components -maxdepth 1 -type d | wc -l)
+          DIR_COUNT=$(find custom_components/* -maxdepth 0 -type d | wc -l)
           if [ "$DIR_COUNT" -ne "1" ]; then
             echo "Error: There must be exactly one custom component directory." >&2
             exit 1
           fi
-          DOMAIN=$(basename $(find custom_components -maxdepth 1 -type d))
+          DOMAIN=$(basename $(find custom_components/* -maxdepth 0 -type d))
           echo "::set-output name=domain::$DOMAIN"
 
       - name: Install JQ
