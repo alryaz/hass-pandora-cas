@@ -6,6 +6,12 @@ remote_command:
       example: 1234567
       selector:
         text:
+    device:
+      description: Home Assistant device within the `pandora_cas` integration domain
+      selector:
+        device:
+          filter:
+          - integration: pandora_cas
     command_id:
       description: Номер команды / Command code
       example: 1
