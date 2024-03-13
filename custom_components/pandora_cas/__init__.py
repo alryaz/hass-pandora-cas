@@ -236,60 +236,67 @@ SERVICE_PREDEFINED_COMMAND_SCHEMA = vol.All(
 )
 
 
+def iterate_commands_to_register(cls=CommandID):
+    for key, value in cls.__members__.items():
+        yield slugify(key.lower()), value.value
+
+
+async def _async_execute_remote_command(
+    hass: HomeAssistant,
+    call: "ServiceCall",
+    command_id: int | CommandID | None = None,
+    params: Mapping[str, Any] | None = None,
+) -> None:
+    _LOGGER.debug(f"Called service '{call.service}' with data: {dict(call.data)}")
+
+    try:
+        device_id = int(call.data[ATTR_DEVICE_ID])
+    except (TypeError, ValueError, LookupError):
+        raise HomeAssistantError("Invalid device ID provided")
+
+    for config_entry_id, coordinator in hass.data.get(DOMAIN, {}).items():
+        try:
+            device = coordinator.account.devices[device_id]
+        except KeyError:
+            continue
+        _LOGGER.debug(
+            f"Found device '{device}' on coordinator '{coordinator}' for '{call.service}' service call"
+        )
+        break
+    else:
+        raise HomeAssistantError(f"Device with ID '{device_id}' not found.")
+
+    if command_id is None:
+        command_id = call.data[ATTR_COMMAND_ID]
+
+    result = device.async_remote_command(command_id, params, ensure_complete=False)
+    if asyncio.iscoroutine(result):
+        await result
+
+
 @bind_hass
 async def _async_register_services(hass: HomeAssistant) -> None:
-    async def _execute_remote_command(
-        call: "ServiceCall",
-        command_id: int | CommandID | None = None,
-        params: Mapping[str, Any] | None = None,
-    ) -> None:
-        _LOGGER.debug(f"Called service '{call.service}' with data: {dict(call.data)}")
-
-        try:
-            device_id = int(call.data[ATTR_DEVICE_ID])
-        except (TypeError, ValueError, LookupError):
-            raise HomeAssistantError("Invalid device ID provided")
-
-        for config_entry_id, coordinator in hass.data.get(DOMAIN, {}).items():
-            try:
-                device = coordinator.account.devices[device_id]
-            except KeyError:
-                continue
-            _LOGGER.debug(
-                f"Found device '{device}' on coordinator '{coordinator}' for '{call.service}' service call"
-            )
-            break
-        else:
-            raise HomeAssistantError(f"Device with ID '{device_id}' not found.")
-
-        if command_id is None:
-            command_id = call.data[ATTR_COMMAND_ID]
-
-        result = device.async_remote_command(command_id, params, ensure_complete=False)
-        if asyncio.iscoroutine(result):
-            await result
-
     # register the remote services
     _register_service = hass.services.async_register
 
     _register_service(
         DOMAIN,
         SERVICE_REMOTE_COMMAND,
-        _execute_remote_command,
+        partial(_async_execute_remote_command, hass),
         schema=SERVICE_REMOTE_COMMAND_SCHEMA,
     )
 
-    for key, value in CommandID.__members__.items():
-        command_slug = slugify(key.lower())
+    for command_slug, command_id in iterate_commands_to_register():
         _LOGGER.debug(
-            f"Registered remote command: {command_slug} (command_id={value.value})"
+            f"Registering remote command: {command_slug} (command_id={command_id})"
         )
         _register_service(
             DOMAIN,
             command_slug,
             partial(
-                _execute_remote_command,
-                command_id=value.value,
+                _async_execute_remote_command,
+                hass,
+                command_id=command_id,
             ),
             schema=SERVICE_PREDEFINED_COMMAND_SCHEMA,
         )
