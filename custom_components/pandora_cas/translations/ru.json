@@ -5,315 +5,79 @@
       "yaml_not_supported": "Изменение данных YAML-конфигураций недоступно из интерфейса"
     },
     "error": {
-      "invalid_auth": "Имя пользователя и/или пароль не подходят",
-      "cannot_connect": "Невозможно выполнить запрос"
+      "cannot_connect": "Невозможно выполнить запрос",
+      "invalid_auth": "Имя пользователя и/или пароль не подходят"
     },
     "step": {
       "user": {
         "data": {
-          "username": "Имя пользователя",
+          "language": "Язык перевода данных",
           "password": "Пароль",
-          "verify_ssl": "Проверять сертификаты SSL",
-          "language": "Язык перевода данных"
+          "username": "Имя пользователя",
+          "verify_ssl": "Проверять сертификаты SSL"
         },
-        "title": "Аутентификация",
-        "description": "Введите данные для входа в Ваш аккаунт Pandora Online."
+        "description": "Введите данные для входа в Ваш аккаунт Pandora Online.",
+        "title": "Аутентификация"
       }
     }
   },
   "device_automation": {
     "trigger_type": {
-      "locking_enabled": "Событие: Постановка на охрану",
-      "locking_disabled": "Событие: Снятие с охраны",
+      "active_security_alert": "Событие: Тревога в режиме активной защиты",
+      "active_security_disabled": "Событие: Включение режима Активной Защиты",
+      "active_security_enabled": "Событие: Выключение режима Активной Защиты",
       "alert": "Событие: Тревога",
+      "block_heater_disabled": "Событие: Отключение предпускового подогревателя",
+      "block_heater_enabled": "Событие: Включение предпускового подогревателя",
+      "bluetooth_status": "Событие: Состояние Bluetooth",
+      "check_received": "Событие: Получена команда CHECK",
+      "collision": "Событие: Столкновение",
+      "driving": "Событие: В движении",
+      "dtc_erase_active": "Событие: Dtc Erase Active",
+      "dtc_erase_request": "Событие: Dtc Erase Request",
+      "dtc_read_active": "Событие: Dtc Read Active",
+      "dtc_read_error": "Событие: Dtc Read Error",
+      "dtc_read_request": "Событие: Dtc Read Request",
+      "eco_mode_disabled": "Событие: Включение Эко-режима",
+      "eco_mode_enabled": "Событие: Отключение Эко-режима",
+      "emergency_call": "Событие: Экстренный вызов",
+      "engine_locked": "Событие: Двигатель заблокирован",
+      "engine_running_prolongation": "Событие: Продление времени работы двигателя",
       "engine_started": "Событие: Двигатель запущен",
       "engine_stopped": "Событие: Двигатель остановлен",
-      "engine_locked": "Событие: Двигатель заблокирован",
+      "factory_testing": "Событие: Factory Testing",
+      "failed_start_attempt": "Событие: Ошибка запуска двигателя",
+      "gsm_channel_disabled": "Событие: Канал GSM отключен",
+      "gsm_channel_enabled": "Событие: Канал GSM включен",
+      "gsm_connection": "Событие: Сотовая связь",
+      "locking_disabled": "Событие: Снятие с охраны",
+      "locking_enabled": "Событие: Постановка на охрану",
+      "nav_11_status": "Событие: Nav 11 Status",
+      "point": "Событие: Point",
+      "power_dip": "Событие: Просадка по питанию",
+      "refuel": "Событие: Заправка",
+      "rough_road_conditions": "Событие: Rough Road Conditions",
+      "secure_trunk_open": "Событие: Secure Trunk Open",
+      "service_mode_disabled": "Событие: Выключение сервисного режима",
       "service_mode_enabled": "Событие: Сервисный режим включен",
       "settings_changed": "Событие: Настройки изменены",
-      "refuel": "Событие: Заправка",
-      "collision": "Событие: Столкновение",
-      "gsm_connection": "Событие: Сотовая связь",
-      "emergency_call": "Событие: Экстренный вызов",
-      "failed_start_attempt": "Событие: Ошибка запуска двигателя",
-      "tracking_enabled": "Событие: Отслеживание включено",
-      "tracking_disabled": "Событие: Отслеживание отключено",
-      "system_power_loss": "Событие: Система потеряла питание",
-      "secure_trunk_open": "Событие: Secure Trunk Open",
-      "factory_testing": "Событие: Factory Testing",
-      "power_dip": "Событие: Просадка по питанию",
-      "check_received": "Событие: Получена команда CHECK",
       "system_login": "Событие: System Login",
-      "active_security_enabled": "Событие: Выключение режима Активной Защиты",
-      "active_security_disabled": "Событие: Включение режима Активной Защиты",
-      "active_security_alert": "Событие: Тревога в режиме активной защиты",
-      "block_heater_enabled": "Событие: Включение предпускового подогревателя",
-      "block_heater_disabled": "Событие: Отключение предпускового подогревателя",
-      "rough_road_conditions": "Событие: Rough Road Conditions",
-      "driving": "Событие: В движении",
-      "engine_running_prolongation": "Событие: Продление времени работы двигателя",
-      "service_mode_disabled": "Событие: Выключение сервисного режима",
-      "gsm_channel_enabled": "Событие: Канал GSM включен",
-      "gsm_channel_disabled": "Событие: Канал GSM отключен",
-      "nav_11_status": "Событие: Nav 11 Status",
-      "dtc_read_request": "Событие: Dtc Read Request",
-      "dtc_read_error": "Событие: Dtc Read Error",
-      "dtc_read_active": "Событие: Dtc Read Active",
-      "dtc_erase_request": "Событие: Dtc Erase Request",
-      "dtc_erase_active": "Событие: Dtc Erase Active",
       "system_message": "Событие: Сообщение системы",
-      "eco_mode_enabled": "Событие: Отключение Эко-режима",
-      "eco_mode_disabled": "Событие: Включение Эко-режима",
-      "tire_pressure_low": "Событие: Низкое давление в шинах",
-      "bluetooth_status": "Событие: Состояние Bluetooth",
-      "tag_requirement_enabled": "Событие: Tag Requirement Enabled",
-      "tag_requirement_disabled": "Событие: Tag Requirement Disabled",
-      "tag_polling_enabled": "Событие: Tag Polling Enabled",
+      "system_power_loss": "Событие: Система потеряла питание",
       "tag_polling_disabled": "Событие: Tag Polling Disabled",
-      "point": "Событие: Point",
+      "tag_polling_enabled": "Событие: Tag Polling Enabled",
+      "tag_requirement_disabled": "Событие: Tag Requirement Disabled",
+      "tag_requirement_enabled": "Событие: Tag Requirement Enabled",
+      "tire_pressure_low": "Событие: Низкое давление в шинах",
+      "tracking_disabled": "Событие: Отслеживание отключено",
+      "tracking_enabled": "Событие: Отслеживание включено",
       "unknown": "Событие: Unknown"
     }
   },
   "entity": {
     "binary_sensor": {
-      "connection_state": {
-        "name": "Соединение",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "moving": {
-        "name": "В движении",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "driver_door": {
-        "name": "Дверь водителя",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        },
-        "state": {
-          "on": "Открыта",
-          "off": "Закрыта"
-        }
-      },
-      "passenger_door": {
-        "name": "Дверь пассажира",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        },
-        "state": {
-          "on": "Открыта",
-          "off": "Закрыта"
-        }
-      },
-      "left_back_door": {
-        "name": "Левая задняя дверь",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        },
-        "state": {
-          "on": "Открыта",
-          "off": "Закрыта"
-        }
-      },
-      "right_back_door": {
-        "name": "Правая задняя дверь",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        },
-        "state": {
-          "on": "Открыта",
-          "off": "Закрыта"
-        }
-      },
-      "driver_glass": {
-        "name": "Стеклоподъёмник водителя",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        },
-        "state": {
-          "on": "Опущен",
-          "off": "Поднят"
-        }
-      },
-      "passenger_glass": {
-        "name": "Стеклоподъёмник пассажира",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        },
-        "state": {
-          "on": "Опущен",
-          "off": "Поднят"
-        }
-      },
-      "left_back_glass": {
-        "name": "Задний левый стеклоподъёмник",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        },
-        "state": {
-          "on": "Опущен",
-          "off": "Поднят"
-        }
-      },
-      "right_back_glass": {
-        "name": "Задний правый стеклоподъёмник",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        },
-        "state": {
-          "on": "Опущен",
-          "off": "Поднят"
-        }
-      },
-      "driver_safety_belt": {
-        "name": "Ремень безопасности водителя",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        },
-        "state": {
-          "on": "Пристёгнут",
-          "off": "Отстёгнут"
-        }
-      },
-      "passenger_safety_belt": {
-        "name": "Ремень безопасности пассажира",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        },
-        "state": {
-          "on": "Пристёгнут",
-          "off": "Отстёгнут"
-        }
-      },
-      "left_back_safety_belt": {
-        "name": "Задний левый ремень безопасности",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        },
-        "state": {
-          "on": "Пристёгнут",
-          "off": "Отстёгнут"
-        }
-      },
-      "right_back_safety_belt": {
-        "name": "Задний правый ремень безопасности",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        },
-        "state": {
-          "on": "Пристёгнут",
-          "off": "Отстёгнут"
-        }
-      },
-      "center_back_safety_belt": {
-        "name": "Задний центральный ремень безопасности",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        },
-        "state": {
-          "on": "Пристёгнут",
-          "off": "Отстёгнут"
-        }
-      },
-      "trunk": {
-        "name": "Багажник",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        },
-        "state": {
-          "on": "Открыт",
-          "off": "Закрыт"
-        }
-      },
-      "hood": {
-        "name": "Капот",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        },
-        "state": {
-          "on": "Открыт",
-          "off": "Закрыт"
-        }
-      },
-      "parking": {
-        "name": "Нейтраль",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
       "brakes": {
         "name": "Тормоз",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "seat_taken": {
-        "name": "Кресло занято",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "ignition": {
-        "name": "Зажигание",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "exterior_lights": {
-        "name": "Световые сигналы",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "ev_charging_connected": {
-        "name": "Зарядка подключена",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -328,8 +92,56 @@
           }
         }
       },
-      "evacuation_mode": {
-        "name": "Режим эвакуации",
+      "center_back_safety_belt": {
+        "name": "Задний центральный ремень безопасности",
+        "state": {
+          "off": "Отстёгнут",
+          "on": "Пристёгнут"
+        },
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "connection_state": {
+        "name": "Соединение",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "driver_door": {
+        "name": "Дверь водителя",
+        "state": {
+          "off": "Закрыта",
+          "on": "Открыта"
+        },
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "driver_glass": {
+        "name": "Стеклоподъёмник водителя",
+        "state": {
+          "off": "Поднят",
+          "on": "Опущен"
+        },
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "driver_safety_belt": {
+        "name": "Ремень безопасности водителя",
+        "state": {
+          "off": "Отстёгнут",
+          "on": "Пристёгнут"
+        },
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -343,322 +155,263 @@
             "name": "Идентификатор устройства"
           }
         }
-      }
-    },
-    "sensor": {
-      "mileage": {
-        "name": "Пробег системы",
+      },
+      "ev_charging_connected": {
+        "name": "Зарядка подключена",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "fuel": {
-        "name": "Топливный бак",
+      "evacuation_mode": {
+        "name": "Режим эвакуации",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "fuel_consumption": {
-        "name": "Расход топлива",
+      "exterior_lights": {
+        "name": "Световые сигналы",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "interior_temperature": {
-        "name": "Температура в салоне",
+      "heater_errors": {
+        "name": "Ошибки подогревателя",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "balance": {
-        "name": "Баланс SIM",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          },
-          "phone_number": {
-            "name": "Номер телефона"
-          }
-        }
-      },
-      "speed": {
-        "name": "Скорость",
+      "hood": {
+        "name": "Капот",
+        "state": {
+          "off": "Закрыт",
+          "on": "Открыт"
+        },
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "tachometer": {
-        "name": "Обороты",
+      "ignition": {
+        "name": "Зажигание",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "gsm_level": {
-        "name": "Сотовый сигнал",
+      "left_back_door": {
+        "name": "Левая задняя дверь",
+        "state": {
+          "off": "Закрыта",
+          "on": "Открыта"
+        },
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "battery_voltage": {
-        "name": "Напряжение аккумулятора",
+      "left_back_glass": {
+        "name": "Задний левый стеклоподъёмник",
+        "state": {
+          "off": "Поднят",
+          "on": "Опущен"
+        },
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "left_front_tire_pressure": {
-        "name": "Давление передней левой шины",
+      "left_back_safety_belt": {
+        "name": "Задний левый ремень безопасности",
+        "state": {
+          "off": "Отстёгнут",
+          "on": "Пристёгнут"
+        },
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "track_distance": {
-        "name": "Дистанция трека",
+      "moving": {
+        "name": "В движении",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "key_number": {
-        "name": "Номер ключа",
+      "parking": {
+        "name": "Нейтраль",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "tag_number": {
-        "name": "Номер метки",
+      "passenger_door": {
+        "name": "Дверь пассажира",
+        "state": {
+          "off": "Закрыта",
+          "on": "Открыта"
+        },
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "last_online": {
-        "name": "Последняя связь",
+      "passenger_glass": {
+        "name": "Стеклоподъёмник пассажира",
+        "state": {
+          "off": "Поднят",
+          "on": "Опущен"
+        },
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "can_mileage": {
-        "name": "Пробег по CAN",
+      "passenger_safety_belt": {
+        "name": "Ремень безопасности пассажира",
+        "state": {
+          "off": "Отстёгнут",
+          "on": "Пристёгнут"
+        },
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "can_mileage_to_empty": {
-        "name": "Пробег по CAN на топливе",
+      "right_back_door": {
+        "name": "Правая задняя дверь",
+        "state": {
+          "off": "Закрыта",
+          "on": "Открыта"
+        },
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "engine_temperature": {
-        "name": "Температура двигателя",
+      "right_back_glass": {
+        "name": "Задний правый стеклоподъёмник",
+        "state": {
+          "off": "Поднят",
+          "on": "Опущен"
+        },
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "exterior_temperature": {
-        "name": "Температура за бортом",
+      "right_back_safety_belt": {
+        "name": "Задний правый ремень безопасности",
+        "state": {
+          "off": "Отстёгнут",
+          "on": "Пристёгнут"
+        },
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "battery_temperature": {
-        "name": "Температура аккумулятора",
+      "seat_taken": {
+        "name": "Кресло занято",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
           }
         }
       },
-      "balance_secondary": {
-        "name": "Баланс второй SIM-карты",
+      "trunk": {
+        "name": "Багажник",
+        "state": {
+          "off": "Закрыт",
+          "on": "Открыт"
+        },
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
-          },
-          "phone_number": {
-            "name": "Номер телефона"
-          }
-        }
-      },
-      "right_front_tire_pressure": {
-        "name": "Давление передней правой шины",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "left_back_tire_pressure": {
-        "name": "Давление задней левой шины",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "right_back_tire_pressure": {
-        "name": "Давление задней правой шины",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "reserve_tire_pressure": {
-        "name": "Давление запасной шины",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "last_state_update": {
-        "name": "Последнее обновление состояния",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "last_settings_change": {
-        "name": "Последнее изменение настроек",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "last_command_execution": {
-        "name": "Последнее выполнение команды",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      }
-    },
-    "switch": {
-      "active_security": {
-        "name": "Активная охрана",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "tracking": {
-        "name": "Трекинг",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "block_heater": {
-        "name": "Предпусковой подогреватель",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "engine": {
-        "name": "Двигатель",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "service_mode": {
-        "name": "Режим техосмотра",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "ext_channel": {
-        "name": "Дополнительный канал",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "status_output": {
-        "name": "Статусный выход",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      }
-    },
-    "lock": {
-      "central_lock": {
-        "name": "Центральный замок",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      }
-    },
-    "device_tracker": {
-      "pandora": {
-        "name": "Pandora",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          },
-          "gsm_level": {
-            "name": "Сотовый сигнал"
-          },
-          "direction": {
-            "name": "Компас"
-          },
-          "rotation": {
-            "name": "Поворот"
           }
         }
       }
     },
     "button": {
+      "additional_command_1": {
+        "name": "Дополнительная команда 1",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "additional_command_2": {
+        "name": "Дополнительная команда 2",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "check": {
+        "name": "Команда CHECK",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "climate_comfort": {
+        "name": "Климатический режим Комфорт",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "climate_interior_ventilation": {
+        "name": "Вентиляция всего салона",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
       "enable_stealth_mode": {
         "name": "Включение режима Stealth",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "erase_errors": {
+        "name": "Очистить ошибки",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "read_errors": {
+        "name": "Считать ошибки",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -689,48 +442,409 @@
           }
         }
       },
-      "check": {
-        "name": "Команда CHECK",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "additional_command_1": {
-        "name": "Дополнительная команда 1",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "additional_command_2": {
-        "name": "Дополнительная команда 2",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "erase_errors": {
-        "name": "Очистить ошибки",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
-      "read_errors": {
-        "name": "Считать ошибки",
-        "state_attributes": {
-          "device_id": {
-            "name": "Идентификатор устройства"
-          }
-        }
-      },
       "wake_up": {
         "name": "Пробудить",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      }
+    },
+    "device_tracker": {
+      "pandora": {
+        "name": "Pandora",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          },
+          "direction": {
+            "name": "Компас"
+          },
+          "gsm_level": {
+            "name": "Сотовый сигнал"
+          },
+          "rotation": {
+            "name": "Поворот"
+          }
+        }
+      }
+    },
+    "lock": {
+      "central_lock": {
+        "name": "Центральный замок",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      }
+    },
+    "number": {
+      "climate_seat_heating": {
+        "name": "Подогрев сидений",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "climate_seat_ventilation": {
+        "name": "Вентиляция сидений",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "climate_target_temperature": {
+        "name": "Целевая температура салона",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      }
+    },
+    "sensor": {
+      "balance": {
+        "name": "Баланс SIM",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          },
+          "phone_number": {
+            "name": "Номер телефона"
+          }
+        }
+      },
+      "balance_secondary": {
+        "name": "Баланс второй SIM-карты",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          },
+          "phone_number": {
+            "name": "Номер телефона"
+          }
+        }
+      },
+      "battery_temperature": {
+        "name": "Температура аккумулятора",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "battery_voltage": {
+        "name": "Напряжение аккумулятора",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "can_mileage": {
+        "name": "Пробег по CAN",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "can_mileage_by_battery": {
+        "name": "CAN Mileage batt",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "can_mileage_to_empty": {
+        "name": "Пробег по CAN на топливе",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "engine_temperature": {
+        "name": "Температура двигателя",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "exterior_temperature": {
+        "name": "Температура за бортом",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "fuel": {
+        "name": "Топливный бак",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "fuel_consumption": {
+        "name": "Расход топлива",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "gsm_level": {
+        "name": "Сотовый сигнал",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "interior_temperature": {
+        "name": "Температура в салоне",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "key_number": {
+        "name": "Номер ключа",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "last_command_execution": {
+        "name": "Последнее выполнение команды",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "last_online": {
+        "name": "Последняя связь",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "last_settings_change": {
+        "name": "Последнее изменение настроек",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "last_state_update": {
+        "name": "Последнее обновление состояния",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "left_back_tire_pressure": {
+        "name": "Давление задней левой шины",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "left_front_tire_pressure": {
+        "name": "Давление передней левой шины",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "mileage": {
+        "name": "Пробег системы",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "reserve_tire_pressure": {
+        "name": "Давление запасной шины",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "right_back_tire_pressure": {
+        "name": "Давление задней правой шины",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "right_front_tire_pressure": {
+        "name": "Давление передней правой шины",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "soc": {
+        "name": "State Of Charge",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "speed": {
+        "name": "Скорость",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "tachometer": {
+        "name": "Обороты",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "tag_number": {
+        "name": "Номер метки",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "track_distance": {
+        "name": "Дистанция трека",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      }
+    },
+    "switch": {
+      "active_security": {
+        "name": "Активная охрана",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "block_heater": {
+        "name": "Предпусковой подогреватель",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "climate_air_conditioning": {
+        "name": "Кондиционер",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "climate_battery_heating": {
+        "name": "Подогреватель аккумулятора",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "climate_defroster": {
+        "name": "Обогрев лобового стекла",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "climate_glass_heating": {
+        "name": "Обогрев стёкол и зеркал",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "climate_steering_heating": {
+        "name": "Обогрев рулевого управления",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "climate_system": {
+        "name": "Климатическая система",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "engine": {
+        "name": "Двигатель",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "ext_channel": {
+        "name": "Дополнительный канал",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "service_mode": {
+        "name": "Режим техосмотра",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "status_output": {
+        "name": "Статусный выход",
+        "state_attributes": {
+          "device_id": {
+            "name": "Идентификатор устройства"
+          }
+        }
+      },
+      "tracking": {
+        "name": "Трекинг",
         "state_attributes": {
           "device_id": {
             "name": "Идентификатор устройства"
@@ -744,326 +858,326 @@
       "interval_too_short": "Слишком короткий интервал"
     },
     "step": {
+      "device_options": {
+        "data": {
+          "arrow": "Стрела для лука",
+          "bird": "Птица",
+          "car": "Автомобиль",
+          "coordinates_debounce": "Сглаживание координат",
+          "custom_cursor_type": "Вид курсора трекера",
+          "disable_cursor_rotation": "Отключить вращение курсора",
+          "engine_state_by_rpm": "Состояние двигателя по оборотам",
+          "fuel_is_liters": "Топливный бак в литрах",
+          "ignore_ws_coordinates": "Игнорировать обновления координат WS",
+          "mileage_can_miles": "Пробег по CAN в милях",
+          "mileage_miles": "Системный пробег в милях",
+          "moto": "Мотоцикл",
+          "offline_as_unavailable": "Оффлайн делает объекты недоступными",
+          "pierced_heart": "Поражённое сердце",
+          "rocket": "Ракета",
+          "rpm_coefficient": "Коэффициент оборотов",
+          "rpm_offset": "Сдвиг оборотов",
+          "truck": "Грузовик"
+        },
+        "title": "Настройки устройства"
+      },
       "init": {
         "menu_options": {
-          "integration_options": "Настройки интеграции",
           "device_options": "Настройки устройств",
+          "integration_options": "Настройки интеграции",
           "save": "Сохранить изменения"
         }
       },
       "integration_options": {
-        "title": "Настройки интеграции",
         "data": {
           "effective_read_timeout": "Таймаут ответов WebSockets",
           "force_lock_icons": "Использовать иконки замка",
-          "polling_interval": "Интервал опроса по HTTP",
-          "verify_ssl": "Проверять сертификаты SSL",
+          "language": "Язык перевода данных",
           "method": "Метод получения данных об устройствах",
-          "language": "Язык перевода данных"
+          "polling_interval": "Интервал опроса по HTTP",
+          "verify_ssl": "Проверять сертификаты SSL"
         },
         "data_description": {
           "verify_ssl": "Выполнять проверку на безопасность соединения с серверами AlarmTrade."
-        }
-      },
-      "device_options": {
-        "title": "Настройки устройства",
-        "data": {
-          "ignore_ws_coordinates": "Игнорировать обновления координат WS",
-          "offline_as_unavailable": "Оффлайн делает объекты недоступными",
-          "fuel_is_liters": "Топливный бак в литрах",
-          "custom_cursor_type": "Вид курсора трекера",
-          "mileage_can_miles": "Пробег по CAN в милях",
-          "mileage_miles": "Системный пробег в милях",
-          "coordinates_debounce": "Сглаживание координат",
-          "disable_cursor_rotation": "Отключить вращение курсора",
-          "rpm_coefficient": "Коэффициент оборотов",
-          "rpm_offset": "Сдвиг оборотов",
-          "engine_state_by_rpm": "Состояние двигателя по оборотам",
-          "moto": "Мотоцикл",
-          "rocket": "Ракета",
-          "truck": "Грузовик",
-          "car": "Автомобиль",
-          "pierced_heart": "Поражённое сердце",
-          "arrow": "Стрела для лука",
-          "bird": "Птица"
-        }
+        },
+        "title": "Настройки интеграции"
       }
     }
   },
   "services": {
-    "remote_command": {
-      "name": "Удалённая команда",
-      "description": "Выполнить произвольную команду напрямую (используя идентификатор команды).",
-      "fields": {
-        "command_id": {
-          "name": "Идентификатор команды",
-          "description": "Числовой идентификатор команды, обрабатываемой прошивкой целевого устройства Pandora."
-        },
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "lock": {
-      "name": "Постановка на охрану",
-      "description": "Engage the vehicle's security mechanism to prevent access.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "unlock": {
-      "name": "Снятие с охраны",
-      "description": "Disengage the vehicle's security mechanism to allow access.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "start_engine": {
-      "name": "Запуск двигателя",
-      "description": "Commence the vehicle's engine remotely (autostart operation).",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "stop_engine": {
-      "name": "Остановка двигателя",
-      "description": "Halt the running vehicle engine remotely (autostart operation).",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "enable_tracking": {
-      "name": "Включить отслеживание координат (трекинг)",
-      "description": "Activate the vehicle's tracking system.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "disable_tracking": {
-      "name": "Отключить отслеживание координат (трекинг)",
-      "description": "Deactivate the vehicle's tracking system.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "enable_active_security": {
-      "name": "Включить режим повышенной (активной) защиты",
-      "description": "Activate enhanced security measures.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "disable_active_security": {
-      "name": "Выключить режим повышенной (активной) защиты",
-      "description": "Deactivate enhanced security measures.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "turn_on_coolant_heater": {
-      "name": "Включить предпусковой подогреватель",
-      "description": "Start the coolant heater operation.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "turn_off_coolant_heater": {
-      "name": "Выключить предпусковой подогреватель",
-      "description": "Stop the coolant heater operation.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "turn_on_ext_channel": {
-      "name": "Включить дополнительный канал",
-      "description": "Активировать внешнее устройство или аксессуар.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "turn_off_ext_channel": {
-      "name": "Выключить дополнительный канал",
-      "description": "Деактивировать внешнее устройство или аксессуар.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "enable_service_mode": {
-      "name": "Включить режим техобслуживания",
-      "description": "Перевести удалённое устройство в сервисный режим.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "disable_service_mode": {
-      "name": "Выключить режим техобслуживания",
-      "description": "Вывести удалённое устройство из сервисного режима.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "enable_status_output": {
-      "name": "Включить статусный выход",
-      "description": "Включить канал статусного выхода на удалённом устройстве.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "disable_status_output": {
-      "name": "Выключить статусный выход",
-      "description": "Выключить канал статусного выхода на удалённом устройстве.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "trigger_horn": {
-      "name": "Издать звук сирены",
-      "description": "Активировать однократно цикл издания звука установленной сиреной (или клаксоном), используемой(-ым) в качестве оповещения о возникновении тревожного события.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "trigger_light": {
-      "name": "Моргнуть элементами освещения",
-      "description": "Активировать однократно цикл включения освещения (фары, сигналы), используемого в качестве оповещения о возникновении тревожного события.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "trigger_trunk": {
-      "name": "Открыть багажник",
-      "description": "Спровоцировать багажник автомобиля на открытие.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "check": {
-      "name": "Проверка (обновление данных)",
-      "description": "Отправить команду на удалённое устройство для немедленной передачи текущего состояния всех имеющихся атрибутов на сервер.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "erase_dtc": {
-      "name": "Очистить диагностические коды ошибок (DTC)",
-      "description": "Выполнить очистку диагностических кодов ошибок, считываемых по CAN-шине с ЭБУ автомобиля.",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
-    "read_dtc": {
-      "name": "Прочитать диагностические коды ошибок (DTC)",
-      "description": "Прочесть диагностические коды ошибок по CAN-шине с ЭБУ автомобиля",
-      "fields": {
-        "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
-        }
-      }
-    },
     "additional_command_1": {
-      "name": "Дополнительная команда №1",
       "description": "Выполнить первый заданный пользователем алгоритм действий.",
       "fields": {
         "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
         }
-      }
+      },
+      "name": "Дополнительная команда №1"
     },
     "additional_command_2": {
-      "name": "Дополнительная команда №2",
       "description": "Выполнить второй заданный пользователем алгоритм действий.",
       "fields": {
         "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
         }
-      }
+      },
+      "name": "Дополнительная команда №2"
     },
-    "enable_connection": {
-      "name": "Включить связь с облаком",
-      "description": "Разрешить передачу телеметрической информации на сервера AlarmTrade в реальном времени.",
+    "check": {
+      "description": "Отправить команду на удалённое устройство для немедленной передачи текущего состояния всех имеющихся атрибутов на сервер.",
       "fields": {
         "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
         }
-      }
+      },
+      "name": "Проверка (обновление данных)"
+    },
+    "disable_active_security": {
+      "description": "Deactivate enhanced security measures.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Выключить режим повышенной (активной) защиты"
     },
     "disable_connection": {
-      "name": "Выключить связь с облаком",
       "description": "Прекратить передачу телеметрической информации на сервера AlarmTrade в реальном времени.",
       "fields": {
         "device_id": {
-          "name": "Идентификатор устройства",
-          "description": "Уникальный числовой идентификатор целевого устройства Pandora."
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
         }
-      }
+      },
+      "name": "Выключить связь с облаком"
+    },
+    "disable_service_mode": {
+      "description": "Вывести удалённое устройство из сервисного режима.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Выключить режим техобслуживания"
+    },
+    "disable_status_output": {
+      "description": "Выключить канал статусного выхода на удалённом устройстве.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Выключить статусный выход"
+    },
+    "disable_tracking": {
+      "description": "Deactivate the vehicle's tracking system.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Отключить отслеживание координат (трекинг)"
+    },
+    "enable_active_security": {
+      "description": "Activate enhanced security measures.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Включить режим повышенной (активной) защиты"
+    },
+    "enable_connection": {
+      "description": "Разрешить передачу телеметрической информации на сервера AlarmTrade в реальном времени.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Включить связь с облаком"
+    },
+    "enable_service_mode": {
+      "description": "Перевести удалённое устройство в сервисный режим.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Включить режим техобслуживания"
+    },
+    "enable_status_output": {
+      "description": "Включить канал статусного выхода на удалённом устройстве.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Включить статусный выход"
+    },
+    "enable_tracking": {
+      "description": "Activate the vehicle's tracking system.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Включить отслеживание координат (трекинг)"
+    },
+    "erase_dtc": {
+      "description": "Выполнить очистку диагностических кодов ошибок, считываемых по CAN-шине с ЭБУ автомобиля.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Очистить диагностические коды ошибок (DTC)"
+    },
+    "lock": {
+      "description": "Engage the vehicle's security mechanism to prevent access.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Постановка на охрану"
+    },
+    "read_dtc": {
+      "description": "Прочесть диагностические коды ошибок по CAN-шине с ЭБУ автомобиля",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Прочитать диагностические коды ошибок (DTC)"
+    },
+    "remote_command": {
+      "description": "Выполнить произвольную команду напрямую (используя идентификатор команды).",
+      "fields": {
+        "command_id": {
+          "description": "Числовой идентификатор команды, обрабатываемой прошивкой целевого устройства Pandora.",
+          "name": "Идентификатор команды"
+        },
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Удалённая команда"
+    },
+    "start_engine": {
+      "description": "Commence the vehicle's engine remotely (autostart operation).",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Запуск двигателя"
+    },
+    "stop_engine": {
+      "description": "Halt the running vehicle engine remotely (autostart operation).",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Остановка двигателя"
+    },
+    "trigger_horn": {
+      "description": "Активировать однократно цикл издания звука установленной сиреной (или клаксоном), используемой(-ым) в качестве оповещения о возникновении тревожного события.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Издать звук сирены"
+    },
+    "trigger_light": {
+      "description": "Активировать однократно цикл включения освещения (фары, сигналы), используемого в качестве оповещения о возникновении тревожного события.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Моргнуть элементами освещения"
+    },
+    "trigger_trunk": {
+      "description": "Спровоцировать багажник автомобиля на открытие.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Открыть багажник"
+    },
+    "turn_off_coolant_heater": {
+      "description": "Stop the coolant heater operation.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Выключить предпусковой подогреватель"
+    },
+    "turn_off_ext_channel": {
+      "description": "Деактивировать внешнее устройство или аксессуар.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Выключить дополнительный канал"
+    },
+    "turn_on_coolant_heater": {
+      "description": "Start the coolant heater operation.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Включить предпусковой подогреватель"
+    },
+    "turn_on_ext_channel": {
+      "description": "Активировать внешнее устройство или аксессуар.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Включить дополнительный канал"
+    },
+    "unlock": {
+      "description": "Disengage the vehicle's security mechanism to allow access.",
+      "fields": {
+        "device_id": {
+          "description": "Уникальный числовой идентификатор целевого устройства Pandora.",
+          "name": "Идентификатор устройства"
+        }
+      },
+      "name": "Снятие с охраны"
     }
   }
 }

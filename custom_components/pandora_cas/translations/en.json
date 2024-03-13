@@ -5,263 +5,79 @@
       "yaml_not_supported": "Updating configuration for YAML entries is not supported"
     },
     "error": {
-      "invalid_auth": "Invalid authentication information",
-      "cannot_connect": "Cannot retrieve data from remote server"
+      "cannot_connect": "Cannot retrieve data from remote server",
+      "invalid_auth": "Invalid authentication information"
     },
     "step": {
       "user": {
         "data": {
-          "username": "Username",
+          "language": "Data translation language",
           "password": "Password",
-          "verify_ssl": "Verify SSL certificates",
-          "language": "Data translation language"
+          "username": "Username",
+          "verify_ssl": "Verify SSL certificates"
         },
-        "title": "Authentication",
-        "description": "Enter your credentials for your Pandora Online account."
+        "description": "Enter your credentials for your Pandora Online account.",
+        "title": "Authentication"
       }
     }
   },
   "device_automation": {
     "trigger_type": {
-      "locking_enabled": "Event: Locking Enabled",
-      "locking_disabled": "Event: Locking Disabled",
+      "active_security_alert": "Event: Active Security Alert",
+      "active_security_disabled": "Event: Active Security Disabled",
+      "active_security_enabled": "Event: Active Security Enabled",
       "alert": "Event: Alert",
+      "block_heater_disabled": "Event: Block Heater Disabled",
+      "block_heater_enabled": "Event: Block Heater Enabled",
+      "bluetooth_status": "Event: Bluetooth Status",
+      "check_received": "Event: Check Received",
+      "collision": "Event: Collision",
+      "driving": "Event: Driving",
+      "dtc_erase_active": "Event: Dtc Erase Active",
+      "dtc_erase_request": "Event: Dtc Erase Request",
+      "dtc_read_active": "Event: Dtc Read Active",
+      "dtc_read_error": "Event: Dtc Read Error",
+      "dtc_read_request": "Event: Dtc Read Request",
+      "eco_mode_disabled": "Event: Eco Mode Disabled",
+      "eco_mode_enabled": "Event: Eco Mode Enabled",
+      "emergency_call": "Event: Emergency Call",
+      "engine_locked": "Event: Engine Locked",
+      "engine_running_prolongation": "Event: Engine Running Prolongation",
       "engine_started": "Event: Engine Started",
       "engine_stopped": "Event: Engine Stopped",
-      "engine_locked": "Event: Engine Locked",
+      "factory_testing": "Event: Factory Testing",
+      "failed_start_attempt": "Event: Failed Start Attempt",
+      "gsm_channel_disabled": "Event: Gsm Channel Disabled",
+      "gsm_channel_enabled": "Event: Gsm Channel Enabled",
+      "gsm_connection": "Event: Gsm Connection",
+      "locking_disabled": "Event: Locking Disabled",
+      "locking_enabled": "Event: Locking Enabled",
+      "nav_11_status": "Event: Nav 11 Status",
+      "point": "Event: Point",
+      "power_dip": "Event: Power Dip",
+      "refuel": "Event: Refuel",
+      "rough_road_conditions": "Event: Rough Road Conditions",
+      "secure_trunk_open": "Event: Secure Trunk Open",
+      "service_mode_disabled": "Event: Service Mode Disabled",
       "service_mode_enabled": "Event: Service Mode Enabled",
       "settings_changed": "Event: Settings Changed",
-      "refuel": "Event: Refuel",
-      "collision": "Event: Collision",
-      "gsm_connection": "Event: Gsm Connection",
-      "emergency_call": "Event: Emergency Call",
-      "failed_start_attempt": "Event: Failed Start Attempt",
-      "tracking_enabled": "Event: Tracking Enabled",
-      "tracking_disabled": "Event: Tracking Disabled",
-      "system_power_loss": "Event: System Power Loss",
-      "secure_trunk_open": "Event: Secure Trunk Open",
-      "factory_testing": "Event: Factory Testing",
-      "power_dip": "Event: Power Dip",
-      "check_received": "Event: Check Received",
       "system_login": "Event: System Login",
-      "active_security_enabled": "Event: Active Security Enabled",
-      "active_security_disabled": "Event: Active Security Disabled",
-      "active_security_alert": "Event: Active Security Alert",
-      "block_heater_enabled": "Event: Block Heater Enabled",
-      "block_heater_disabled": "Event: Block Heater Disabled",
-      "rough_road_conditions": "Event: Rough Road Conditions",
-      "driving": "Event: Driving",
-      "engine_running_prolongation": "Event: Engine Running Prolongation",
-      "service_mode_disabled": "Event: Service Mode Disabled",
-      "gsm_channel_enabled": "Event: Gsm Channel Enabled",
-      "gsm_channel_disabled": "Event: Gsm Channel Disabled",
-      "nav_11_status": "Event: Nav 11 Status",
-      "dtc_read_request": "Event: Dtc Read Request",
-      "dtc_read_error": "Event: Dtc Read Error",
-      "dtc_read_active": "Event: Dtc Read Active",
-      "dtc_erase_request": "Event: Dtc Erase Request",
-      "dtc_erase_active": "Event: Dtc Erase Active",
       "system_message": "Event: System Message",
-      "eco_mode_enabled": "Event: Eco Mode Enabled",
-      "eco_mode_disabled": "Event: Eco Mode Disabled",
-      "tire_pressure_low": "Event: Tire Pressure Low",
-      "bluetooth_status": "Event: Bluetooth Status",
-      "tag_requirement_enabled": "Event: Tag Requirement Enabled",
-      "tag_requirement_disabled": "Event: Tag Requirement Disabled",
-      "tag_polling_enabled": "Event: Tag Polling Enabled",
+      "system_power_loss": "Event: System Power Loss",
       "tag_polling_disabled": "Event: Tag Polling Disabled",
-      "point": "Event: Point",
+      "tag_polling_enabled": "Event: Tag Polling Enabled",
+      "tag_requirement_disabled": "Event: Tag Requirement Disabled",
+      "tag_requirement_enabled": "Event: Tag Requirement Enabled",
+      "tire_pressure_low": "Event: Tire Pressure Low",
+      "tracking_disabled": "Event: Tracking Disabled",
+      "tracking_enabled": "Event: Tracking Enabled",
       "unknown": "Event: Unknown"
     }
   },
   "entity": {
     "binary_sensor": {
-      "connection_state": {
-        "name": "Connection state",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "moving": {
-        "name": "Moving",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "driver_door": {
-        "name": "Driver Door",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "passenger_door": {
-        "name": "Passenger Door",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "left_back_door": {
-        "name": "Left Back Door",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "right_back_door": {
-        "name": "Right Back Door",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "driver_glass": {
-        "name": "Driver Glass",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "passenger_glass": {
-        "name": "Passenger Glass",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "left_back_glass": {
-        "name": "Left Back Glass",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "right_back_glass": {
-        "name": "Right Back Glass",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "driver_safety_belt": {
-        "name": "Driver Safety Belt",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "passenger_safety_belt": {
-        "name": "Passenger Safety Belt",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "left_back_safety_belt": {
-        "name": "Left Back Safety Belt",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "right_back_safety_belt": {
-        "name": "Right Back Safety Belt",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "center_back_safety_belt": {
-        "name": "Center Back Safety Belt",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "trunk": {
-        "name": "Trunk",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "hood": {
-        "name": "Hood",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "parking": {
-        "name": "Parking Mode",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "seat_taken": {
-        "name": "Seat Taken",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
       "brakes": {
         "name": "Brakes",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "ignition": {
-        "name": "Ignition",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "exterior_lights": {
-        "name": "Exterior Lights",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "evacuation_mode": {
-        "name": "Evacuation Mode",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "ev_charging_connected": {
-        "name": "EV Charging Connected",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"
@@ -276,8 +92,200 @@
           }
         }
       },
+      "center_back_safety_belt": {
+        "name": "Center Back Safety Belt",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "connection_state": {
+        "name": "Connection state",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "driver_door": {
+        "name": "Driver Door",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "driver_glass": {
+        "name": "Driver Glass",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "driver_safety_belt": {
+        "name": "Driver Safety Belt",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
       "engine_locked": {
         "name": "Engine Locked",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "ev_charging_connected": {
+        "name": "EV Charging Connected",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "evacuation_mode": {
+        "name": "Evacuation Mode",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "exterior_lights": {
+        "name": "Exterior Lights",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "heater_errors": {
+        "name": "Heater Errors",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "hood": {
+        "name": "Hood",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "ignition": {
+        "name": "Ignition",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "left_back_door": {
+        "name": "Left Back Door",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "left_back_glass": {
+        "name": "Left Back Glass",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "left_back_safety_belt": {
+        "name": "Left Back Safety Belt",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "moving": {
+        "name": "Moving",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "parking": {
+        "name": "Parking Mode",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "passenger_door": {
+        "name": "Passenger Door",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "passenger_glass": {
+        "name": "Passenger Glass",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "passenger_safety_belt": {
+        "name": "Passenger Safety Belt",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "right_back_door": {
+        "name": "Right Back Door",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "right_back_glass": {
+        "name": "Right Back Glass",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "right_back_safety_belt": {
+        "name": "Right Back Safety Belt",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "seat_taken": {
+        "name": "Seat Taken",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "trunk": {
+        "name": "Trunk",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"
@@ -286,6 +294,46 @@
       }
     },
     "button": {
+      "additional_command_1": {
+        "name": "Additional Command 1",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "additional_command_2": {
+        "name": "Additional Command 2",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "check": {
+        "name": "Check",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "climate_comfort": {
+        "name": "Climate Comfort",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "climate_interior_ventilation": {
+        "name": "Climate Interior Ventilation",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
       "enable_stealth_mode": {
         "name": "Enable Stealth Mode",
         "state_attributes": {
@@ -334,30 +382,6 @@
           }
         }
       },
-      "check": {
-        "name": "Check",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "additional_command_1": {
-        "name": "Additional Command 1",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "additional_command_2": {
-        "name": "Additional Command 2",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
       "wake_up": {
         "name": "Wake Up",
         "state_attributes": {
@@ -374,11 +398,11 @@
           "device_id": {
             "name": "Device Identifier"
           },
-          "gsm_level": {
-            "name": "GSM Level"
-          },
           "direction": {
             "name": "Компас"
+          },
+          "gsm_level": {
+            "name": "GSM Level"
           },
           "rotation": {
             "name": "Поворот"
@@ -396,39 +420,33 @@
         }
       }
     },
+    "number": {
+      "climate_seat_heating": {
+        "name": "Climate Seat Heating",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "climate_seat_ventilation": {
+        "name": "Climate Seat Ventilation",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "climate_target_temperature": {
+        "name": "Climate Target Temperature",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      }
+    },
     "sensor": {
-      "mileage": {
-        "name": "Mileage",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "fuel": {
-        "name": "Fuel Level",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "fuel_consumption": {
-        "name": "Fuel Consumption",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "interior_temperature": {
-        "name": "Interior Temperature",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
       "balance": {
         "name": "Balance",
         "state_attributes": {
@@ -440,24 +458,19 @@
           }
         }
       },
-      "speed": {
-        "name": "Speed",
+      "balance_secondary": {
+        "name": "Balance Secondary",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"
+          },
+          "phone_number": {
+            "name": "Phone Number"
           }
         }
       },
-      "tachometer": {
-        "name": "Tachometer",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "gsm_level": {
-        "name": "GSM Level",
+      "battery_temperature": {
+        "name": "Battery Temperature",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"
@@ -472,48 +485,16 @@
           }
         }
       },
-      "left_front_tire_pressure": {
-        "name": "Left Front Tire Pressure",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "track_distance": {
-        "name": "Track Distance",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "key_number": {
-        "name": "Key Number",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "tag_number": {
-        "name": "Tag Number",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
-      "last_online": {
-        "name": "Last Online",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          }
-        }
-      },
       "can_mileage": {
         "name": "CAN Mileage",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "can_mileage_by_battery": {
+        "name": "CAN Mileage batt",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"
@@ -544,59 +525,56 @@
           }
         }
       },
-      "battery_temperature": {
-        "name": "Battery Temperature",
+      "fuel": {
+        "name": "Fuel Level",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"
           }
         }
       },
-      "balance_secondary": {
-        "name": "Balance Secondary",
-        "state_attributes": {
-          "device_id": {
-            "name": "Device Identifier"
-          },
-          "phone_number": {
-            "name": "Phone Number"
-          }
-        }
-      },
-      "right_front_tire_pressure": {
-        "name": "Right Front Tire Pressure",
+      "fuel_consumption": {
+        "name": "Fuel Consumption",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"
           }
         }
       },
-      "left_back_tire_pressure": {
-        "name": "Left Back Tire Pressure",
+      "gsm_level": {
+        "name": "GSM Level",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"
           }
         }
       },
-      "right_back_tire_pressure": {
-        "name": "Right Back Tire Pressure",
+      "interior_temperature": {
+        "name": "Interior Temperature",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"
           }
         }
       },
-      "reserve_tire_pressure": {
-        "name": "Reserve Tire Pressure",
+      "key_number": {
+        "name": "Key Number",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"
           }
         }
       },
-      "last_state_update": {
-        "name": "Last State Update",
+      "last_command_execution": {
+        "name": "Last Command Execution",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "last_online": {
+        "name": "Last Online",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"
@@ -611,8 +589,96 @@
           }
         }
       },
-      "last_command_execution": {
-        "name": "Last Command Execution",
+      "last_state_update": {
+        "name": "Last State Update",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "left_back_tire_pressure": {
+        "name": "Left Back Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "left_front_tire_pressure": {
+        "name": "Left Front Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "mileage": {
+        "name": "Mileage",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "reserve_tire_pressure": {
+        "name": "Reserve Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "right_back_tire_pressure": {
+        "name": "Right Back Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "right_front_tire_pressure": {
+        "name": "Right Front Tire Pressure",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "soc": {
+        "name": "State Of Charge",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "speed": {
+        "name": "Speed",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "tachometer": {
+        "name": "Tachometer",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "tag_number": {
+        "name": "Tag Number",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "track_distance": {
+        "name": "Track Distance",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"
@@ -629,16 +695,56 @@
           }
         }
       },
-      "tracking": {
-        "name": "Tracking",
+      "block_heater": {
+        "name": "Block Heater",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"
           }
         }
       },
-      "block_heater": {
-        "name": "Block Heater",
+      "climate_air_conditioning": {
+        "name": "Climate Air Conditioning",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "climate_battery_heating": {
+        "name": "Climate Battery Heating",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "climate_defroster": {
+        "name": "Climate Defroster",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "climate_glass_heating": {
+        "name": "Climate Glass Heating",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "climate_steering_heating": {
+        "name": "Climate Steering Heating",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
+      },
+      "climate_system": {
+        "name": "Climate System",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"
@@ -653,16 +759,16 @@
           }
         }
       },
-      "service_mode": {
-        "name": "Service Mode",
+      "ext_channel": {
+        "name": "Extra Channel",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"
           }
         }
       },
-      "ext_channel": {
-        "name": "Extra Channel",
+      "service_mode": {
+        "name": "Service Mode",
         "state_attributes": {
           "device_id": {
             "name": "Device Identifier"
@@ -676,6 +782,14 @@
             "name": "Device Identifier"
           }
         }
+      },
+      "tracking": {
+        "name": "Tracking",
+        "state_attributes": {
+          "device_id": {
+            "name": "Device Identifier"
+          }
+        }
       }
     }
   },
@@ -684,10 +798,32 @@
       "interval_too_short": "Interval too short"
     },
     "step": {
+      "device_options": {
+        "data": {
+          "arrow": "Arrow (archery)",
+          "bird": "Bird",
+          "car": "Car (sedan)",
+          "coordinates_debounce": "Coordinates debouncing",
+          "custom_cursor_type": "Custom cursor type",
+          "disable_cursor_rotation": "Disable cursor rotation",
+          "engine_state_by_rpm": "Engine state by RPM",
+          "fuel_is_liters": "Devices with fuel tank measurement in liters",
+          "ignore_ws_coordinates": "Ignore coordinates updates from WebSockets",
+          "mileage_can_miles": "CAN mileage is in miles",
+          "mileage_miles": "System mileage is in miles",
+          "moto": "Motorcycle",
+          "offline_as_unavailable": "Make online-sensitive entities unavailable when device becomes offline",
+          "pierced_heart": "Pierced heart",
+          "rocket": "Rocket",
+          "rpm_coefficient": "RPM coefficient",
+          "rpm_offset": "RPM offset",
+          "truck": "Truck"
+        }
+      },
       "init": {
         "menu_options": {
-          "integration_options": "Integration options",
           "device_options": "Device options",
+          "integration_options": "Integration options",
           "save": "Save changes"
         }
       },
@@ -695,310 +831,288 @@
         "data": {
           "effective_read_timeout": "Timeout for WebSockets responses",
           "force_lock_icons": "Use lock icons",
-          "polling_interval": "HTTP polling interval",
-          "verify_ssl": "Verify SSL certificates",
+          "language": "Data translation language",
           "method": "Method of updating devices' data",
-          "language": "Data translation language"
-        }
-      },
-      "device_options": {
-        "data": {
-          "ignore_ws_coordinates": "Ignore coordinates updates from WebSockets",
-          "offline_as_unavailable": "Make online-sensitive entities unavailable when device becomes offline",
-          "fuel_is_liters": "Devices with fuel tank measurement in liters",
-          "custom_cursor_type": "Custom cursor type",
-          "mileage_can_miles": "CAN mileage is in miles",
-          "mileage_miles": "System mileage is in miles",
-          "coordinates_debounce": "Coordinates debouncing",
-          "disable_cursor_rotation": "Disable cursor rotation",
-          "rpm_coefficient": "RPM coefficient",
-          "rpm_offset": "RPM offset",
-          "engine_state_by_rpm": "Engine state by RPM",
-          "moto": "Motorcycle",
-          "rocket": "Rocket",
-          "truck": "Truck",
-          "car": "Car (sedan)",
-          "pierced_heart": "Pierced heart",
-          "arrow": "Arrow (archery)",
-          "bird": "Bird"
+          "polling_interval": "HTTP polling interval",
+          "verify_ssl": "Verify SSL certificates"
         }
       }
     }
   },
   "services": {
-    "remote_command": {
-      "name": "Remote Command",
-      "description": "Execute a specific command (defined by a command identifier).",
-      "fields": {
-        "command_id": {
-          "name": "Command Identifier",
-          "description": "Numeric identifier of the command handled by the target Pandora device firmware."
-        },
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "lock": {
-      "name": "Lock",
-      "description": "Engage the vehicle's security mechanism to prevent access.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "unlock": {
-      "name": "Unlock",
-      "description": "Disengage the vehicle's security mechanism to allow access.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "start_engine": {
-      "name": "Start Engine",
-      "description": "Commence the vehicle's engine remotely (autostart operation).",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "stop_engine": {
-      "name": "Stop Engine",
-      "description": "Halt the running vehicle engine remotely (autostart operation).",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "enable_tracking": {
-      "name": "Enable Tracking",
-      "description": "Activate the vehicle's tracking system.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "disable_tracking": {
-      "name": "Disable Tracking",
-      "description": "Deactivate the vehicle's tracking system.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "enable_active_security": {
-      "name": "Enable Active Security",
-      "description": "Activate enhanced security measures.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "disable_active_security": {
-      "name": "Disable Active Security",
-      "description": "Deactivate enhanced security measures.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "turn_on_coolant_heater": {
-      "name": "Turn On Coolant Heater",
-      "description": "Start the coolant heater operation.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "turn_off_coolant_heater": {
-      "name": "Turn Off Coolant Heater",
-      "description": "Stop the coolant heater operation.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "turn_on_ext_channel": {
-      "name": "Turn On Ext Channel",
-      "description": "Activate an external channel or accessory.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "turn_off_ext_channel": {
-      "name": "Turn Off Ext Channel",
-      "description": "Deactivate an external channel or accessory.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "enable_service_mode": {
-      "name": "Enable Service Mode",
-      "description": "Active the service mode.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "disable_service_mode": {
-      "name": "Disable Service Mode",
-      "description": "Deactivate the service mode.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "enable_status_output": {
-      "name": "Enable Status Output",
-      "description": "Activate additional status output channel.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "disable_status_output": {
-      "name": "Disable Status Output",
-      "description": "Activate additional status output channel.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "trigger_horn": {
-      "name": "Trigger Horn",
-      "description": "Activate the vehicle's horn as an alert.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "trigger_light": {
-      "name": "Trigger Light",
-      "description": "Activate the vehicle's lights as an alert.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "trigger_trunk": {
-      "name": "Trigger Trunk",
-      "description": "Activate the trunk release mechanism.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "check": {
-      "name": "Check",
-      "description": "Initiate telemetry retrieval operation (update data).",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "erase_dtc": {
-      "name": "Erase Diagnostic Trouble Codes (DTC)",
-      "description": "Clear stored diagnostic trouble codes.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
-    "read_dtc": {
-      "name": "Read Diagnostic Trouble Codes (DTC)",
-      "description": "Retrieve diagnostic trouble codes.",
-      "fields": {
-        "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
-        }
-      }
-    },
     "additional_command_1": {
-      "name": "Additional Command 1",
       "description": "Execute primary user-defined action.",
       "fields": {
         "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
         }
-      }
+      },
+      "name": "Additional Command 1"
     },
     "additional_command_2": {
-      "name": "Additional Command 2",
       "description": "Execute secondary user-defined action.",
       "fields": {
         "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
         }
-      }
+      },
+      "name": "Additional Command 2"
     },
-    "enable_connection": {
-      "name": "Enable Connection",
-      "description": "Allow real time telemetric connections with online services.",
+    "check": {
+      "description": "Initiate telemetry retrieval operation (update data).",
       "fields": {
         "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
         }
-      }
+      },
+      "name": "Check"
+    },
+    "disable_active_security": {
+      "description": "Deactivate enhanced security measures.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Disable Active Security"
     },
     "disable_connection": {
-      "name": "Disable Connection",
       "description": "Prevent real time telemetric connections with online services.",
       "fields": {
         "device_id": {
-          "name": "Device Identifier",
-          "description": "Unique numeric identifier of the target Pandora device."
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
         }
-      }
+      },
+      "name": "Disable Connection"
+    },
+    "disable_service_mode": {
+      "description": "Deactivate the service mode.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Disable Service Mode"
+    },
+    "disable_status_output": {
+      "description": "Activate additional status output channel.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Disable Status Output"
+    },
+    "disable_tracking": {
+      "description": "Deactivate the vehicle's tracking system.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Disable Tracking"
+    },
+    "enable_active_security": {
+      "description": "Activate enhanced security measures.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Enable Active Security"
+    },
+    "enable_connection": {
+      "description": "Allow real time telemetric connections with online services.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Enable Connection"
+    },
+    "enable_service_mode": {
+      "description": "Active the service mode.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Enable Service Mode"
+    },
+    "enable_status_output": {
+      "description": "Activate additional status output channel.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Enable Status Output"
+    },
+    "enable_tracking": {
+      "description": "Activate the vehicle's tracking system.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Enable Tracking"
+    },
+    "erase_dtc": {
+      "description": "Clear stored diagnostic trouble codes.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Erase Diagnostic Trouble Codes (DTC)"
+    },
+    "lock": {
+      "description": "Engage the vehicle's security mechanism to prevent access.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Lock"
+    },
+    "read_dtc": {
+      "description": "Retrieve diagnostic trouble codes.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Read Diagnostic Trouble Codes (DTC)"
+    },
+    "remote_command": {
+      "description": "Execute a specific command (defined by a command identifier).",
+      "fields": {
+        "command_id": {
+          "description": "Numeric identifier of the command handled by the target Pandora device firmware.",
+          "name": "Command Identifier"
+        },
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Remote Command"
+    },
+    "start_engine": {
+      "description": "Commence the vehicle's engine remotely (autostart operation).",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Start Engine"
+    },
+    "stop_engine": {
+      "description": "Halt the running vehicle engine remotely (autostart operation).",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Stop Engine"
+    },
+    "trigger_horn": {
+      "description": "Activate the vehicle's horn as an alert.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Trigger Horn"
+    },
+    "trigger_light": {
+      "description": "Activate the vehicle's lights as an alert.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Trigger Light"
+    },
+    "trigger_trunk": {
+      "description": "Activate the trunk release mechanism.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Trigger Trunk"
+    },
+    "turn_off_coolant_heater": {
+      "description": "Stop the coolant heater operation.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Turn Off Coolant Heater"
+    },
+    "turn_off_ext_channel": {
+      "description": "Deactivate an external channel or accessory.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Turn Off Ext Channel"
+    },
+    "turn_on_coolant_heater": {
+      "description": "Start the coolant heater operation.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Turn On Coolant Heater"
+    },
+    "turn_on_ext_channel": {
+      "description": "Activate an external channel or accessory.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Turn On Ext Channel"
+    },
+    "unlock": {
+      "description": "Disengage the vehicle's security mechanism to allow access.",
+      "fields": {
+        "device_id": {
+          "description": "Unique numeric identifier of the target Pandora device.",
+          "name": "Device Identifier"
+        }
+      },
+      "name": "Unlock"
     }
   }
 }
