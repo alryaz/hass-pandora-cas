@@ -3,10 +3,10 @@
   <img alt="Home Assistant + Pandora" src="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/master/images/header_light.png">
 </picture>
 
-# _Pandora Car Alarm System_ для _Home Assistant_
+# _Pandora Car Alarm System_ и _Benish GPS_ для _Home Assistant_
 
-> Автоматизация управления охранными системами Pandora™ и PanDECT<sup>®</sup> в
-> Home Assistant.
+> Автоматизация управления охранными системами Pandora™, PanDECT<sup>®</sup>
+> и Benish GUARD Force в Home Assistant.
 >
 > [![hacs_badge](https://img.shields.io/badge/HACS-Default-green.svg?style=for-the-badge)](https://github.com/custom-components/hacs)
 > [![Лицензия](https://img.shields.io/badge/%D0%9B%D0%B8%D1%86%D0%B5%D0%BD%D0%B7%D0%B8%D1%8F-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
@@ -44,6 +44,7 @@ Connect_, и реализует часть его функционала. Для
 - [Binary Sensors](#platform_binary_sensor): Статусы открытия, движения, и т.д.
 - [Switches](#platform_switch): Работа двигателя, активная охрана, и т.д.
 - [Lock](#platform_lock): Постановка на охрану
+- [Number](#platform_number): Регулировка климатических систем
 - [Services](#services_provided): Команды, например: открыть/закрыть,
   завести/заглушить и др.
 
@@ -52,6 +53,7 @@ Connect_, и реализует часть его функционала. Для
 - PanDECT X-1700 BT
 - PanDECT X-1900 BT
 - Pandora DX-4G
+- Pandora DX-4G S
 - Pandora DX-4GL
 - Pandora DX-90BT + NAV-10
 - Pandora DX-9X LoRa + NAV-10
