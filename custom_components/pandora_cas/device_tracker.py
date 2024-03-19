@@ -99,9 +99,10 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
             return
 
         # Ignore updates with a single coordinate
-        try:
-            new_ll = (device_data["latitude"], device_data["longitude"])
-        except KeyError:
+        new_ll = (device_data.get("latitude"), device_data.get("longitude"))
+        if new_ll == (None, None):
+            return
+        if None in new_ll:
             self.logger.debug(
                 "Ignored WS coordinates update as single coordinate received"
             )
