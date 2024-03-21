@@ -156,8 +156,8 @@ async def async_platform_setup_entry(
     logger = ConfigEntryLoggerAdapter(logger, entry)
     platform_id = async_get_current_platform()
     logger.debug(
-        f'Setting up platform "{platform_id.domain}" with '
-        f'entity class "{entity_class.__name__}"'
+        f"Setting up platform {platform_id.domain} with "
+        f"entity class {entity_class.__name__}"
     )
 
     new_entities = []
@@ -185,8 +185,8 @@ async def async_platform_setup_entry(
     if new_entities:
         async_add_entities(new_entities)
         logger.debug(
-            f'Added {len(new_entities)} new "{platform_id.domain}" entities for account '
-            f'"{entry.data[CONF_USERNAME]}": {", ".join(e.entity_id for e in new_entities)}'
+            f"Added {len(new_entities)} new {platform_id.domain} entities: "
+            f"{', '.join(e.entity_id.partition('.')[2] for e in new_entities)}"
         )
 
     return True
