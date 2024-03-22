@@ -1,18 +1,16 @@
-#load_track:
-#  fields:
-#    device_id:
-#      required: true
-#      selector:
-#        device:
-#          integration: pandora_cas
-#      example: 1234567
-#    track_id:
-#      example: true
-#      selector:
-#        number:
-#          min: 0
-#          max: 99999999
-#          mode: box
+geocode:
+  fields:
+    device_id:
+      required: false
+      selector:
+        device:
+          integration: pandora_cas
+      example: 1234567
+    location:
+      required: false
+      selector:
+        location:
+          radius: false
 remote_command:
   fields:
     device_id:

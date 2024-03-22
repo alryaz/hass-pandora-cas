@@ -18,8 +18,14 @@ from functools import partial
 from typing import Mapping, Any, Final
 
 import voluptuous as vol
-from homeassistant.const import ATTR_DEVICE_ID, ATTR_ID
-from homeassistant.core import HomeAssistant, ServiceCall, callback
+from homeassistant.const import (
+    ATTR_DEVICE_ID,
+    ATTR_ID,
+    ATTR_LATITUDE,
+    ATTR_LOCATION,
+    ATTR_LONGITUDE,
+)
+from homeassistant.core import HomeAssistant, ServiceCall, callback, SupportsResponse
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.device_registry import async_get as async_get_device_registry
@@ -51,21 +57,27 @@ def determine_command_by_slug(command_slug: str) -> int:
     raise vol.Invalid("invalid command identifier")
 
 
-SERVICE_PREDEFINED_COMMAND_SCHEMA = vol.All(
+DEVICE_ID_VALIDATOR = vol.Schema(
+    {vol.Required(ATTR_DEVICE_ID): cv.string}, extra=vol.ALLOW_EXTRA
+)
+
+DEVICE_ID_PARSER = vol.All(
     vol.Schema(
         {
             vol.Exclusive(ATTR_DEVICE_ID, ATTR_DEVICE_ID): cv.string,
             vol.Exclusive(ATTR_ID, ATTR_DEVICE_ID): cv.string,
-            vol.Optional(ATTR_ENSURE_COMPLETE, default=False): cv.boolean,
         },
         extra=vol.ALLOW_EXTRA,
     ),
     cv.deprecated(ATTR_ID, ATTR_DEVICE_ID),
-    vol.Schema(
+)
+
+SERVICE_PREDEFINED_COMMAND_SCHEMA = vol.All(
+    DEVICE_ID_PARSER,
+    DEVICE_ID_VALIDATOR.extend(
         {
-            vol.Required(ATTR_DEVICE_ID): cv.string,
-        },
-        extra=vol.ALLOW_EXTRA,
+            vol.Optional(ATTR_ENSURE_COMPLETE, default=False): cv.boolean,
+        }
     ),
 )
 
@@ -80,6 +92,21 @@ SERVICE_REMOTE_COMMAND_SCHEMA = vol.All(
             ),
         },
         extra=vol.ALLOW_EXTRA,
+    ),
+)
+
+SERVICE_GEOCODE = "geocode"
+SERVICE_GEOCODE_SCHEMA = vol.Any(
+    vol.All(DEVICE_ID_PARSER, DEVICE_ID_VALIDATOR),
+    vol.Schema(
+        {
+            vol.Required(ATTR_LOCATION): vol.Schema(
+                {
+                    vol.Required(ATTR_LATITUDE, ATTR_LOCATION): cv.latitude,
+                    vol.Required(ATTR_LONGITUDE, ATTR_LOCATION): cv.longitude,
+                }
+            )
+        }
     ),
 )
 
@@ -180,6 +207,28 @@ async def async_execute_remote_command(
         await result
 
 
+async def async_geocode(hass: HomeAssistant, call: ServiceCall) -> dict[str, str]:
+    # determine device identifier
+    try:
+        param_device_id = call.data[ATTR_DEVICE_ID]
+    except LookupError:
+        latitude, longitude = call.data[ATTR_LATITUDE], call.data[ATTR_LONGITUDE]
+        for entry_id, coordinator in hass.data[DOMAIN].items():
+            return await coordinator.account.geocode(latitude, longitude, full=True)
+        raise HomeAssistantError("Valid account to execute request not found")
+
+    device_id = async_get_pandora_id_by_device_id(hass, param_device_id)
+    if device_id is None:
+        raise HomeAssistantError(f"Invalid device ID '{param_device_id}' provided")
+
+    # find device matching identifier
+    device = async_find_device_object(hass, device_id)
+    if device is None:
+        raise HomeAssistantError(f"Device with ID '{device_id}' not found.")
+
+    return await device.async_geocode(full=True)
+
+
 async def async_register_services(hass: HomeAssistant) -> None:
     # register the remote services
     _register_service = hass.services.async_register
@@ -205,3 +254,11 @@ async def async_register_services(hass: HomeAssistant) -> None:
             ),
             schema=SERVICE_PREDEFINED_COMMAND_SCHEMA,
         )
+
+    _register_service(
+        DOMAIN,
+        SERVICE_GEOCODE,
+        partial(async_geocode, hass),
+        schema=SERVICE_GEOCODE_SCHEMA,
+        supports_response=SupportsResponse.ONLY,
+    )

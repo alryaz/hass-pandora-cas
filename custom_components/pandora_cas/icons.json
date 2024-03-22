@@ -32,6 +32,7 @@
     "enable_stealth_mode": "mdi:chip",
     "enable_tracking": "mdi:map-marker-path",
     "erase_dtc": "mdi:eraser",
+    "geocode": "mdi:map-search",
     "nav12_disable_status_output": "mdi:led-off",
     "nav12_enable_service_mode": "mdi:progress-wrench",
     "nav12_enable_status_output": "mdi:led-off",

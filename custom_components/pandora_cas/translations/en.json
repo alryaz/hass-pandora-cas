@@ -1376,6 +1376,19 @@
       },
       "name": "Erase Diagnostic Trouble Codes (DTC)"
     },
+    "geocode": {
+      "description": "Retrieve short address of a location based on latitude and longitude.",
+      "fields": {
+        "device_id": {
+          "description": "Home Assistant device object / identifier.",
+          "name": "Home Assistant Device"
+        },
+        "location": {
+          "description": "Target location (in the form of latitude and longitude dictionary).",
+          "name": "Location"
+        }
+      }
+    },
     "lock": {
       "description": "Engage the vehicle's security mechanism to prevent access.",
       "fields": {
