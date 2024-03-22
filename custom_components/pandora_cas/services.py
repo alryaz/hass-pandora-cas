@@ -208,14 +208,16 @@ async def async_execute_remote_command(
 
 
 async def async_geocode(hass: HomeAssistant, call: ServiceCall) -> dict[str, str]:
-    # determine device identifier
     try:
+        # determine device identifier
         param_device_id = call.data[ATTR_DEVICE_ID]
     except LookupError:
+        # use manually provided lat_lng
         location = call.data[ATTR_LOCATION]
-        latitude, longitude = location[ATTR_LATITUDE], location[ATTR_LONGITUDE]
         for entry_id, coordinator in hass.data[DOMAIN].items():
-            return await coordinator.account.geocode(latitude, longitude, full=True)
+            return await coordinator.account.async_geocode(
+                location[ATTR_LATITUDE], location[ATTR_LONGITUDE], full=True
+            )
         raise HomeAssistantError("Valid account to execute request not found")
 
     device_id = async_get_pandora_id_by_device_id(hass, param_device_id)
