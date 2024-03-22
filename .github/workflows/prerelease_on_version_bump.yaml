@@ -2,8 +2,8 @@ name: Prerelease on Version Bump
 
 on:
   push:
-    branches:
-      - master
+    paths:
+      - 'custom_components/*/manifest.json'
 
 jobs:
   pre-release:
