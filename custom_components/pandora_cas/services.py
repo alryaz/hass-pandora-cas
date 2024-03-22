@@ -212,7 +212,8 @@ async def async_geocode(hass: HomeAssistant, call: ServiceCall) -> dict[str, str
     try:
         param_device_id = call.data[ATTR_DEVICE_ID]
     except LookupError:
-        latitude, longitude = call.data[ATTR_LATITUDE], call.data[ATTR_LONGITUDE]
+        location = call.data[ATTR_LOCATION]
+        latitude, longitude = location[ATTR_LATITUDE], location[ATTR_LONGITUDE]
         for entry_id, coordinator in hass.data[DOMAIN].items():
             return await coordinator.account.geocode(latitude, longitude, full=True)
         raise HomeAssistantError("Valid account to execute request not found")
