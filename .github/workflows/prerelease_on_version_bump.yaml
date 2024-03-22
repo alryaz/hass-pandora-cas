@@ -83,10 +83,10 @@ jobs:
             CHANGELOG="${CHANGELOG}## :bug: Исправления\n\n${ALL_FIXES}\n"
           fi
           if [[ ! -z "${ALL_CHANGES}" ]]; then
-            CHANGELOG="${CHANGELOG}## :wrench: Изменения\n\n${ALL_CHANGES}"
+            CHANGELOG="${CHANGELOG}## :wrench: Изменения\n\n${ALL_CHANGES}\n"
           fi
           if [[ ! -z "${ALL_OTHER}" ]]; then
-            CHANGELOG="${CHANGELOG}## :information_source: Примечания\n\n${ALL_OTHER}"
+            CHANGELOG="${CHANGELOG}## :information_source: Примечания\n\n${ALL_OTHER}\n"
           fi
           
           # Clean up changelog
