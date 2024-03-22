@@ -13,7 +13,6 @@ from homeassistant.components.device_automation import (
 from homeassistant.components.homeassistant.triggers import event as event_trigger
 from homeassistant.const import CONF_TYPE, CONF_PLATFORM, CONF_DEVICE_ID, CONF_DOMAIN
 from homeassistant.core import HomeAssistant, CALLBACK_TYPE
-from homeassistant.helpers.device_registry import async_get as async_get_device_registry
 from homeassistant.helpers.trigger import TriggerActionType, TriggerInfo
 from homeassistant.helpers.typing import ConfigType
 
@@ -23,6 +22,7 @@ from custom_components.pandora_cas.const import (
     DOMAIN,
     CONF_EVENT_TYPE,
 )
+from custom_components.pandora_cas.services import async_get_pandora_id_by_device_id
 from pandora_cas.enums import PrimaryEventID
 
 _LOGGER: Final = logging.getLogger(__name__)
@@ -39,19 +39,6 @@ TRIGGER_SCHEMA: Final = DEVICE_TRIGGER_BASE_SCHEMA.extend(
 )
 
 DEVICE: Final = "device"
-
-
-def async_get_pandora_id_by_device_id(
-    hass: HomeAssistant, device_id: str
-) -> int | None:
-    if device := async_get_device_registry(hass).async_get(device_id):
-        for identifier in device.identifiers:
-            if len(identifier) != 2 or identifier[0] != DOMAIN:
-                continue
-            try:
-                return int(identifier[1])
-            except (TypeError, ValueError):
-                continue
 
 
 async def async_get_triggers(

@@ -4,9 +4,9 @@ __all__ = (
     "SERVICE_PREDEFINED_COMMAND_SCHEMA",
     "SERVICE_REMOTE_COMMAND",
     "SERVICE_REMOTE_COMMAND_SCHEMA",
-    "async_determine_device_id",
     "async_execute_remote_command",
     "async_find_device_object",
+    "async_get_pandora_id_by_device_id",
     "async_register_services",
     "determine_command_by_slug",
     "iterate_commands_to_register",
@@ -21,7 +21,8 @@ import voluptuous as vol
 from homeassistant.const import ATTR_DEVICE_ID, ATTR_ID
 from homeassistant.core import HomeAssistant, ServiceCall, callback
 from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers import config_validation as cv, device_registry
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.device_registry import async_get as async_get_device_registry
 from homeassistant.util import slugify
 
 from custom_components.pandora_cas.const import (
@@ -89,25 +90,27 @@ def iterate_commands_to_register(cls=CommandID):
 
 
 @callback
-def async_determine_device_id(hass: HomeAssistant, device_id: str | int) -> int | None:
+def async_get_pandora_id_by_device_id(
+    hass: HomeAssistant, device_id: str | int
+) -> int | None:
     """
-    Determine the unique Pandora identifier by processing input.
+    Find a PandoraOnlineDevice object amongst loaded configuration entries.
     :param hass: Home Assistant object.
-    :param device_id: (Numeric Pandora identifier) OR (Home Assistant device identifier)
-    :return: (Numeric Pandora identifier) OR (None if not found)
+    :param device_id: Numeric pandora identifier
+    :return: (PandoraOnlineDevice object) OR (None if not found)
     """
     try:
         return int(device_id)
     except (TypeError, ValueError):
-        dr = device_registry.async_get(hass)
-        device_entry = dr.async_get(device_id)
-        for domain, value in device_entry.identifiers:
-            if domain != DOMAIN:
+        if not (device := async_get_device_registry(hass).async_get(device_id)):
+            return
+        for identifier in device.identifiers:
+            if len(identifier) != 2 or identifier[0] != DOMAIN:
                 continue
             try:
-                return int(value)
+                return int(identifier[1])
             except (TypeError, ValueError):
-                pass
+                continue
 
 
 @callback
@@ -153,7 +156,7 @@ async def async_execute_remote_command(
 
     # determine device identifier
     param_device_id = command_params.pop(ATTR_DEVICE_ID)
-    device_id = async_determine_device_id(hass, param_device_id)
+    device_id = async_get_pandora_id_by_device_id(hass, param_device_id)
     if device_id is None:
         raise HomeAssistantError(f"Invalid device ID '{param_device_id}' provided")
 
