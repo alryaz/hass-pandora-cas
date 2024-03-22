@@ -63,19 +63,33 @@ ENTITY_TYPES = [
 ]
 
 
-class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
+class BasePandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
+    _attr_latitude = None
+    _attr_longitude = None
+
+    @property
+    def location_accuracy(self) -> int:
+        # This value is always present due to init
+        return int(self._device_config[CONF_COORDINATES_DEBOUNCE])
+
+    @property
+    def latitude(self) -> float | None:
+        """Return latitude value of the device."""
+        return self._attr_latitude
+
+    @property
+    def longitude(self) -> float | None:
+        """Return longitude value of the device."""
+        return self._attr_longitude
+
+
+class PandoraCASTrackerEntity(BasePandoraCASTrackerEntity):
     """Pandora Car Alarm System location tracker."""
 
     ENTITY_TYPES = ENTITY_TYPES
     ENTITY_ID_FORMAT = ENTITY_ID_FORMAT
 
     _attr_has_entity_name = False
-
-    def __init__(self, *args, **kwargs) -> None:
-        self._last_latitude = None
-        self._last_longitude = None
-
-        super().__init__(*args, **kwargs)
 
     @property
     def name(self) -> str | None:
@@ -110,16 +124,11 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
             return
 
         # Update if no coordinates yet exist, or difference is above threshold
-        if not all(old_ll := (self._last_latitude, self._last_longitude)) or (
+        if not all(old_ll := (self._attr_latitude, self._attr_longitude)) or (
             haversine(old_ll, new_ll, unit=Unit.METERS)
             >= self._device_config[CONF_COORDINATES_DEBOUNCE]
         ):
-            self._last_latitude, self._last_longitude = new_ll
-
-    @property
-    def location_accuracy(self) -> int:
-        # This value is always present due to init
-        return int(self._device_config[CONF_COORDINATES_DEBOUNCE])
+            self._attr_latitude, self._attr_longitude = new_ll
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
@@ -141,16 +150,6 @@ class PandoraCASTrackerEntity(PandoraCASEntity, TrackerEntity):
             attr[ATTR_CARDINAL] = value.direction
 
         return attr
-
-    @property
-    def latitude(self) -> float | None:
-        """Return latitude value of the device."""
-        return self._last_latitude
-
-    @property
-    def longitude(self) -> float | None:
-        """Return longitude value of the device."""
-        return self._last_longitude
 
     @property
     def final_car_type(self) -> str | None:
