@@ -36,6 +36,7 @@ async def async_setup_entry(
 
     new_entities = []
     coordinator: PandoraCASUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator.async_add_entities_per_platform["device_tracker"] = async_add_entities
     for device in coordinator.account.devices.values():
         # Add device tracker
         for entity_type in ENTITY_TYPES:

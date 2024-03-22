@@ -162,6 +162,7 @@ async def async_platform_setup_entry(
 
     new_entities = []
     coordinator: "PandoraCASUpdateCoordinator" = hass.data[DOMAIN][entry.entry_id]
+    coordinator.async_add_entities_per_platform[platform_id.domain] = async_add_entities
     for device in coordinator.account.devices.values():
         # Apply filters
         for entity_description in entity_class.ENTITY_TYPES:

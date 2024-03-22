@@ -61,6 +61,7 @@ from homeassistant.helpers.device_registry import (
     async_get as async_get_device_registry,
     async_entries_for_config_entry,
 )
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
@@ -533,6 +534,7 @@ class PandoraCASUpdateCoordinator(
     ) -> None:
         self.account = account
         self._device_configs = {}
+        self.async_add_entities_per_platform: dict[str, AddEntitiesCallback] = {}
         super().__init__(hass, logger, name=DOMAIN, update_interval=update_interval)
 
     async def async_config_entry_first_refresh(self) -> None:
