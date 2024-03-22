@@ -1387,7 +1387,8 @@
           "description": "Target location (in the form of latitude and longitude dictionary).",
           "name": "Location"
         }
-      }
+      },
+      "name": "Location Geocoding"
     },
     "lock": {
       "description": "Engage the vehicle's security mechanism to prevent access.",

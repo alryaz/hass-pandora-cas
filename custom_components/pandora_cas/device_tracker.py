@@ -304,6 +304,7 @@ class PandoraCASTrackDisplayEntity(BasePandoraCASTrackerEntity):
 
     async def async_added_to_hass(self) -> None:
         from homeassistant.components.recorder import get_instance
+
         self.hass.data[DATA_TRACK_ENTITIES][self.unique_id] = self
         await super().async_added_to_hass()
         if not self.current_track.points:
