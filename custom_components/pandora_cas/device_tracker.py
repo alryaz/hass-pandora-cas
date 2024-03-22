@@ -2,29 +2,111 @@
 
 __all__ = ("ENTITY_TYPES", "async_setup_entry")
 
+import asyncio
 import base64
 import logging
 from typing import Mapping, Any
 
+import homeassistant.helpers.config_validation as cv
+import voluptuous as vol
 from haversine import haversine, Unit
-from homeassistant.components.device_tracker import (
-    ENTITY_ID_FORMAT,
-    SourceType,
-)
+from homeassistant.components.device_tracker import ENTITY_ID_FORMAT, SourceType
 from homeassistant.components.device_tracker.config_entry import TrackerEntity
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
+from homeassistant.const import EVENT_STATE_CHANGED, ATTR_DEVICE_ID, ATTR_ID
+from homeassistant.core import HomeAssistant, State, Context, ServiceCall
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
+from homeassistant.util import utcnow
+from homeassistant.util.dt import utc_from_timestamp
+from ulid_transform import ulid_at_time
 
 from custom_components.pandora_cas.const import *
 from custom_components.pandora_cas.entity import (
     PandoraCASEntityDescription,
     PandoraCASEntity,
 )
+from custom_components.pandora_cas.services import async_get_pandora_id_by_device_id
 from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
+from pandora_cas.data import WsTrack
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: Final = logging.getLogger(__name__)
+
+DATA_TRACK_ENTITIES: Final = DOMAIN + "_track_entities"
+
+
+async def async_load_track(hass: HomeAssistant, call: ServiceCall) -> None:
+    # determine device identifier
+    param_device_id = call.data[ATTR_DEVICE_ID]
+    device_id = async_get_pandora_id_by_device_id(hass, param_device_id)
+    if device_id is None:
+        raise HomeAssistantError(f"Invalid device ID '{param_device_id}' provided")
+
+    # find device matching identifier
+    for entry, coordinator in hass.data[DOMAIN].items():
+        if device_id in coordinator.account.devices:
+            device = coordinator.account.devices[device_id]
+            break
+    else:
+        raise HomeAssistantError(f"Device with ID '{device_id}' not found.")
+
+    track_id = call.data.get(ATTR_TRACK_ID)
+    if track_id is None:
+        if not (track := device.state.track):
+            raise HomeAssistantError(f"Device has no track associated with")
+        track_id = track.track_id
+    else:
+        # @TODO: add numeric track retrieval
+        raise HomeAssistantError(f"Unknown track ID '{track_id}'")
+
+    ent_desc_key = f"track_{track_id}"
+    unique_id = f"{DOMAIN}_{device_id}_{ent_desc_key}"
+
+    existing_entities = hass.data.setdefault(DATA_TRACK_ENTITIES, {})
+    try:
+        track_entity: PandoraCASTrackDisplayEntity = existing_entities[unique_id]
+    except KeyError:
+        # noinspection PyArgumentList
+        coordinator.async_add_entities_per_platform["device_tracker"](
+            [
+                PandoraCASTrackDisplayEntity(
+                    track,
+                    coordinator,
+                    device,
+                    PandoraCASEntityDescription(
+                        key=f"track_{track_id}",
+                        online_sensitive=False,
+                        name=f"Track {track_id}",
+                    ),
+                )
+            ]
+        )
+    else:
+        track_entity.current_track = track
+        await track_entity.async_added_to_hass()
+
+
+ATTR_TRACK_ID = "track_id"
+
+SERVICE_LOAD_TRACK = "load_track"
+SERVICE_LOAD_TRACK_SCHEMA = vol.All(
+    vol.Schema(
+        {
+            vol.Exclusive(ATTR_DEVICE_ID, ATTR_DEVICE_ID): cv.string,
+            vol.Exclusive(ATTR_ID, ATTR_DEVICE_ID): cv.string,
+            vol.Optional(ATTR_TRACK_ID): cv.positive_int,
+        },
+        extra=vol.ALLOW_EXTRA,
+    ),
+    cv.deprecated(ATTR_ID, ATTR_DEVICE_ID),
+    vol.Schema(
+        {
+            vol.Required(ATTR_DEVICE_ID): cv.string,
+        },
+        extra=vol.ALLOW_EXTRA,
+    ),
+)
 
 
 async def async_setup_entry(
@@ -46,6 +128,15 @@ async def async_setup_entry(
 
     if new_entities:
         async_add_entities(new_entities)
+
+    # # @TODO: disabled temporarily
+    # if not hass.services.has_service(DOMAIN, SERVICE_LOAD_TRACK):
+    #     hass.services.async_register(
+    #         DOMAIN,
+    #         SERVICE_LOAD_TRACK,
+    #         partial(async_load_track, hass),
+    #         schema=SERVICE_LOAD_TRACK_SCHEMA,
+    #     )
 
     return True
 
@@ -187,6 +278,116 @@ class PandoraCASTrackerEntity(BasePandoraCASTrackerEntity):
                 ).encode()
             ).decode()
         )
+
+    @property
+    def source_type(self):
+        """Default to GPS source only."""
+        return SourceType.GPS
+
+
+class PandoraCASTrackDisplayEntity(BasePandoraCASTrackerEntity):
+    ENTITY_ID_FORMAT = ENTITY_ID_FORMAT
+
+    _attr_should_poll = False
+
+    def __init__(self, track: WsTrack, *args, **kwargs) -> None:
+        self.current_track = track
+        super().__init__(*args, **kwargs)
+
+    @property
+    def latitude(self) -> float | None:
+        return self._attr_latitude
+
+    @property
+    def longitude(self) -> float | None:
+        return self._attr_longitude
+
+    async def async_added_to_hass(self) -> None:
+        from homeassistant.components.recorder import get_instance
+        self.hass.data[DATA_TRACK_ENTITIES][self.unique_id] = self
+        await super().async_added_to_hass()
+        if not self.current_track.points:
+            _LOGGER.error(f"Current track has no points")
+            self._attr_available = False
+            return
+
+        try:
+            recorder_instance = get_instance(self.hass)
+        except LookupError:
+            _LOGGER.error(f"Recorder unavailable")
+            self._attr_available = False
+            return
+
+        from homeassistant.components.recorder.purge import purge_entity_data
+
+        # Remove all records
+        while not await recorder_instance.async_add_executor_job(
+            purge_entity_data,
+            recorder_instance,
+            lambda x: x == self.entity_id,
+            last_time := utcnow(),
+        ):
+            _LOGGER.debug(f"Performed failed purge of {self.entity_id} at {last_time}")
+            await asyncio.sleep(1.0)
+        _LOGGER.debug(f"Performed successful purge of {self.entity_id} at {last_time}")
+
+        # Remove existing entity state
+        states = self.hass.states
+        async_fire = self.hass.bus.async_fire
+        states.async_remove(self.entity_id)
+
+        entity_id = self.entity_id
+        old_state = None
+        for i, point in enumerate(self.current_track.points):
+            self._attr_latitude = point.latitude
+            self._attr_longitude = point.longitude
+            self._attr_extra_state_attributes = {
+                "fuel": point.fuel,
+                "speed": point.speed,
+                "flags": point.flags,
+            }
+            timestamp = utc_from_timestamp(point.timestamp)
+            context = Context(id=ulid_at_time(point.timestamp))
+            calculated_state = self._async_calculate_state()
+
+            new_state = State(
+                entity_id,
+                calculated_state.state,
+                calculated_state.attributes,
+                timestamp,
+                timestamp,
+                context,
+                not i,
+                None,
+            )
+
+            _LOGGER.debug(f"Writing obsolete state: {new_state}")
+
+            # @TODO: find a better solution than copying everything from core
+            # noinspection PyProtectedMember
+            states._states[entity_id] = new_state
+            async_fire(
+                EVENT_STATE_CHANGED,
+                {
+                    "entity_id": entity_id,
+                    "old_state": old_state,
+                    "new_state": new_state,
+                },
+                context=context,
+                time_fired=timestamp,
+            )
+
+            old_state = new_state
+
+        self.async_write_ha_state()
+
+    async def async_will_remove_from_hass(self) -> None:
+        self.hass.data[DATA_TRACK_ENTITIES].pop(self.unique_id, None)
+        await self.async_will_remove_from_hass()
+
+    @property
+    def name(self) -> str:
+        return f"Track #{self.current_track.track_id}"
 
     @property
     def source_type(self):
