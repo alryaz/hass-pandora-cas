@@ -23,7 +23,7 @@ from typing import (
 )
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_USERNAME, ATTR_DEVICE_ID
+from homeassistant.const import ATTR_DEVICE_ID
 from homeassistant.core import HomeAssistant, callback, Event
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity import EntityDescription, DeviceInfo, Entity
