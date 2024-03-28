@@ -204,14 +204,15 @@ class PandoraCASTrackerEntity(BasePandoraCASTrackerEntity):
         if not (device_data := self.coordinator_device_data):
             return
 
-        # Ignore updates with a single coordinate
-        new_ll = (device_data.get("latitude"), device_data.get("longitude"))
+        # Ignore updates with a single non-zero coordinate
+        new_ll = (
+            device_data.get("latitude") or None,
+            device_data.get("longitude") or None,
+        )
         if new_ll == (None, None):
             return
         if None in new_ll:
-            self.logger.debug(
-                "Ignored WS coordinates update as single coordinate received"
-            )
+            self.logger.debug("Ignored WS single coordinate update")
             return
 
         # Update if no coordinates yet exist, or difference is above threshold
