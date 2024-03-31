@@ -97,7 +97,7 @@ STEP_USER_SCHEMA: Final = vol.Schema(
 class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Pandora Car Alarm System config entries."""
 
-    VERSION: Final[int] = 13
+    VERSION: Final[int] = 14
 
     def __init__(self) -> None:
         """Init the config flow."""
