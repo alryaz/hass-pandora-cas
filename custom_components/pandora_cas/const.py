@@ -46,6 +46,7 @@ CONF_RPM_COEFFICIENT: Final = "rpm_coefficient"
 CONF_RPM_OFFSET: Final = "rpm_offset"
 CONF_FORCE_LOCK_ICONS: Final = "force_lock_icons"
 CONF_IGNORE_UPDATES_ENGINE_OFF: Final = "skip_updates_engine_off"
+CONF_FILTER_FUEL_DROPS: Final = "filter_fuel_drops"
 
 DEFAULT_COORDINATES_SMOOTHING: Final = 10.0
 DEFAULT_CURSOR_TYPE: Final = "default"
