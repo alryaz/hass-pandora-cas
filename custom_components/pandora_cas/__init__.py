@@ -120,6 +120,7 @@ DEVICE_OPTIONS_SCHEMA: Final = vol.Schema(
         vol.Optional(CONF_ENGINE_STATE_BY_RPM, default=False): cv.boolean,
         vol.Optional(CONF_RPM_COEFFICIENT, default=1.0): cv.positive_float,
         vol.Optional(CONF_RPM_OFFSET, default=0.0): vol.Coerce(float),
+        vol.Optional(CONF_FILTER_FUEL_DROPS, default=0): cv.positive_int,
         vol.Optional(
             CONF_COORDINATES_DEBOUNCE,
             default=DEFAULT_COORDINATES_SMOOTHING,
@@ -490,6 +491,13 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
 
         entry.version = 13
+
+    if entry.version < 14:
+        _add_new_devices_option(CONF_FILTER_FUEL_DROPS, 0)
+
+
+        
+        entry.version = 14
 
     hass.config_entries.async_update_entry(entry, **args)
 
