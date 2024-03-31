@@ -504,6 +504,12 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
         elif isinstance(native_value, Balance):
             self._attr_native_value = native_value.value
             self._attr_native_unit_of_measurement = native_value.currency
+        elif self.entity_description.key == "fuel":
+            if self._attr_native_value == 0:
+                fuel_drop_threshold = self._device_config[CONF_FILTER_FUEL_DROPS]
+                if fuel_drop_threshold > 0 and last_value >= fuel_drop_threshold:
+                    self._attr_native_value = last_value
+                    self.logger.debug(f"Filtered fuel drop to zero from {last_value}")
 
 
 async_setup_entry = partial(
