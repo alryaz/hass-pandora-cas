@@ -1,0 +1,184 @@
+type: picture-elements
+image: local/pictures/vehicle/your-car-image.png
+elements:
+- type: state-icon
+  entity: sensor.YOUR_ID_balance
+  style:
+    top: 90%
+    left: 10%
+- type: state-label
+  entity: sensor.YOUR_ID_balance
+  state_color: true
+  style:
+    top: 90%
+    left: 22%
+- type: state-label
+  entity: sensor.YOUR_ID_battery_voltage
+  state_color: true
+  style:
+    top: 80%
+    left: 20%
+- type: state-icon
+  entity: sensor.YOUR_ID_battery_voltage
+  style:
+    top: 80%
+    left: 10%
+- type: state-icon
+  entity: sensor.YOUR_ID_mileage
+  style:
+    top: 90%
+    left: 42%
+- type: state-label
+  entity: sensor.YOUR_ID_mileage
+  state_color: true
+  style:
+    top: 90%
+    left: 58%
+- type: state-label
+  entity: sensor.YOUR_ID_engine_temperature
+  state_color: true
+  style:
+    top: 80%
+    left: 88%
+- type: state-icon
+  entity: sensor.YOUR_ID_engine_temperature
+  style:
+    top: 80%
+    left: 77%
+- type: state-label
+  entity: sensor.YOUR_ID_fuel
+  state_color: true
+  style:
+    top: 80%
+    left: 52%
+- type: state-icon
+  entity: sensor.YOUR_ID_fuel
+  style:
+    top: 80%
+    left: 42%
+- type: state-label
+  entity: sensor.YOUR_ID_interior_temperature
+  state_color: true
+  style:
+    top: 90%
+    left: 88%
+- type: state-icon
+  entity: sensor.YOUR_ID_interior_temperature
+  style:
+    top: 90%
+    left: 77%
+- type: state-label
+  entity: sensor.YOUR_ID_speed
+  state_color: true
+  style:
+    top: 7%
+    left: 51%
+- type: state-icon
+  entity: sensor.YOUR_ID_speed
+  style:
+    top: 7%
+    left: 41%
+- type: state-icon
+  entity: binary_sensor.YOUR_ID_parking
+  style:
+    top: 17%
+    left: 10%
+- type: state-label
+  entity: binary_sensor.YOUR_ID_parking
+  state_color: true
+  style:
+    top: 17%
+    left: 23%
+- type: state-icon
+  entity: binary_sensor.YOUR_ID_ignition
+  style:
+    top: 7%
+    left: 10%
+- type: state-label
+  entity: binary_sensor.YOUR_ID_ignition
+  state_color: true
+  style:
+    top: 7%
+    left: 23%
+- type: state-icon
+  entity: device_tracker.YOUR_ID_pandora
+  style:
+    top: 7%
+    left: 77%
+- type: state-label
+  entity: device_tracker.YOUR_ID_pandora
+  state_color: true
+  style:
+    top: 7%
+    left: 88%
+- type: state-icon
+  entity: sensor.YOUR_ID_gsm_level
+  style:
+    top: 17%
+    left: 76%
+- type: state-label
+  entity: sensor.YOUR_ID_gsm_level
+  state_color: true
+  style:
+    top: 17%
+    left: 85%
+- type: state-label
+  entity: switch.YOUR_ID_engine
+  state_color: true
+  style:
+    top: 17%
+    left: 55%
+- type: custom:button-card
+  state:
+  - value: 'on'
+    color: orange
+    styles:
+      card:
+      - background-color: rgba(0, 0, 0, 0)
+      icon:
+      - animation:
+        - rotating 1s linear infinite
+    spin: true
+  tap_action:
+    action: toggle
+  entity: switch.YOUR_ID_engine
+  name: ' '
+  icon: mdi:fan
+  size: 50%
+  style:
+    top: 17%
+    left: 41%
+    width: 10%
+- type: custom:button-card
+  entity: lock.YOUR_ID_central_lock
+  state:
+  - value: locking
+    styles:
+      card:
+      - background-color: rgba(0, 0, 0, 0)
+      - border: none
+  - value: unlocking
+    styles:
+      card:
+      - background-color: rgba(0, 0, 0, 0)
+      - border: none
+  - value: unlocked
+    color: red
+    icon: mdi:shield-lock-open-outline
+    styles:
+      card:
+      - background-color: rgba(0, 0, 0, 0)
+      - border: none
+  - value: locked
+    color: green
+    icon: mdi:shield-lock-outline
+    styles:
+      card:
+      - background-color: rgba(0, 0, 0, 0)
+      - border: none
+  name: ' '
+  size: 50%
+  style:
+    top: 50%
+    left: 44%
+    width: 23%
