@@ -189,7 +189,7 @@ ENTITY_TYPES = [
         entity_registry_enabled_default=False,
         device_class=SensorDeviceClass.MONETARY,
         state_class=SensorStateClass.TOTAL,
-        attribute=CurrentState.balance,
+        attribute=CurrentState.balance_other,
     ),
     PandoraCASSensorEntityDescription(
         key="speed",
