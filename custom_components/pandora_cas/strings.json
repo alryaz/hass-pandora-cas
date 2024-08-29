@@ -807,6 +807,7 @@
           "custom_cursor_type": "Custom cursor type",
           "disable_cursor_rotation": "Disable cursor rotation",
           "engine_state_by_rpm": "Engine state by RPM",
+          "filter_fuel_drops": "Fuel tank threshold above which dips to 0 are ignored",
           "fuel_is_liters": "Devices with fuel tank measurement in liters",
           "ignore_ws_coordinates": "Ignore coordinates updates from WebSockets",
           "mileage_can_miles": "CAN mileage is in miles",

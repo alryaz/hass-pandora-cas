@@ -235,6 +235,16 @@ ENTITY_TYPES = [
         suggested_display_precision=1,
     ),
     PandoraCASSensorEntityDescription(
+        key="internal_voltage",
+        name="Internal voltage",
+        icon="mdi:fuel-cell",
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        device_class=SensorDeviceClass.VOLTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        attribute=CurrentState.internal_voltage,
+        suggested_display_precision=1,
+    ),
+    PandoraCASSensorEntityDescription(
         key="left_front_tire_pressure",
         name="Left Front Tire Pressure",
         icon="mdi:car-tire-alert",
@@ -507,7 +517,7 @@ class PandoraCASSensor(PandoraCASEntity, SensorEntity):
         elif self.entity_description.key == "fuel":
             if self._attr_native_value == 0:
                 fuel_drop_threshold = self._device_config[CONF_FILTER_FUEL_DROPS]
-                if fuel_drop_threshold > 0 and last_value >= fuel_drop_threshold:
+                if 0 < fuel_drop_threshold <= last_value:
                     self._attr_native_value = last_value
                     self.logger.debug(f"Filtered fuel drop to zero from {last_value}")
 

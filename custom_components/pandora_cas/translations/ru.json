@@ -867,6 +867,7 @@
           "custom_cursor_type": "Вид курсора трекера",
           "disable_cursor_rotation": "Отключить вращение курсора",
           "engine_state_by_rpm": "Состояние двигателя по оборотам",
+          "filter_fuel_drops": "Уровень топлива, выше которого 'провалы' игнорируются",
           "fuel_is_liters": "Топливный бак в литрах",
           "ignore_ws_coordinates": "Игнорировать обновления координат WS",
           "mileage_can_miles": "Пробег по CAN в милях",
