@@ -6,6 +6,9 @@
   ],
   "config_flow": true,
   "dependencies": [],
+  "after_dependencies": [
+    "recorder"
+  ],
   "documentation": "https://github.com/alryaz/hass-pandora-cas",
   "integration_type": "hub",
   "iot_class": "cloud_push",

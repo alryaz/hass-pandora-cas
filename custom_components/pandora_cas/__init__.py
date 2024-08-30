@@ -495,8 +495,6 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if entry.version < 14:
         _add_new_devices_option(CONF_FILTER_FUEL_DROPS, 0)
 
-
-        
         entry.version = 14
 
     hass.config_entries.async_update_entry(entry, **args)
