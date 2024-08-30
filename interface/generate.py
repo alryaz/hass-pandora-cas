@@ -1,10 +1,14 @@
+#!/usr/bin/env python3
+import argparse
 import os
+import tempfile
 from base64 import b64encode
 from io import BytesIO
 from typing import Any, Iterator, Mapping, Union
 
 import PIL.ImageChops
 import attr
+import requests
 from PIL import Image
 
 
@@ -13,7 +17,6 @@ class NotSet(object): ...
 
 NOT_SET = NotSet()
 BASE_PATH = os.path.dirname(__file__)
-SRC_PATH = os.path.join(BASE_PATH, "images")
 
 _BASE_STYLE = {
     "transform": "none",
@@ -66,10 +69,10 @@ class ForProcessing:
     def _merge_style_kwarg(
         self, kwargs: dict[str, Any], style: Mapping[str, Any] | None = None
     ) -> None:
-        final_styles = dict(self._base_style)
-        final_styles.update(style or {})
+        final_styles = {}
+        final_styles.update(self._base_style)
         final_styles.update(kwargs.pop("style", None) or {})
-
+        final_styles.update(style or {})
         if final_styles:
             kwargs["style"] = final_styles
 
@@ -86,11 +89,11 @@ class ForProcessing:
 class ForSimple(ForProcessing):
     def __init__(self, image_name: str, **kwargs) -> None:
         super().__init__(**kwargs)
-        self._image_name = image_name
+        self.image_name = image_name
 
     @property
     def file_name(self) -> str:
-        file_name = self._image_name
+        file_name = self.image_name
         if "." not in file_name:
             file_name += ".png"
         return file_name
@@ -104,7 +107,6 @@ class ForSimple(ForProcessing):
     ) -> dict[str, Any]:
         image = Image.open(os.path.join(src_path, self.file_name))
         self._merge_style_kwarg(kwargs)
-
         return self.make_image_dict(image, **kwargs)
 
 
@@ -121,14 +123,13 @@ class ForAnimation(ForProcessing):
             raise ValueError("at least one image is required")
 
         super().__init__(**kwargs)
-        self._image_names = image_names
-        self._use_full_width = use_full_width
-
+        self.image_names = image_names
+        self.use_full_width = use_full_width
         self.duration = duration
 
     @property
     def file_names(self) -> tuple[str, ...]:
-        return tuple(x if "." in x else x + ".png" for x in self._image_names)
+        return tuple(x if "." in x else x + ".png" for x in self.image_names)
 
     def as_dict(
         self,
@@ -137,6 +138,12 @@ class ForAnimation(ForProcessing):
         body_image: Image,
         **kwargs,
     ) -> dict[str, Any]:
+        bytes_io, kwargs = self._make_frames(src_path, body_image, **kwargs)
+        return self.make_image_dict(bytes_io, **kwargs)
+
+    def _make_frames(
+        self, src_path: str, body_image: Image, **kwargs
+    ) -> tuple[BytesIO, dict[str, Any]]:
         frames = [
             Image.open(os.path.join(src_path, file_name)).convert("RGBA")
             for file_name in self.file_names
@@ -166,7 +173,7 @@ class ForAnimation(ForProcessing):
             "height": str(round(height_pct, 3)) + "%",
         }
 
-        if self._use_full_width:
+        if self.use_full_width:
             left_pct = 100 * min_x / body_w
             top_pct = 100 * min_y / body_h
             style_vars["left"] = str(round(left_pct, 3)) + "%"
@@ -176,6 +183,7 @@ class ForAnimation(ForProcessing):
 
         bytes_io = BytesIO()
         cropped_frames_iter: Iterator[Image.Image] = iter(cropped_frames)
+        # noinspection SpellCheckingInspection
         duration_coef = self.duration
         next(cropped_frames_iter).save(
             bytes_io,
@@ -185,12 +193,24 @@ class ForAnimation(ForProcessing):
             duration=len(cropped_frames) if duration_coef is None else duration_coef,
         )
 
-        return self.make_image_dict(bytes_io, **kwargs)
+        return bytes_io, kwargs
 
 
 class ForTrimming(ForAnimation):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, use_full_width=True, **kwargs)
+
+
+class ForPlaceholder(ForTrimming):
+    def as_dict(
+        self,
+        src_path: str,
+        pandora_id: str,
+        body_image: Image,
+        **kwargs,
+    ) -> dict[str, Any]:
+        self._merge_style_kwarg(kwargs, {"opacity": 0.0})
+        return super().as_dict(src_path, pandora_id, body_image, **kwargs)
 
 
 _TImage = ForProcessing | str | dict[str, Any] | None
@@ -255,7 +275,9 @@ class CarType:
             "state_not": state,
         }
 
-    def as_dict_picture(self, src_path: str, pandora_id: str, **kwargs):
+    def as_dict_picture(
+        self, src_path: str, pandora_id: str, clickable: bool = True, **kwargs
+    ):
         body_image = PIL.Image.open(os.path.join(src_path, self.body + ".png")).convert(
             "RGBA"
         )
@@ -268,14 +290,35 @@ class CarType:
             **kwargs,
         }
 
-        def _pic_to_dict(pic_val: _TImage, **kwargs_):
+        def _pic_to_dict(pic_val: _TImage, entity: str | None = None, **kwargs_):
             if isinstance(pic_val, str):
                 pic_val = ForSimple(pic_val)
+
+            if clickable and entity is not None:
+                kwargs_["entity"] = entity
 
             if isinstance(pic_val, ForProcessing):
                 return pic_val.as_dict(src_path, pandora_id, body_image, **kwargs_)
 
-            raise TypeError
+            raise TypeError(f"bad type: {type(pic_val)}")
+
+        def _add_elements(
+            elems,
+            pics: tuple[_TImage, _TImage],
+            entity: str | None = None,
+            cond_val: str = "on",
+            cond_entity: str | None = None,
+        ):
+            if cond_entity is None:
+                cond_entity = entity
+            for picture, condition in zip(pics, (self.entity_is_not, self.entity_is)):
+                if picture:
+                    elems.append(
+                        self.condition_elements(
+                            _pic_to_dict(picture, entity),
+                            condition(cond_entity, cond_val),
+                        )
+                    )
 
         ###
         #
@@ -295,69 +338,21 @@ class CarType:
             if bin_sens_options is None:
                 continue
 
-            pic_off, pic_on = bin_sens_options
             entity_id = f"binary_sensor.{pandora_id}_{bin_sens_key}"
-
-            if pic_on:
-                elements.append(
-                    self.condition_elements(
-                        _pic_to_dict(pic_on, entity=entity_id),
-                        self.entity_is(entity_id, "on"),
-                    )
-                )
-
-            if pic_off:
-                elements.append(
-                    self.condition_elements(
-                        _pic_to_dict(pic_off, entity=entity_id),
-                        self.entity_is_not(entity_id, "on"),
-                    )
-                )
+            _add_elements(elements, bin_sens_options, entity_id)
 
         ###
         #
         #
         engine_elements = []
         if self.engine:
-            pic_off, pic_on = self.engine
             engine_entity_id = f"switch.{pandora_id}_engine"
-
-            if pic_on:
-                elements.append(
-                    self.condition_elements(
-                        _pic_to_dict(pic_on, entity=engine_entity_id),
-                        self.entity_is(engine_entity_id, "on"),
-                    )
-                )
-
-            if pic_off:
-                elements.append(
-                    self.condition_elements(
-                        _pic_to_dict(pic_off, entity=engine_entity_id),
-                        self.entity_is_not(engine_entity_id, "on"),
-                    )
-                )
+            _add_elements(elements, self.engine, engine_entity_id)
 
         if self.engine_hood_open:
-            pic_off, pic_on = self.engine_hood_open
             engine_entity_id = f"switch.{pandora_id}_engine"
-
             hood_engine_elements = []
-            if pic_on:
-                hood_engine_elements.append(
-                    self.condition_elements(
-                        _pic_to_dict(pic_on, entity=engine_entity_id),
-                        self.entity_is(engine_entity_id, "on"),
-                    )
-                )
-
-            if pic_off:
-                hood_engine_elements.append(
-                    self.condition_elements(
-                        _pic_to_dict(pic_off, entity=engine_entity_id),
-                        self.entity_is_not(engine_entity_id, "on"),
-                    )
-                )
+            _add_elements(hood_engine_elements, self.engine_hood_open, engine_entity_id)
 
             entity_id = f"switch.{pandora_id}_hood"
             elements.append(
@@ -381,23 +376,7 @@ class CarType:
         alarm_elements = []
         lock_entity_id = f"lock.{pandora_id}_central_lock"
         if self.alarm:
-            pic_off, pic_on = self.alarm
-
-            if pic_on:
-                alarm_elements.append(
-                    self.condition_elements(
-                        _pic_to_dict(pic_on, entity=lock_entity_id),
-                        self.entity_is(lock_entity_id, "unlocked"),
-                    )
-                )
-
-            if pic_off:
-                alarm_elements.append(
-                    self.condition_elements(
-                        _pic_to_dict(pic_off, entity=lock_entity_id),
-                        self.entity_is_not(lock_entity_id, "unlocked"),
-                    )
-                )
+            _add_elements(alarm_elements, self.alarm, lock_entity_id, "unlocked")
 
         as_entity_id = f"lock.{pandora_id}_active_security"
         if self.active_security:
@@ -615,15 +594,25 @@ class CarType:
         pandora_id: str,
         severity_tacho: Mapping[str, int] | None = None,
         severity_fuel: Mapping[str, int] | None = None,
+        clickable: bool = True,
     ):
-        return {
-            "type": "vertical-stack",
-            "cards": [
-                self.as_dict_picture(src_path, pandora_id),
-                self.as_dict_controls(pandora_id),
+        cards = [
+            self.as_dict_picture(src_path, pandora_id, clickable),
+        ]
+
+        if clickable:
+            cards.append(self.as_dict_controls(pandora_id))
+
+        cards.extend(
+            [
                 self.as_dict_glances(pandora_id),
                 self.as_dict_gauges(pandora_id, severity_tacho, severity_fuel),
-            ],
+            ]
+        )
+
+        return {
+            "type": "vertical-stack",
+            "cards": cards,
         }
 
 
@@ -646,8 +635,8 @@ CAR_TYPES = {
             ForTrimming("door_front_right_closed"),
             ForTrimming("door_front_right_opened"),
         ),
-        trunk=(None, ForTrimming("trunk_opened")),
-        hood=(None, ForTrimming("hood_opened")),
+        trunk=(ForPlaceholder("trunk_opened"), ForTrimming("trunk_opened")),
+        hood=(ForPlaceholder("hood_opened"), ForTrimming("hood_opened")),
         parking=(None, ForTrimming("parking")),
         brakes=(None, ForTrimming("brake")),
         ignition=(None, ForTrimming("ignition")),
@@ -685,8 +674,8 @@ CAR_TYPES = {
             ForTrimming("door_front_right_closed_dark"),
             ForTrimming("door_front_right_opened_dark"),
         ),
-        trunk=(None, ForTrimming("trunk_opened_dark")),
-        hood=(None, ForTrimming("hood_opened_dark")),
+        trunk=(ForPlaceholder("trunk_opened_dark"), ForTrimming("trunk_opened_dark")),
+        hood=(ForPlaceholder("hood_opened_dark"), ForTrimming("hood_opened_dark")),
         parking=(None, ForTrimming("parking_dark")),
         brakes=(None, ForTrimming("brake_dark")),
         ignition=(None, ForTrimming("ignition_dark")),
@@ -728,21 +717,72 @@ CAR_TYPES = {
 }
 
 
-def main():
-    from yaml import dump
+def extract_images(
+    apk_file_path: str | BytesIO | bytes | bytearray,
+    output_path: str,
+    cleanup: bool = False,
+) -> None:
+    if isinstance(apk_file_path, (bytes, bytearray)):
+        data = BytesIO(apk_file_path)
+    elif not isinstance(apk_file_path, str):
+        data = apk_file_path
+    elif "://" in apk_file_path:
+        response = requests.get(
+            apk_file_path,
+            headers={"User-Agent": DEFAULT_USER_AGENT},
+            allow_redirects=True,
+        )
+        response.raise_for_status()
+        data = BytesIO(response.content)
+    elif os.path.isfile(apk_file_path):
+        with open(apk_file_path, "rb") as f:
+            data = BytesIO(f.read())
+    else:
+        raise RuntimeError("apk not found")
+    if not os.path.isdir(output_path):
+        raise RuntimeError("output path does not exist")
+
+    extension = ".png"
+    if cleanup:
+        for f in os.listdir(output_path):
+            if not f.endswith(extension):
+                continue
+            path_f = os.path.join(output_path, f)
+            if not os.path.isfile(path_f):
+                continue
+            os.unlink(path_f)
+
+    import zipfile
+    import shutil
+
+    try:
+        with zipfile.ZipFile(data) as zip_ref:
+            for member in zip_ref.namelist():
+                if member.startswith("res/") and member.endswith(extension):
+                    filename = os.path.basename(member)
+                    target_path = os.path.join(output_path, filename)
+                    if os.path.isfile(target_path):
+                        member_info = zip_ref.getinfo(member)
+                        if not member_info.is_dir():
+                            old_size = os.path.getsize(target_path)
+                            new_size = member_info.file_size
+                            if old_size >= new_size:
+                                # Skip images larger than already found
+                                continue
+                            os.unlink(target_path)
+                    with (
+                        zip_ref.open(member) as source,
+                        open(target_path, "wb") as target,
+                    ):
+                        shutil.copyfileobj(source, target)
+    except zipfile.BadZipfile:
+        print(data.read())
+        raise
+
+
+def make_cards(pandora_id: str, images_path: str):
     from glob import glob
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("pandora_id", nargs="?")
-
-    grp = parser.add_mutually_exclusive_group()
-    grp.add_argument("--copy-card", choices=CAR_TYPES.keys())
-    grp.add_argument("--copy-dashboard", choices=CAR_TYPES.keys())
-    grp.add_argument("--copy-stack", choices=CAR_TYPES.keys())
-
-    args = parser.parse_args()
-    pandora_id = args.pandora_id or "REPLACE_WITH_PANDORA_ID"
+    from yaml import dump
 
     cards_path = os.path.join(BASE_PATH, "cards")
     stacks_path = os.path.join(BASE_PATH, "stacks")
@@ -755,72 +795,79 @@ def main():
         else:
             os.mkdir(path)
 
-    to_copy = None
-    for key_type, car_type in CAR_TYPES.items():
-        file_name = key_type + ".yaml"
+    for clickable in (True, False):
+        for key_type, car_type in CAR_TYPES.items():
+            file_name = key_type
+            if not clickable:
+                file_name += "_non_interactive"
+            file_name += ".yaml"
 
-        card_config = car_type.as_dict_picture(SRC_PATH, pandora_id)
-        card_str = dump(card_config, allow_unicode=True)
-        if args.copy_card == key_type:
-            to_copy = card_str
-        with open(os.path.join(cards_path, file_name), "w", encoding="utf-8") as f:
-            f.write(card_str)
+            card_config = car_type.as_dict_picture(images_path, pandora_id, clickable)
+            card_str = dump(card_config, allow_unicode=True)
+            with open(os.path.join(cards_path, file_name), "w", encoding="utf-8") as f:
+                f.write(card_str)
 
-        stack_config = car_type.as_dict(SRC_PATH, pandora_id)
-        stack_str = dump(stack_config, allow_unicode=True)
-        if args.copy_stack == key_type:
-            to_copy = stack_str
-        with open(os.path.join(stacks_path, file_name), "w", encoding="utf-8") as f:
-            f.write(stack_str)
+            stack_config = car_type.as_dict(
+                images_path, pandora_id, clickable=clickable
+            )
+            stack_str = dump(stack_config, allow_unicode=True)
+            with open(os.path.join(stacks_path, file_name), "w", encoding="utf-8") as f:
+                f.write(stack_str)
 
-        panel_config = {
-            "title": "Pandora CAS",
-            "views": [
-                {
-                    "type": "sidebar",
-                    "title": "Автомобиль",
-                    "cards": [
-                        {
-                            "type": "map",
-                            "view_layout": {"position": "main"},
-                            "hours_to_show": 24,
-                            "entities": [
-                                {"entity": f"device_tracker.{pandora_id}_pandora"}
-                            ],
-                        },
-                        {
-                            **stack_config,
-                            "view_layout": {"position": "sidebar"},
-                        },
-                    ],
-                }
-            ],
-        }
+            panel_config = {
+                "title": "Pandora CAS",
+                "views": [
+                    {
+                        "type": "sidebar",
+                        "title": "Автомобиль",
+                        "cards": [
+                            {
+                                "type": "map",
+                                "view_layout": {"position": "main"},
+                                "hours_to_show": 24,
+                                "entities": [
+                                    {"entity": f"device_tracker.{pandora_id}_pandora"}
+                                ],
+                            },
+                            {
+                                **stack_config,
+                                "view_layout": {"position": "sidebar"},
+                            },
+                        ],
+                    }
+                ],
+            }
 
-        dashboard_str = dump(panel_config, allow_unicode=True)
-        if args.copy_dashboard == key_type:
-            to_copy = dashboard_str
-
-        with open(
-            os.path.join(dashboards_path, file_name),
-            "w",
-            encoding="utf-8",
-        ) as f:
-            f.write(dashboard_str)
+            dashboard_str = dump(panel_config, allow_unicode=True)
+            with open(
+                os.path.join(dashboards_path, file_name),
+                "w",
+                encoding="utf-8",
+            ) as f:
+                f.write(dashboard_str)
 
     print(f"Generated configuration for Pandora ID: {pandora_id}")
 
-    if to_copy:
-        import pyperclip
 
-        pyperclip.copy(to_copy)
-        copy_key = args.copy_card or args.copy_dashboard or args.copy_stack
-        copy_type = (
-            "card" if args.copy_card else "stack" if args.copy_stack else "dashboard"
-        )
-        print(f"Copied '{copy_key}' {copy_type} configuration to clipboard")
+def url_or_file(value: str) -> str:
+    return value if "://" in value else argparse.FileType("rb")(value)
 
-    exit(0)
+
+DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36"
+
+
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("pandora_id", help="Pandora Device ID")
+    parser.add_argument("apk", type=url_or_file)
+    args = parser.parse_args()
+    pandora_id = args.pandora_id or "REPLACE_WITH_PANDORA_ID"
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        extract_images(args.apk, temp_dir)
+        make_cards(pandora_id, temp_dir)
 
 
 if __name__ == "__main__":
