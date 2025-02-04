@@ -401,13 +401,35 @@ class PandoraCASEntity(
 
         if (listeners := self._command_listeners) is None:
             self._command_listeners = listeners = []
+
+        @callback
+        def _filter_expected_command(evt_or_data) -> bool:
+            if not isinstance(evt_or_data, dict):
+                try:
+                    data = evt_or_data.data
+                except Exception as exc:
+                    self.logger.error(
+                        "Encountered filtering error while listening for commands: %s",
+                        exc,
+                        exc_info=exc,
+                    )
+                    return False
+                else:
+                    if not isinstance(evt_or_data, dict):
+                        self.logger.error(
+                            "Filtering command event which has non-dictionary data"
+                        )
+                        return False
+            return (
+                data.get(ATTR_COMMAND_ID) == command_id
+                and data.get(ATTR_DEVICE_ID) == self.pandora_device.device_id
+            )
+                        
         listeners.append(
             self.hass.bus.async_listen(
                 event_type=EVENT_TYPE_COMMAND,
                 listener=self._process_command_response,
-                event_filter=callback(
-                    lambda x: int(x.data[ATTR_COMMAND_ID]) == command_id
-                ),
+                event_filter=_filter_expected_command,
             )
         )
 
