@@ -10,7 +10,6 @@ from typing import Any, Final
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.config_entries import (
-    OptionsFlowWithConfigEntry,
     ConfigFlow,
     ConfigEntry,
     OptionsFlow,
@@ -24,6 +23,7 @@ from homeassistant.const import (
     CONF_DEVICES,
     CONF_METHOD,
     CONF_LANGUAGE,
+    __version__ as HAVERSION,
 )
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import (
@@ -246,15 +246,16 @@ STEP_DEVICE_OPTIONS: Final = "device_options"
 # STEP_DEVICE_OPTIONS_SCHEMA: Final = DEVICE_OPTIONS_SCHEMA
 
 
-class PandoraCASOptionsFlow(OptionsFlowWithConfigEntry):
-    def __init__(self, *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-
+class PandoraCASOptionsFlow(OptionsFlow):
+    def __init__(self, config_entry: ConfigEntry) -> None:
         # Helpers to handle the device_options step
+        if AwesomeVersion(HAVERSION) < "2024.11.99":
+            self.config_entry = config_entry
         self.device_options: dict[str, str] | None = None
         self.current_pandora_id: str | None = None
 
         # Holders for current and edited options
+        self.options = deepcopy(self.options)
         self.options[CONF_METHOD] = determine_method(self.config_entry)
         self.initial_options = deepcopy(self.options)
         self.device_options_schema: vol.Schema | None = None
