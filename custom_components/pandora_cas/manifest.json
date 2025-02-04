@@ -17,5 +17,5 @@
     "haversine~=2.8.0",
     "pandora-cas==0.0.12"
   ],
-  "version": "2024.8.2"
+  "version": "2025.2.0"
 }
