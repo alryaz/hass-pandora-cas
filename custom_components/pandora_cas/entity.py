@@ -406,7 +406,7 @@ class PandoraCASEntity(
         def _filter_expected_command(evt_or_data) -> bool:
             if not isinstance(evt_or_data, dict):
                 try:
-                    data = evt_or_data.data
+                    evt_or_data = evt_or_data.data
                 except Exception as exc:
                     self.logger.error(
                         "Encountered filtering error while listening for commands: %s",
@@ -421,8 +421,8 @@ class PandoraCASEntity(
                         )
                         return False
             return (
-                data.get(ATTR_COMMAND_ID) == command_id
-                and data.get(ATTR_DEVICE_ID) == self.pandora_device.device_id
+                evt_or_data.get(ATTR_COMMAND_ID) == command_id
+                and evt_or_data.get(ATTR_DEVICE_ID) == self.pandora_device.device_id
             )
 
         listeners.append(
