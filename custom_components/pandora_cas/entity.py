@@ -424,7 +424,7 @@ class PandoraCASEntity(
                 data.get(ATTR_COMMAND_ID) == command_id
                 and data.get(ATTR_DEVICE_ID) == self.pandora_device.device_id
             )
-                        
+
         listeners.append(
             self.hass.bus.async_listen(
                 event_type=EVENT_TYPE_COMMAND,
