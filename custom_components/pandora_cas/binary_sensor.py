@@ -40,7 +40,7 @@ class PandoraCASBinarySensorEntityDescription(
     """Binary sensor entity description base class."""
 
 
-# noinspection PyArgumentList
+# noinspection PyArgumentList,PyTypeChecker
 ENTITY_TYPES = [
     PandoraCASBinarySensorEntityDescription(
         key="connection_state",

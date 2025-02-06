@@ -45,7 +45,7 @@ class PandoraCASNumberEntityDescription(
     incremental: bool | None = None
 
 
-# noinspection PyArgumentList
+# noinspection PyArgumentList,PyTypeChecker
 ENTITY_TYPES: list[PandoraCASNumberEntityDescription] = [
     PandoraCASNumberEntityDescription(
         key="climate_target_temperature",
