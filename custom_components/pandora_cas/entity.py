@@ -188,7 +188,7 @@ async def async_platform_setup_entry(
         async_add_entities(new_entities)
         logger.debug(
             f"Added {len(new_entities)} new {platform_id.domain} entities: "
-            f"{', '.join(e.entity_id.partition('.')[2] for e in new_entities)}"
+            f"{', '.join(e.entity_description.key for e in new_entities)}"
         )
 
     return True
