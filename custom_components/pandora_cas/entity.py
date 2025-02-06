@@ -20,6 +20,7 @@ from typing import (
     TYPE_CHECKING,
     Final,
     Sequence,
+    Optional,
 )
 
 from homeassistant.config_entries import ConfigEntry
@@ -386,7 +387,7 @@ class PandoraCASEntity(
         self.reset_command_event()
         self.async_write_ha_state()
 
-    def _add_command_listener(self, command: CommandOptions | None) -> None:
+    def _add_command_listener(self, command: Optional[CommandOptions]) -> None:
         if command is None:
             return None
 
@@ -521,8 +522,8 @@ class PandoraCASBooleanEntityDescription(PandoraCASEntityDescription):
     icon_turning_off: str | None = None
     flag: Flag | None = None
     inverse: bool = False
-    command_on: CommandOptions | None = None
-    command_off: CommandOptions | None = None
+    command_on: Optional[CommandOptions] = None
+    command_off: Optional[CommandOptions] = None
 
 
 class PandoraCASBooleanEntity(PandoraCASEntity):

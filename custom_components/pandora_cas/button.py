@@ -6,7 +6,7 @@ import asyncio
 import logging
 from dataclasses import dataclass
 from functools import partial
-from typing import Callable, Final
+from typing import Callable, Final, Optional
 
 from homeassistant.components.button import (
     ButtonEntity,
@@ -35,7 +35,7 @@ _LOGGER: Final = logging.getLogger(__name__)
 class PandoraCASButtonEntityDescription(
     PandoraCASEntityDescription, ButtonEntityDescription
 ):
-    command: CommandOptions | None = None
+    command: Optional[CommandOptions] = None
     icon_pressing: str | None = "mdi:progress-clock"
     allow_simultaneous_presses: bool = True
 

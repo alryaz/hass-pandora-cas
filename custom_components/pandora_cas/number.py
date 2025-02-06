@@ -6,7 +6,7 @@ import logging
 from asyncio import run_coroutine_threadsafe
 from dataclasses import dataclass
 from functools import partial
-from typing import Final, Callable, Any, TypeVar
+from typing import Final, Callable, Any, TypeVar, Optional
 
 # noinspection PyProtectedMember
 from homeassistant.components.number import (
@@ -40,8 +40,8 @@ class PandoraCASNumberEntityDescription(
     converter: Callable[[float], Any] | None = None
     icon_setting: str | None = "mdi:progress-clock"
     icon_min: str | None = None
-    command_set: CommandOptions | None = None
-    command_init: CommandOptions | None = None
+    command_set: Optional[CommandOptions] = None
+    command_init: Optional[CommandOptions] = None
     incremental: bool | None = None
 
 
