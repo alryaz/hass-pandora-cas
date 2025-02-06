@@ -18,7 +18,7 @@ for attribute_source, attribute_get in per_attribute_gets.items():
     ignored = set()
     if attribute_source == "state":
         source_value = CurrentState
-        ignored.update(('imei',))
+        ignored.update(("imei",))
     else:
         print(f"Unknown attribute source {attribute_source}")
         continue
