@@ -33,6 +33,7 @@ from typing import (
 )
 
 import aiohttp
+import attr
 import voluptuous as vol
 from homeassistant.config_entries import (
     ConfigEntry,
@@ -657,7 +658,8 @@ class PandoraCASUpdateCoordinator(
 
         self.hass.bus.async_fire(
             EVENT_TYPE_EVENT,
-            {
+            attr.asdict(event)
+            | {
                 CONF_EVENT_TYPE: event_enum_to_type(event.primary_event_enum),
                 ATTR_DEVICE_ID: device.device_id,
                 ATTR_EVENT_ID_PRIMARY: (p := event.event_id_primary),
@@ -680,12 +682,6 @@ class PandoraCASUpdateCoordinator(
                         f"event-subname-{p}-{s}",
                     )
                 ),
-                ATTR_LATITUDE: event.latitude,
-                ATTR_LONGITUDE: event.longitude,
-                "gsm_level": event.gsm_level,
-                "fuel": event.fuel,
-                "exterior_temperature": event.exterior_temperature,
-                "engine_temperature": event.engine_temperature,
             },
         )
 
