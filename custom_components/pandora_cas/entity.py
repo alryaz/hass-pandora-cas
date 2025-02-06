@@ -233,12 +233,16 @@ class BasePandoraCASEntity(Entity):
     @property
     def device_info(self) -> DeviceInfo | None:
         d = self.pandora_device
+        firmware_components = [d.firmware_version, d.voice_version]
+        if d.state is not None:
+            firmware_components.append(d.state.climate_firmware)
+        sw_version = " / ".join(filter(bool, firmware_components))
         return DeviceInfo(
             identifiers={(DOMAIN, str(d.device_id))},
             name=d.name,
             manufacturer="Pandora",
             model=d.model,
-            sw_version=f"{d.firmware_version} / {d.voice_version}",
+            sw_version=sw_version,
             via_device=(DOMAIN, str(d.device_id)),
         )
 
