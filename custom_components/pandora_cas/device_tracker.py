@@ -258,7 +258,7 @@ class PandoraCASTrackerEntity(BasePandoraCASTrackerEntity):
         if (
             cursor := self._device_config[CONF_CUSTOM_CURSOR_TYPE]
         ) == DISABLED_CURSOR_TYPE:
-            return
+            return None
         device = self.pandora_device
         if cursor == DEFAULT_CURSOR_TYPE:
             cursor = device.car_type
@@ -356,6 +356,7 @@ class PandoraCASTrackDisplayEntity(BasePandoraCASTrackerEntity):
                 entity_id,
                 calculated_state.state,
                 calculated_state.attributes,
+                timestamp,
                 timestamp,
                 timestamp,
                 context,
