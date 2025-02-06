@@ -32,6 +32,14 @@ for i, (cls, strategy) in enumerate(MERGE_STRATEGIES):
 
 always_merger = deepmerge.Merger(MERGE_STRATEGIES, ["override"], ["override"])
 
+# Retrieve services
+# noinspection PyTypeChecker
+COMMAND_SLUGS_BY_ID: dict[int, str] = dict(
+    map(reversed, custom_components.pandora_cas.services.iterate_commands_to_register())
+)
+DEFAULT_ATTRIBUTES_STRINGS = {ATTR_DEVICE_ID: "Pandora Device"}
+DEFAULT_ATTRIBUTES_TRANSLATE = {"ru": {ATTR_DEVICE_ID: "Устройство Pandora"}}
+
 
 class JSONContext:
     def __init__(self, path: str) -> None:
@@ -47,66 +55,16 @@ class JSONContext:
     def __exit__(self, exc_type, exc_val, exc_tb):
         with open(self._path, "w", encoding="utf-8") as fp:
             print(f"Writing strings to {self._path}")
-            json.dump(self._data, fp, ensure_ascii=False, indent=2, sort_keys=True)
-
-
-# Retrieve services
-# noinspection PyTypeChecker
-command_slugs_by_id: dict[int, str] = dict(
-    map(reversed, custom_components.pandora_cas.services.iterate_commands_to_register())
-)
-
-# Retrieve platforms
-platform_entry_names: dict[str, dict[str, str]] = {}
-command_icons: dict[str, str] = {}
-
-command_icons_search: dict[str, tuple[str, ...]] = {
-    "command_on": ("icon_on", "icon"),
-    "command_off": ("icon_off", "icon"),
-    "command": ("icon",),
-    "command_init": ("icon_min", "icon"),
-    "command_set": ("icon",),
-}
-
-for platform in PLATFORMS:
-    module = importlib.import_module(f"custom_components.pandora_cas.{platform}")
-    if not (entity_types := getattr(module, "ENTITY_TYPES", None)):
-        continue
-    entity_type: PandoraCASEntityDescription
-    all_types = platform_entry_names.setdefault(str(platform), {})
-    for entity_type in entity_types:
-        all_types[entity_type.key] = entity_type.name
-
-        for command_attr, order_of_icons in command_icons_search.items():
-            command = getattr(entity_type, command_attr, None)
-            if isinstance(command, dict):
-                commands_identifiers = command.values()
-            else:
-                commands_identifiers = (command,)
-            for command_identifier in commands_identifiers:
-                if not isinstance(command_identifier, (int, CommandID)):
-                    continue
-                command_slug = command_slugs_by_id[int(command_identifier)]
-                for icon_attr in order_of_icons:
-                    icon = getattr(entity_type, icon_attr, None)
-                    if icon:
-                        command_icons.setdefault(command_slug, icon)
-                        break
-
-with JSONContext(os.path.join(COMPONENT_ROOT, "icons.json")) as all_icons:
-    all_icons["services"] = always_merger.merge(
-        all_icons.get("services") or {}, command_icons
-    )
-
-default_attributes = {ATTR_DEVICE_ID: "Pandora Device"}
-default_attributes_per_language = {"ru": {ATTR_DEVICE_ID: "Устройство Pandora"}}
+            fp.write(
+                json.dumps(self._data, ensure_ascii=False, indent=2, sort_keys=True)
+            )
 
 
 def get_translation_services(
     command_id: int,
     language: str | None = None,
 ) -> dict[str, Any]:
-    command_slug = command_slugs_by_id[command_id]
+    command_slug = COMMAND_SLUGS_BY_ID[command_id]
     return {
         "name": command_slug.replace("_", " ").title(),
         "description": (
@@ -168,6 +126,7 @@ def get_translation_services_fields(
     return service_fields
 
 
+# noinspection PyUnusedLocal
 def get_services(
     command_id: int,
     russian_name: str | None = None,
@@ -221,12 +180,17 @@ def get_services(
     }
 
 
+# noinspection PyUnusedLocal
 def get_translations(language: str | None = None):
     # @TODO: add translations for entities
-    return {key: {ATTR_NAME: value} for key, value in default_attributes.items()}
+    return {
+        key: {ATTR_NAME: value} for key, value in DEFAULT_ATTRIBUTES_STRINGS.items()
+    }
 
 
-def process_translations(target_strings, language: str | None = None):
+def process_translations(
+    platform_entry_names, target_strings, language: str | None = None
+):
     # Process platforms
     entities_strings = target_strings.setdefault("entity", {})
     for platform, entries in platform_entry_names.items():
@@ -241,7 +205,7 @@ def process_translations(target_strings, language: str | None = None):
 
     # Process services
     services_strings = target_strings.setdefault("services")
-    for command_id, command_slug in command_slugs_by_id.items():
+    for command_id, command_slug in COMMAND_SLUGS_BY_ID.items():
         services_strings[command_slug] = deepmerge.conservative_merger.merge(
             services_strings.get(command_slug) or {},
             get_translation_services(command_id, language),
@@ -258,51 +222,102 @@ def process_translations(target_strings, language: str | None = None):
     )
 
 
-# Process basic strings
-strings: dict[str, Any]
-with JSONContext(os.path.join(COMPONENT_ROOT, "strings.json")) as strings:
-    process_translations(strings)
+def main():
+    # Retrieve platforms
+    platform_entry_names: dict[str, dict[str, str]] = {}
+    command_icons: dict[str, str] = {}
 
-# Process localized strings
-russian_strings: dict[str, Any] | None = None
-english_strings: dict[str, Any] | None = None
-language_strings: dict[str, Any]
-for language_file in os.listdir(
-    translations_root := os.path.join(COMPONENT_ROOT, "translations")
-):
-    language_file_path = os.path.join(translations_root, language_file)
-    if not (os.path.isfile(language_file_path) and language_file.endswith(".json")):
-        continue
-    language_code = language_file.rpartition(".")[0]
-    with JSONContext(language_file_path) as language_strings:
-        language_strings = deepmerge.conservative_merger.merge(
-            language_strings, strings
+    command_icons_search: dict[str, tuple[str, ...]] = {
+        "command_on": ("icon_on", "icon"),
+        "command_off": ("icon_off", "icon"),
+        "command": ("icon",),
+        "command_init": ("icon_min", "icon"),
+        "command_set": ("icon",),
+    }
+
+    for platform in PLATFORMS:
+        module = importlib.import_module(f"custom_components.pandora_cas.{platform}")
+        if not (entity_types := getattr(module, "ENTITY_TYPES", None)):
+            continue
+        entity_type: PandoraCASEntityDescription
+        all_types = platform_entry_names.setdefault(str(platform), {})
+        for entity_type in entity_types:
+            all_types[entity_type.key] = entity_type.name
+
+            for command_attr, order_of_icons in command_icons_search.items():
+                command = getattr(entity_type, command_attr, None)
+                if isinstance(command, dict):
+                    commands_identifiers = command.values()
+                else:
+                    commands_identifiers = (command,)
+                for command_identifier in commands_identifiers:
+                    if not isinstance(command_identifier, (int, CommandID)):
+                        continue
+                    command_slug = COMMAND_SLUGS_BY_ID[int(command_identifier)]
+                    for icon_attr in order_of_icons:
+                        icon = getattr(entity_type, icon_attr, None)
+                        if icon:
+                            command_icons.setdefault(command_slug, icon)
+                            break
+
+    with JSONContext(os.path.join(COMPONENT_ROOT, "icons.json")) as all_icons:
+        all_icons["services"] = always_merger.merge(
+            all_icons.get("services") or {}, command_icons
         )
-        process_translations(language_strings, language_code)
-        if language_code == "ru":
-            russian_strings = language_strings
-        elif language_code == "en":
-            english_strings = language_strings
 
-# Process services YAML
-services_yaml = load_yaml_dict(
-    services_path := os.path.join(COMPONENT_ROOT, "services.yaml")
-)
-services_yaml[SERVICE_REMOTE_COMMAND] = always_merger.merge(
-    services_yaml.get(SERVICE_REMOTE_COMMAND) or {},
-    get_services(-1, None, None, None),
-)
+    # Process basic strings
+    strings: dict[str, Any]
+    with JSONContext(os.path.join(COMPONENT_ROOT, "strings.json")) as strings:
+        process_translations(platform_entry_names, strings)
 
-for command_id, command_slug in command_slugs_by_id.items():
-    russian_name = russian_strings.get("services", {}).get(command_slug, {}).get("name")
-    english_name = english_strings.get("services", {}).get(command_slug, {}).get("name")
-    services_yaml[command_slug] = always_merger.merge(
-        services_yaml.get(command_slug) or {},
-        get_services(
-            command_id,
-            russian_name,
-            english_name,
-            (services_yaml.get(command_slug) or {}).get("description"),
-        ),
+    # Process localized strings
+    russian_strings: dict[str, Any] | None = None
+    english_strings: dict[str, Any] | None = None
+    language_strings: dict[str, Any]
+    for language_file in os.listdir(
+        translations_root := os.path.join(COMPONENT_ROOT, "translations")
+    ):
+        language_file_path = os.path.join(translations_root, language_file)
+        if not (os.path.isfile(language_file_path) and language_file.endswith(".json")):
+            continue
+        language_code = language_file.rpartition(".")[0]
+        with JSONContext(language_file_path) as language_strings:
+            language_strings = deepmerge.conservative_merger.merge(
+                language_strings, strings
+            )
+            process_translations(platform_entry_names, language_strings, language_code)
+            if language_code == "ru":
+                russian_strings = language_strings
+            elif language_code == "en":
+                english_strings = language_strings
+
+    # Process services YAML
+    services_yaml = load_yaml_dict(
+        services_path := os.path.join(COMPONENT_ROOT, "services.yaml")
     )
-save_yaml(services_path, services_yaml)
+    services_yaml[SERVICE_REMOTE_COMMAND] = always_merger.merge(
+        services_yaml.get(SERVICE_REMOTE_COMMAND) or {},
+        get_services(-1, None, None, None),
+    )
+
+    for command_id, command_slug in COMMAND_SLUGS_BY_ID.items():
+        russian_name = (
+            russian_strings.get("services", {}).get(command_slug, {}).get("name")
+        )
+        english_name = (
+            english_strings.get("services", {}).get(command_slug, {}).get("name")
+        )
+        services_yaml[command_slug] = always_merger.merge(
+            services_yaml.get(command_slug) or {},
+            get_services(
+                command_id,
+                russian_name,
+                english_name,
+                (services_yaml.get(command_slug) or {}).get("description"),
+            ),
+        )
+    save_yaml(services_path, services_yaml)
+
+
+if __name__ == "__main__":
+    main()
