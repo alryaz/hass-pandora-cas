@@ -14,6 +14,7 @@ from custom_components.pandora_cas.const import PLATFORMS, ATTR_ENSURE_COMPLETE,
 from custom_components.pandora_cas.entity import PandoraCASEntityDescription
 from custom_components.pandora_cas.services import SERVICE_REMOTE_COMMAND
 from pandora_cas.enums import CommandID, CommandParams
+from tools.helpers import iterate_platform_entity_types
 
 try:
     from yaml import CSafeDumper as FastestAvailableSafeDumper
@@ -235,30 +236,25 @@ def main():
         "command_set": ("icon",),
     }
 
-    for platform in PLATFORMS:
-        module = importlib.import_module(f"custom_components.pandora_cas.{platform}")
-        if not (entity_types := getattr(module, "ENTITY_TYPES", None)):
-            continue
-        entity_type: PandoraCASEntityDescription
+    for platform, entity_type in iterate_platform_entity_types():
         all_types = platform_entry_names.setdefault(str(platform), {})
-        for entity_type in entity_types:
-            all_types[entity_type.key] = entity_type.name
+        all_types[entity_type.key] = entity_type.name
 
-            for command_attr, order_of_icons in command_icons_search.items():
-                command = getattr(entity_type, command_attr, None)
-                if isinstance(command, dict):
-                    commands_identifiers = command.values()
-                else:
-                    commands_identifiers = (command,)
-                for command_identifier in commands_identifiers:
-                    if not isinstance(command_identifier, (int, CommandID)):
-                        continue
-                    command_slug = COMMAND_SLUGS_BY_ID[int(command_identifier)]
-                    for icon_attr in order_of_icons:
-                        icon = getattr(entity_type, icon_attr, None)
-                        if icon:
-                            command_icons.setdefault(command_slug, icon)
-                            break
+        for command_attr, order_of_icons in command_icons_search.items():
+            command = getattr(entity_type, command_attr, None)
+            if isinstance(command, dict):
+                commands_identifiers = command.values()
+            else:
+                commands_identifiers = (command,)
+            for command_identifier in commands_identifiers:
+                if not isinstance(command_identifier, (int, CommandID)):
+                    continue
+                command_slug = COMMAND_SLUGS_BY_ID[int(command_identifier)]
+                for icon_attr in order_of_icons:
+                    icon = getattr(entity_type, icon_attr, None)
+                    if icon:
+                        command_icons.setdefault(command_slug, icon)
+                        break
 
     with JSONContext(os.path.join(COMPONENT_ROOT, "icons.json")) as all_icons:
         all_icons["services"] = always_merger.merge(
