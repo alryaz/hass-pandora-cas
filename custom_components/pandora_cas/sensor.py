@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Any, Callable, Mapping, Hashable
 
+# noinspection PyProtectedMember
 from homeassistant.components.sensor import (
     ENTITY_ID_FORMAT,
     SensorEntityDescription,

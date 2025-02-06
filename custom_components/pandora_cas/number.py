@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Final, Callable, Any, TypeVar
 
+# noinspection PyProtectedMember
 from homeassistant.components.number import (
     NumberEntity,
     NumberEntityDescription,

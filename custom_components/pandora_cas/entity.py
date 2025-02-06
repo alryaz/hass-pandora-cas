@@ -342,10 +342,10 @@ class PandoraCASEntity(
     @property
     def coordinator_device_data(self) -> Mapping[str, Any] | None:
         if not (coordinator_data := self.coordinator.data):
-            return
+            return None
 
         if not (devices_data := coordinator_data[1]):
-            return
+            return None
 
         return devices_data.get(self.pandora_device.device_id)
 
