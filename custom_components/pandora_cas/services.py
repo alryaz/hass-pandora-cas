@@ -130,7 +130,7 @@ def async_get_pandora_id_by_device_id(
         return int(device_id)
     except (TypeError, ValueError):
         if not (device := async_get_device_registry(hass).async_get(device_id)):
-            return
+            return None
         for identifier in device.identifiers:
             if len(identifier) != 2 or identifier[0] != DOMAIN:
                 continue
@@ -138,6 +138,7 @@ def async_get_pandora_id_by_device_id(
                 return int(identifier[1])
             except (TypeError, ValueError):
                 continue
+        return None
 
 
 @callback
