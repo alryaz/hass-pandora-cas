@@ -518,6 +518,7 @@ class CarType:
             ],
         }
 
+    # noinspection PyMethodMayBeStatic
     def as_dict_gauges(
         self,
         pandora_id: str,
@@ -567,6 +568,7 @@ class CarType:
 
         return {"type": "horizontal-stack", "cards": [tacho_dict, fuel_dict]}
 
+    # noinspection PyMethodMayBeStatic
     def as_dict_glances(self, pandora_id: str):
         return {
             "type": "glance",
