@@ -9,11 +9,13 @@ from typing import Any, Final
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
+from awesomeversion import AwesomeVersion
 from homeassistant.config_entries import (
     ConfigFlow,
     ConfigEntry,
     OptionsFlow,
     SOURCE_IMPORT,
+    ConfigFlowResult,
 )
 from homeassistant.const import (
     CONF_PASSWORD,
@@ -105,7 +107,7 @@ class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         if user_input is not None:
             account = PandoraOnlineAccount(
                 username=user_input[CONF_USERNAME],
@@ -191,7 +193,7 @@ class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
     # noinspection PyUnusedLocal
     async def async_step_reauth(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         if (
             entry := self.hass.config_entries.async_get_entry(self.context["entry_id"])
         ).source == SOURCE_IMPORT:
@@ -201,7 +203,7 @@ class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_import(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         if user_input is None:
             _LOGGER.error("Called import step without configuration")
             return self.async_abort("empty_configuration_import")

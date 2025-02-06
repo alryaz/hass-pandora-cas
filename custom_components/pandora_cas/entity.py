@@ -193,7 +193,7 @@ async def async_platform_setup_entry(
     return True
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class PandoraCASEntityDescription(EntityDescription):
     attribute: str | MemberDescriptorType | None = None
     attribute_source: str | MemberDescriptorType | None = "state"
@@ -209,11 +209,11 @@ class PandoraCASEntityDescription(EntityDescription):
     def __post_init__(self):
         """Set translation key to entity description key."""
         if isinstance(self.attribute, MemberDescriptorType):
-            self.attribute = self.attribute.__name__
+            object.__setattr__(self, "attribute", self.attribute.__name__)
         if isinstance(self.attribute_source, MemberDescriptorType):
-            self.attribute_source = self.attribute_source.__name__
+            object.__setattr__(self, "attribute_source", self.attribute_source.__name__)
         if not self.translation_key:
-            self.translation_key = self.key
+            object.__setattr__(self, "translation_key", self.key)
 
 
 class BasePandoraCASEntity(Entity):
@@ -513,7 +513,7 @@ class PandoraCASEntity(
             self._command_listeners = None
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class PandoraCASBooleanEntityDescription(PandoraCASEntityDescription):
     icon_on: str | None = None
     icon_off: str | None = None

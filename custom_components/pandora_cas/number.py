@@ -31,7 +31,7 @@ from pandora_cas.enums import CommandParams, CommandID
 _LOGGER: Final = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class PandoraCASNumberEntityDescription(
     PandoraCASEntityDescription, NumberEntityDescription
 ):

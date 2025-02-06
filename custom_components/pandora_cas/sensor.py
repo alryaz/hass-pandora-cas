@@ -45,7 +45,7 @@ from custom_components.pandora_cas.entity import (
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class PandoraCASSensorEntityDescription(
     PandoraCASEntityDescription, SensorEntityDescription
 ):

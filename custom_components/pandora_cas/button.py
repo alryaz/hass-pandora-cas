@@ -31,7 +31,7 @@ from pandora_cas.enums import PandoraDeviceTypes, CommandID
 _LOGGER: Final = logging.getLogger(__name__)
 
 
-@dataclass
+@dataclass(frozen=True, kw_only=True)
 class PandoraCASButtonEntityDescription(
     PandoraCASEntityDescription, ButtonEntityDescription
 ):
