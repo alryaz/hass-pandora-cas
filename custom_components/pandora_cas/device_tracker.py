@@ -5,7 +5,8 @@ __all__ = ("ENTITY_TYPES", "async_setup_entry")
 import asyncio
 import base64
 import logging
-from typing import Mapping, Any
+from functools import partial
+from typing import Mapping, Any, TYPE_CHECKING
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -29,7 +30,7 @@ from custom_components.pandora_cas.entity import (
 )
 from custom_components.pandora_cas.services import async_get_pandora_id_by_device_id
 from custom_components.pandora_cas.tracker_images import IMAGE_REGISTRY
-from pandora_cas.data import WsTrack
+from pandora_cas.data import HTTPTrack
 
 _LOGGER: Final = logging.getLogger(__name__)
 
@@ -55,10 +56,12 @@ async def async_load_track(hass: HomeAssistant, call: ServiceCall) -> None:
     if track_id is None:
         if not (track := device.state.track):
             raise HomeAssistantError(f"Device has no track associated with")
-        track_id = track.track_id
-    else:
+        track_id = track.identifier
+
         # @TODO: add numeric track retrieval
         raise HomeAssistantError(f"Unknown track ID '{track_id}'")
+
+    track = await device.async_fetch_track_data(track_id)
 
     ent_desc_key = f"track_{track_id}"
     unique_id = f"{DOMAIN}_{device_id}_{ent_desc_key}"
@@ -129,14 +132,14 @@ async def async_setup_entry(
     if new_entities:
         async_add_entities(new_entities)
 
-    # # @TODO: disabled temporarily
-    # if not hass.services.has_service(DOMAIN, SERVICE_LOAD_TRACK):
-    #     hass.services.async_register(
-    #         DOMAIN,
-    #         SERVICE_LOAD_TRACK,
-    #         partial(async_load_track, hass),
-    #         schema=SERVICE_LOAD_TRACK_SCHEMA,
-    #     )
+    # @TODO: disabled temporarily
+    if not hass.services.has_service(DOMAIN, SERVICE_LOAD_TRACK):
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_LOAD_TRACK,
+            partial(async_load_track, hass),
+            schema=SERVICE_LOAD_TRACK_SCHEMA,
+        )
 
     return True
 
@@ -291,7 +294,7 @@ class PandoraCASTrackDisplayEntity(BasePandoraCASTrackerEntity):
 
     _attr_should_poll = False
 
-    def __init__(self, track: WsTrack, *args, **kwargs) -> None:
+    def __init__(self, track: HTTPTrack, *args, **kwargs) -> None:
         self.current_track = track
         super().__init__(*args, **kwargs)
 
@@ -390,7 +393,7 @@ class PandoraCASTrackDisplayEntity(BasePandoraCASTrackerEntity):
 
     @property
     def name(self) -> str:
-        return f"Track #{self.current_track.track_id}"
+        return f"Track #{self.current_track.identifier}"
 
     @property
     def source_type(self):
