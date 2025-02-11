@@ -17,6 +17,8 @@ from homeassistant.config_entries import (
     SOURCE_IMPORT,
     ConfigFlowResult,
 )
+
+# noinspection PyPep8Naming
 from homeassistant.const import (
     CONF_PASSWORD,
     CONF_USERNAME,

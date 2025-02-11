@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import importlib
 import json
 import os.path
 from typing import Any
@@ -10,8 +9,7 @@ from homeassistant.util.yaml import load_yaml_dict, save_yaml
 
 import custom_components.pandora_cas as m
 import custom_components.pandora_cas.services
-from custom_components.pandora_cas.const import PLATFORMS, ATTR_ENSURE_COMPLETE, DOMAIN
-from custom_components.pandora_cas.entity import PandoraCASEntityDescription
+from custom_components.pandora_cas.const import ATTR_ENSURE_COMPLETE, DOMAIN
 from custom_components.pandora_cas.services import SERVICE_REMOTE_COMMAND
 from pandora_cas.enums import CommandID, CommandParams
 from tools.helpers import iterate_platform_entity_types
