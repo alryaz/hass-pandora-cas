@@ -260,9 +260,8 @@ class PandoraCASOptionsFlow(OptionsFlow):
         self.current_pandora_id: str | None = None
 
         # Holders for current and edited options
-        self.options = deepcopy(self.config_entry.options)
-        self.options[CONF_METHOD] = determine_method(self.config_entry)
-        self.initial_options = deepcopy(self.options)
+        self.options: dict[str, Any] | None = None
+        self.initial_options: dict[str, Any] | None = None
         self.device_options_schema: vol.Schema | None = None
 
     def _init_device_options(self):
@@ -286,6 +285,9 @@ class PandoraCASOptionsFlow(OptionsFlow):
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
+        if self.initial_options is None:
+            self.options = deepcopy(dict(self.config_entry.options))
+            self.initial_options = deepcopy(self.options)
         menu_options = [
             STEP_INTEGRATION_OPTIONS,
             STEP_DEVICE_OPTIONS,
