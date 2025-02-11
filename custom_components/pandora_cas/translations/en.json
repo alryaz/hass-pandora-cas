@@ -669,6 +669,14 @@
           }
         }
       },
+      "remaining_engine_runtime": {
+        "name": "Remaining Engine Runtime",
+        "state_attributes": {
+          "device_id": {
+            "name": "Pandora Device"
+          }
+        }
+      },
       "reserve_tire_pressure": {
         "name": "Reserve Tire Pressure",
         "state_attributes": {

@@ -414,6 +414,16 @@ ENTITY_TYPES = [
         entity_category=EntityCategory.DIAGNOSTIC,
         online_sensitive=False,
     ),
+    PandoraCASSensorEntityDescription(
+        key="remaining_engine_runtime",
+        name="Remaining Engine Runtime",
+        icon="mdi:wrench-clock",
+        attribute=CurrentState.engine_remains,
+        device_class=SensorDeviceClass.DURATION,
+        native_unit_of_measurement=UnitOfTime.MINUTES,
+        online_sensitive=False,
+        entity_registry_enabled_default=False,
+    ),
     # PandoraCASSensorEntityDescription(
     #     key="last_event",
     #     name="Last Event",

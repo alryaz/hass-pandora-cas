@@ -729,6 +729,14 @@
           }
         }
       },
+      "remaining_engine_runtime": {
+        "name": "До остановки двигателя",
+        "state_attributes": {
+          "device_id": {
+            "name": "Устройство Pandora"
+          }
+        }
+      },
       "reserve_tire_pressure": {
         "name": "Давление запасной шины",
         "state_attributes": {
