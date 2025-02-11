@@ -55,7 +55,10 @@ from homeassistant.exceptions import (
     ConfigEntryNotReady,
 )
 from homeassistant.helpers import config_validation as cv
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.aiohttp_client import (
+    async_get_clientsession,
+    async_create_clientsession,
+)
 from homeassistant.helpers.device_registry import (
     async_get as async_get_device_registry,
     async_entries_for_config_entry,
@@ -263,7 +266,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     access_token = data.get(CONF_ACCESS_TOKEN)
 
     # Instantiate account object
-    session = async_get_clientsession(hass, verify_ssl=options[CONF_VERIFY_SSL])
+    session = async_create_clientsession(hass, verify_ssl=options[CONF_VERIFY_SSL])
     account = PandoraOnlineAccount(
         username=username,
         password=data[CONF_PASSWORD],
@@ -285,7 +288,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
     except BaseException as exc:
         _LOGGER.error(f"Translations download failed: {exc}", exc_info=exc)
-        pass
 
     # Update access token if necessary
     if access_token != account.access_token:

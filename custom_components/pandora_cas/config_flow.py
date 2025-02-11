@@ -111,6 +111,7 @@ class PandoraCASConfigFlow(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         if user_input is not None:
+            # leave async_get_clientsession because used only once
             account = PandoraOnlineAccount(
                 username=user_input[CONF_USERNAME],
                 password=user_input[CONF_PASSWORD],
