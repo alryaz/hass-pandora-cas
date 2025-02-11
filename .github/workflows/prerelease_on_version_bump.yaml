@@ -23,11 +23,11 @@ jobs:
             exit 1
           fi
           INTEGRATION_DOMAIN=$(basename $(find custom_components/* -maxdepth 0 -type d))
-          if [ -z "INTEGRATION_DOMAIN" ]; then
+          if [ -z "$INTEGRATION_DOMAIN" ]; then
             echo "Error: Could not detect integration domain." >&2
             exit 1
           fi
-          echo "INTEGRATION_DOMAIN=INTEGRATION_DOMAIN" >> $GITHUB_ENV
+          echo "INTEGRATION_DOMAIN=$INTEGRATION_DOMAIN" >> $GITHUB_ENV
 
       - name: Install JQ
         run: sudo apt-get install jq
@@ -136,5 +136,5 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ./custom_components/${{ env.INTEGRATION_DOMAIN }}/release.zip
           asset_name: ${{ env.INTEGRATION_DOMAIN }}.zip
-          tag: ${{ github.ref }}
+          tag: v${{ env.CURRENT_VERSION }}
           overwrite: true
