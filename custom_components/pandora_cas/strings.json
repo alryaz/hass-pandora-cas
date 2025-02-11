@@ -167,6 +167,9 @@
       "heater_errors": {
         "name": "Heater Errors",
         "state_attributes": {
+          "codes": {
+            "name": "Error Codes"
+          },
           "device_id": {
             "name": "Pandora Device"
           }

@@ -183,6 +183,9 @@
       "heater_errors": {
         "name": "Ошибки подогревателя",
         "state_attributes": {
+          "codes": {
+            "name": "Коды ошибок"
+          },
           "device_id": {
             "name": "Устройство Pandora"
           }
@@ -1580,7 +1583,7 @@
           "name": "Ожидать завершения"
         }
       },
-      "name": "(NAV12) Enable Status Output"
+      "name": "(NAV12) Включить статусный выход"
     },
     "nav12_reset_errors": {
       "description": "Выполнить команду на удалённом устройстве: NAV12_RESET_ERRORS (57408)",
@@ -1594,7 +1597,7 @@
           "name": "Ожидать завершения"
         }
       },
-      "name": "(NAV12) Reset Errors"
+      "name": "(NAV12) Сброс ошибок"
     },
     "nav12_turn_off_block_heater": {
       "description": "Выполнить команду на удалённом устройстве: NAV12_TURN_OFF_BLOCK_HEATER (57353)",
@@ -1608,7 +1611,7 @@
           "name": "Ожидать завершения"
         }
       },
-      "name": "(NAV12) Turn Off Block Heater"
+      "name": "(NAV12) Отключить предпусковой подогреватель"
     },
     "nav12_turn_on_block_heater": {
       "description": "Выполнить команду на удалённом устройстве: NAV12_TURN_ON_BLOCK_HEATER (57354)",
@@ -1622,7 +1625,7 @@
           "name": "Ожидать завершения"
         }
       },
-      "name": "(NAV12) Turn On Block Heater"
+      "name": "(NAV12) Включить предпусковой подогреватель"
     },
     "ps_call": {
       "description": "Выполнить команду на удалённом устройстве: PS_CALL (256)",
@@ -1831,7 +1834,7 @@
       "name": "Включить дополнительный канал"
     },
     "unlock": {
-      "description": "Disengage the vehicle's security mechanism to allow access.",
+      "description": "Разблокировать центральный замок автомобиля и снять его с охраны.",
       "fields": {
         "device_id": {
           "description": "Уникальный числовой идентификатор целевого устройства Pandora, или объект устройства в Home Assistant.",
