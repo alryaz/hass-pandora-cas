@@ -260,7 +260,7 @@ class PandoraCASOptionsFlow(OptionsFlow):
         self.current_pandora_id: str | None = None
 
         # Holders for current and edited options
-        self.options = deepcopy(self.options)
+        self.options = deepcopy(self.config_entry.options)
         self.options[CONF_METHOD] = determine_method(self.config_entry)
         self.initial_options = deepcopy(self.options)
         self.device_options_schema: vol.Schema | None = None
