@@ -16,6 +16,7 @@ import aiohttp
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_LANGUAGE
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.storage import Store
 
@@ -53,7 +54,9 @@ def get_web_translations_value(
 
 
 async def async_load_web_translations(
-    hass: HomeAssistant, language: str, verify_ssl: bool = True
+    hass: HomeAssistant,
+    language: str,
+    session: aiohttp.ClientSession | bool | None = None,
 ) -> dict[str, str]:
     """Load web translations."""
     if (language := language.lower()) == "last_update":
@@ -114,9 +117,16 @@ async def async_load_web_translations(
 
     _LOGGER.info(f"Will attempt to download translations for language: {language}")
 
+    if session is None:
+        session = async_get_clientsession(hass)
+    elif isinstance(session, bool):
+        session = async_get_clientsession(hass, verify_ssl=session)
+    else:
+        raise HomeAssistantError("Invalid session parameter")
+
     try:
-        async with async_get_clientsession(hass, verify_ssl).get(
-            f"https://p-on.ru/local/web/{language}.json",
+        async with session.get(
+            f"https://p-on.ru/local/web/{language}.json"
         ) as response:
             new_data = await response.json()
     except (aiohttp.ClientError, JSONDecodeError):

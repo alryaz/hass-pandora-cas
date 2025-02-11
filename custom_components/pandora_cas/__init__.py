@@ -45,8 +45,6 @@ from homeassistant.const import (
     CONF_USERNAME,
     CONF_VERIFY_SSL,
     CONF_ACCESS_TOKEN,
-    ATTR_LATITUDE,
-    ATTR_LONGITUDE,
     CONF_DEVICES,
     CONF_LANGUAGE,
     ATTR_DEVICE_ID,
@@ -265,11 +263,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     access_token = data.get(CONF_ACCESS_TOKEN)
 
     # Instantiate account object
+    session = async_get_clientsession(hass, verify_ssl=options[CONF_VERIFY_SSL])
     account = PandoraOnlineAccount(
         username=username,
         password=data[CONF_PASSWORD],
         access_token=access_token,
-        session=async_get_clientsession(hass, options[CONF_VERIFY_SSL]),
+        session=session,
         logger=ConfigEntryLoggerAdapter,
     )
 
@@ -281,8 +280,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     try:
         await async_load_web_translations(
             hass,
-            get_config_entry_language(entry),
-            options[CONF_VERIFY_SSL],
+            language=get_config_entry_language(entry),
+            session=session,
         )
     except BaseException as exc:
         _LOGGER.error(f"Translations download failed: {exc}", exc_info=exc)
