@@ -223,6 +223,17 @@
           }
         }
       },
+      "obd_error_codes": {
+        "name": "Diagnostic Trouble Codes",
+        "state_attributes": {
+          "codes": {
+            "name": "Error Codes"
+          },
+          "device_id": {
+            "name": "Pandora Device"
+          }
+        }
+      },
       "parking": {
         "name": "Parking Mode",
         "state_attributes": {

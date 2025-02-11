@@ -13,7 +13,6 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
 )
 from homeassistant.const import EntityCategory
-from homeassistant.helpers.typing import StateType
 
 from custom_components.pandora_cas.const import ATTR_CODES
 from custom_components.pandora_cas.entity import (
@@ -265,6 +264,7 @@ ENTITY_TYPES = [
         icon_off="mdi:check-circle",
         icon_on="mdi:alert-octagon",
         icon="mdi:cancel",
+        device_class=BinarySensorDeviceClass.LOCK,
         attribute=CurrentState.bit_state,
         flag=BitStatus.ENGINE_LOCKED,
     ),
@@ -275,6 +275,13 @@ ENTITY_TYPES = [
         attribute=CurrentState.heater_errors,
         entity_registry_enabled_default=False,
     ),
+    PandoraCASBinarySensorEntityDescription(
+        key="obd_error_codes",
+        name="Diagnostic Trouble Codes",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        attribute=CurrentState.obd_error_codes,
+    )
 ]
 
 
@@ -291,7 +298,7 @@ class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
-        attributes: dict[str, StateType] = dict()
+        attributes: dict[str, Any] = dict()
         if super_attr := super().extra_state_attributes:
             attributes.update(super_attr)
 
@@ -312,6 +319,12 @@ class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
             attributes[ATTR_CODES] = (
                 sorted(state.heater_errors) if (self.available and state) else None
             )
+
+        elif key == "obd_error_codes":
+            attributes[ATTR_CODES] = {
+                error.code: error.timestamp
+                for error in state.obd_error_codes
+            } if self.available and state and state.obd_error_codes else {}
 
         # # @TODO: fix for StateType typing
         # elif key == "connection_state":

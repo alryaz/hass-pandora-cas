@@ -255,6 +255,17 @@
           }
         }
       },
+      "obd_error_codes": {
+        "name": "Diagnostic Trouble Codes",
+        "state_attributes": {
+          "codes": {
+            "name": "Коды ошибок"
+          },
+          "device_id": {
+            "name": "Устройство Pandora"
+          }
+        }
+      },
       "parking": {
         "name": "Нейтраль",
         "state_attributes": {
