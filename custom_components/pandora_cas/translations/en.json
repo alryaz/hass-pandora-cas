@@ -485,6 +485,14 @@
           }
         }
       },
+      "can_engine_hours": {
+        "name": "CAN Engine Hours",
+        "state_attributes": {
+          "device_id": {
+            "name": "Pandora Device"
+          }
+        }
+      },
       "can_mileage": {
         "name": "CAN Mileage",
         "state_attributes": {
@@ -503,6 +511,22 @@
       },
       "can_mileage_to_empty": {
         "name": "CAN Mileage to empty",
+        "state_attributes": {
+          "device_id": {
+            "name": "Pandora Device"
+          }
+        }
+      },
+      "days_to_maintenance": {
+        "name": "Days to Maintenance",
+        "state_attributes": {
+          "device_id": {
+            "name": "Pandora Device"
+          }
+        }
+      },
+      "engine_hours": {
+        "name": "Engine Hours",
         "state_attributes": {
           "device_id": {
             "name": "Pandora Device"
@@ -549,8 +573,32 @@
           }
         }
       },
+      "heater_temperature": {
+        "name": "Heater Temperature",
+        "state_attributes": {
+          "device_id": {
+            "name": "Pandora Device"
+          }
+        }
+      },
+      "heater_voltage": {
+        "name": "Heater voltage",
+        "state_attributes": {
+          "device_id": {
+            "name": "Pandora Device"
+          }
+        }
+      },
       "interior_temperature": {
         "name": "Interior Temperature",
+        "state_attributes": {
+          "device_id": {
+            "name": "Pandora Device"
+          }
+        }
+      },
+      "internal_voltage": {
+        "name": "Internal voltage",
         "state_attributes": {
           "device_id": {
             "name": "Pandora Device"

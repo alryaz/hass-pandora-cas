@@ -545,6 +545,14 @@
           }
         }
       },
+      "can_engine_hours": {
+        "name": "Моточасы по CAN",
+        "state_attributes": {
+          "device_id": {
+            "name": "Устройство Pandora"
+          }
+        }
+      },
       "can_mileage": {
         "name": "Пробег по CAN",
         "state_attributes": {
@@ -563,6 +571,22 @@
       },
       "can_mileage_to_empty": {
         "name": "Пробег по CAN на топливе",
+        "state_attributes": {
+          "device_id": {
+            "name": "Устройство Pandora"
+          }
+        }
+      },
+      "days_to_maintenance": {
+        "name": "Дней до технического обслуживания",
+        "state_attributes": {
+          "device_id": {
+            "name": "Устройство Pandora"
+          }
+        }
+      },
+      "engine_hours": {
+        "name": "Моточасы",
         "state_attributes": {
           "device_id": {
             "name": "Устройство Pandora"
@@ -609,8 +633,32 @@
           }
         }
       },
+      "heater_temperature": {
+        "name": "Heater Temperature",
+        "state_attributes": {
+          "device_id": {
+            "name": "Устройство Pandora"
+          }
+        }
+      },
+      "heater_voltage": {
+        "name": "Heater voltage",
+        "state_attributes": {
+          "device_id": {
+            "name": "Устройство Pandora"
+          }
+        }
+      },
       "interior_temperature": {
         "name": "Температура в салоне",
+        "state_attributes": {
+          "device_id": {
+            "name": "Устройство Pandora"
+          }
+        }
+      },
+      "internal_voltage": {
+        "name": "Internal voltage",
         "state_attributes": {
           "device_id": {
             "name": "Устройство Pandora"
