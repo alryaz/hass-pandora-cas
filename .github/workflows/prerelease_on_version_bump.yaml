@@ -22,18 +22,23 @@ jobs:
             echo "Error: There must be exactly one custom component directory." >&2
             exit 1
           fi
-          echo "DOMAIN=$(basename $(find custom_components/* -maxdepth 0 -type d))" >> $GITHUB_ENV
+          INTEGRATION_DOMAIN=$(basename $(find custom_components/* -maxdepth 0 -type d))
+          if [ -z "INTEGRATION_DOMAIN" ]; then
+            echo "Error: Could not detect integration domain." >&2
+            exit 1
+          fi
+          echo "INTEGRATION_DOMAIN=INTEGRATION_DOMAIN" >> $GITHUB_ENV
 
       - name: Install JQ
         run: sudo apt-get install jq
 
       - name: Extract version from current commit
         id: current_version
-        run: echo "CURRENT_VERSION=$(jq -r '.version' custom_components/$DOMAIN/manifest.json)" >> $GITHUB_ENV
+        run: echo "CURRENT_VERSION=$(jq -r '.version' custom_components/${{ env.INTEGRATION_DOMAIN }}/manifest.json)" >> $GITHUB_ENV
 
       - name: Extract version from previous commit
         id: previous_version
-        run: echo "PREVIOUS_VERSION=$(git show HEAD~:custom_components/$DOMAIN/manifest.json | jq -r '.version')" >> $GITHUB_ENV
+        run: echo "PREVIOUS_VERSION=$(git show HEAD~:custom_components/${{ env.INTEGRATION_DOMAIN }}/manifest.json | jq -r '.version')" >> $GITHUB_ENV
 
       - name: Collect Changes
         if: ${{ env.CURRENT_VERSION != env.PREVIOUS_VERSION }}
@@ -117,3 +122,19 @@ jobs:
               draft: false,
               prerelease: true,
             });
+
+      - name: Compress component directory
+        if: ${{ env.CURRENT_VERSION != env.PREVIOUS_VERSION }}
+        run: |
+          cd custom_components/${{ env.INTEGRATION_DOMAIN }}
+          zip release.zip -r ./
+
+      - name: Upload zip to release
+        if: ${{ env.CURRENT_VERSION != env.PREVIOUS_VERSION }}
+        uses: svenstaro/upload-release-action@2.9.0
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./custom_components/${{ env.INTEGRATION_DOMAIN }}/release.zip
+          asset_name: ${{ env.INTEGRATION_DOMAIN }}.zip
+          tag: ${{ github.ref }}
+          overwrite: true
