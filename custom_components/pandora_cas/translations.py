@@ -121,7 +121,7 @@ async def async_load_web_translations(
         session = async_get_clientsession(hass)
     elif isinstance(session, bool):
         session = async_get_clientsession(hass, verify_ssl=session)
-    else:
+    elif not isinstance(session, aiohttp.ClientSession):
         raise HomeAssistantError("Invalid session parameter")
 
     try:
