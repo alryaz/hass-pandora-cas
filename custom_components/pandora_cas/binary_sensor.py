@@ -281,7 +281,7 @@ ENTITY_TYPES = [
         device_class=BinarySensorDeviceClass.PROBLEM,
         entity_category=EntityCategory.DIAGNOSTIC,
         attribute=CurrentState.obd_error_codes,
-    )
+    ),
 ]
 
 
@@ -321,10 +321,11 @@ class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
             )
 
         elif key == "obd_error_codes":
-            attributes[ATTR_CODES] = {
-                error.code: error.timestamp
-                for error in state.obd_error_codes
-            } if self.available and state and state.obd_error_codes else {}
+            attributes[ATTR_CODES] = (
+                {error.code: error.timestamp for error in state.obd_error_codes}
+                if self.available and state and state.obd_error_codes
+                else {}
+            )
 
         # # @TODO: fix for StateType typing
         # elif key == "connection_state":
