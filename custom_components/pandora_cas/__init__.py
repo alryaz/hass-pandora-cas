@@ -285,6 +285,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             hass,
             language=get_config_entry_language(entry),
             session=session,
+            ignore_recency=True,
         )
     except BaseException as exc:
         _LOGGER.error(f"Translations download failed: {exc}", exc_info=exc)

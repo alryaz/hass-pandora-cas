@@ -57,6 +57,7 @@ async def async_load_web_translations(
     hass: HomeAssistant,
     language: str,
     session: aiohttp.ClientSession | bool | None = None,
+    ignore_recency: bool = False,
 ) -> dict[str, str]:
     """Load web translations."""
     if (language := language.lower()) == "last_update":
@@ -96,7 +97,11 @@ async def async_load_web_translations(
                 f"valid timestamp information."
             )
         else:
-            if (time() - last_update) > (7 * 24 * 60 * 60):
+            if ignore_recency:
+                _LOGGER.info(
+                    f"Translation data for language {language} will be downloaded immediately."
+                )
+            elif (time() - last_update) > (7 * 24 * 60 * 60):
                 _LOGGER.info(
                     f"Last data retrieval for language {language} "
                     f"occurred on {datetime.fromtimestamp(last_update).isoformat()}, "
@@ -109,7 +114,7 @@ async def async_load_web_translations(
                 )
             else:
                 _LOGGER.info(
-                    f"Data for language {language} is recent, " f"no updates required."
+                    f"Data for language {language} is recent, no updates required."
                 )
                 return saved_data[language]
     else:
@@ -148,11 +153,7 @@ async def async_load_web_translations(
             f"for language {language}, falling "
             f"back to {DEFAULT_LANGUAGE}",
         )
-        return await async_load_web_translations(
-            hass,
-            DEFAULT_LANGUAGE,
-            verify_ssl,
-        )
+        return await async_load_web_translations(hass, DEFAULT_LANGUAGE)
 
     if not isinstance(language_data, dict):
         saved_data[language] = language_data = {}
