@@ -15,7 +15,7 @@
   "issue_tracker": "https://github.com/alryaz/hass-pandora-cas/issues",
   "requirements": [
     "haversine~=2.8.0",
-    "pandora-cas==0.0.15"
+    "pandora-cas==0.0.16"
   ],
   "version": "2025.2.2b3"
 }
