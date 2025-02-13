@@ -365,7 +365,8 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         for src in (new_data, new_options):
             # src.pop("polling_interval", None)
             src.pop("user_agent", None)
-        entry.version = 3
+
+        hass.config_entries.async_update_entry(entry, version=3, **args)
 
     if entry.version < 5:
         # Update unique ID to user ID
@@ -384,7 +385,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         new_data[CONF_ACCESS_TOKEN] = account.access_token
         args["unique_id"] = str(account.user_id)
 
-        entry.version = 5
+        hass.config_entries.async_update_entry(entry, version=5, **args)
 
     if entry.version < 6:
         # Remove / migrate old device entry
@@ -425,7 +426,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 new_identifiers={(DOMAIN, str(pandora_id))},
             )
 
-        entry.version = 6
+        hass.config_entries.async_update_entry(entry, version=6, **args)
 
     if entry.version < 9:
         # Transition per-entity options
@@ -447,7 +448,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if (v := new_options.pop(CONF_OFFLINE_AS_UNAVAILABLE, None)) is not None:
             _add_new_devices_option(CONF_OFFLINE_AS_UNAVAILABLE, v)
 
-        entry.version = 9
+        hass.config_entries.async_update_entry(entry, version=9, **args)
 
     if entry.version < 10:
         args["pref_disable_polling"] = True
@@ -465,14 +466,14 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _add_new_devices_option(
             CONF_COORDINATES_DEBOUNCE, DEFAULT_COORDINATES_SMOOTHING
         )
-        entry.version = 10
+        hass.config_entries.async_update_entry(entry, version=10, **args)
 
     if entry.version < 11:
         new_options.setdefault(
             CONF_EFFECTIVE_READ_TIMEOUT,
             DEFAULT_EFFECTIVE_READ_TIMEOUT,
         )
-        entry.version = 11
+        hass.config_entries.async_update_entry(entry, version=11, **args)
 
     if entry.version < 12:
         if CONF_POLLING_INTERVAL in new_options:
@@ -484,7 +485,7 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 5 if new_options[CONF_DISABLE_WEBSOCKETS] else 1
             )
 
-        entry.version = 12
+        hass.config_entries.async_update_entry(entry, version=12, **args)
 
     if entry.version < 13:
         new_options.setdefault(
@@ -492,14 +493,12 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             DEFAULT_LANGUAGE,
         )
 
-        entry.version = 13
+        hass.config_entries.async_update_entry(entry, version=13, **args)
 
     if entry.version < 14:
         _add_new_devices_option(CONF_FILTER_FUEL_DROPS, 0)
 
-        entry.version = 14
-
-    hass.config_entries.async_update_entry(entry, **args)
+        hass.config_entries.async_update_entry(entry, version=14, **args)
 
     _LOGGER.info(f"Upgraded entry {entry.entry_id} to version {entry.version}")
 
