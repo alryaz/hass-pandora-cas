@@ -334,7 +334,7 @@ class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
                             and existing_timestamp is not None
                             and error.timestamp > existing_timestamp
                         ):
-                            latest_error_codes = error.timestamp
+                            latest_error_codes[error.code] = error.timestamp
             attributes[ATTR_CODES] = latest_error_codes
 
         # # @TODO: fix for StateType typing
