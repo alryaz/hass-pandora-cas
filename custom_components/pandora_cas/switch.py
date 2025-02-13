@@ -19,10 +19,10 @@ from custom_components.pandora_cas.entity import (
     async_platform_setup_entry,
     PandoraCASBooleanEntityDescription,
     PandoraCASBooleanEntity,
-    has_device_type,
+    has_device_type as hdt,
 )
 from pandora_cas.data import CurrentState
-from pandora_cas.enums import PandoraDeviceTypes, CommandID, BitStatus, Features
+from pandora_cas.enums import PandoraDeviceTypes as T, CommandID, BitStatus, Features
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -70,17 +70,11 @@ ENTITY_TYPES = [
         attribute=CurrentState.bit_state,
         flag=BitStatus.BLOCK_HEATER_ACTIVE,
         command_on=[
-            (
-                has_device_type(PandoraDeviceTypes.NAV12),
-                CommandID.NAV12_TURN_ON_BLOCK_HEATER,
-            ),
+            (hdt(T.NAV12), CommandID.NAV12_TURN_ON_BLOCK_HEATER),
             (None, CommandID.TURN_ON_BLOCK_HEATER),
         ],
         command_off=[
-            (
-                has_device_type(PandoraDeviceTypes.NAV12),
-                CommandID.NAV12_TURN_OFF_BLOCK_HEATER,
-            ),
+            (hdt(T.NAV12), CommandID.NAV12_TURN_OFF_BLOCK_HEATER),
             (None, CommandID.TURN_OFF_BLOCK_HEATER),
         ],
         features=Features.HEATER,
@@ -105,14 +99,11 @@ ENTITY_TYPES = [
         attribute=CurrentState.bit_state,
         flag=BitStatus.SERVICE_MODE_ACTIVE,
         command_on=[
-            (
-                has_device_type(PandoraDeviceTypes.NAV12),
-                CommandID.NAV12_ENABLE_SERVICE_MODE,
-            ),
+            (hdt(T.NAV12), CommandID.NAV12_ENABLE_SERVICE_MODE),
             (None, CommandID.ENABLE_SERVICE_MODE),
         ],
         command_off=[
-            (has_device_type(PandoraDeviceTypes.NAV12), CommandID.DISABLE_SERVICE_MODE),
+            (hdt(T.NAV12), CommandID.DISABLE_SERVICE_MODE),
             (None, CommandID.DISABLE_SERVICE_MODE),
         ],
     ),
@@ -133,17 +124,11 @@ ENTITY_TYPES = [
         # icon_turning_on="",
         # icon_turning_off="",
         command_on=[
-            (
-                has_device_type(PandoraDeviceTypes.NAV12),
-                CommandID.NAV12_ENABLE_STATUS_OUTPUT,
-            ),
+            (hdt(T.NAV12), CommandID.NAV12_ENABLE_STATUS_OUTPUT),
             (None, CommandID.ENABLE_STATUS_OUTPUT),
         ],
         command_off=[
-            (
-                has_device_type(PandoraDeviceTypes.NAV12),
-                CommandID.NAV12_DISABLE_STATUS_OUTPUT,
-            ),
+            (hdt(T.NAV12), CommandID.NAV12_DISABLE_STATUS_OUTPUT),
             (None, CommandID.DISABLE_STATUS_OUTPUT),
         ],
         assumed_state=True,
