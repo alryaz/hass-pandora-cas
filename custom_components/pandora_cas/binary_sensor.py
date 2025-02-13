@@ -321,11 +321,21 @@ class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
             )
 
         elif key == "obd_error_codes":
-            attributes[ATTR_CODES] = (
-                {error.code: error.timestamp for error in state.obd_error_codes}
-                if self.available and state and state.obd_error_codes
-                else {}
-            )
+            latest_error_codes = {}
+            if self.available and state and state.obd_error_codes:
+                for error in state.obd_error_codes:
+                    try:
+                        existing_timestamp = latest_error_codes[error.code]
+                    except KeyError:
+                        latest_error_codes[error.code] = error.timestamp
+                    else:
+                        if (
+                            error.timestamp is not None
+                            and existing_timestamp is not None
+                            and error.timestamp > existing_timestamp
+                        ):
+                            latest_error_codes = error.timestamp
+            attributes[ATTR_CODES] = latest_error_codes
 
         # # @TODO: fix for StateType typing
         # elif key == "connection_state":
