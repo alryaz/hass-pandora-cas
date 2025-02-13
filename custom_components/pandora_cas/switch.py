@@ -4,6 +4,7 @@ __all__ = ("ENTITY_TYPES", "async_setup_entry")
 
 import asyncio
 import logging
+from dataclasses import dataclass
 from functools import partial
 from typing import Any
 
@@ -26,6 +27,7 @@ from pandora_cas.enums import PandoraDeviceTypes, CommandID, BitStatus, Features
 _LOGGER = logging.getLogger(__name__)
 
 
+@dataclass(frozen=True, kw_only=True)
 class PandoraCASSwitchEntityDescription(
     PandoraCASBooleanEntityDescription, SwitchEntityDescription
 ):
