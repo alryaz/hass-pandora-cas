@@ -20,6 +20,8 @@ DATA_WEB_TRANSLATIONS_STORE: Final = f"{DATA_WEB_TRANSLATIONS}_store"
 MIN_EFFECTIVE_READ_TIMEOUT: Final = 60.0
 MIN_POLLING_INTERVAL: Final = 3.0
 
+DEFAULT_COORDINATES_SMOOTHING: Final = 10.0
+DEFAULT_CURSOR_TYPE: Final = "default"
 DEFAULT_EFFECTIVE_READ_TIMEOUT: Final = 180.0
 DEFAULT_POLLING_INTERVAL: Final = 6.0
 DEFAULT_LANGUAGE: Final = "en"
@@ -48,12 +50,11 @@ CONF_FORCE_LOCK_ICONS: Final = "force_lock_icons"
 CONF_IGNORE_UPDATES_ENGINE_OFF: Final = "skip_updates_engine_off"
 CONF_FILTER_FUEL_DROPS: Final = "filter_fuel_drops"
 
-DEFAULT_COORDINATES_SMOOTHING: Final = 10.0
-DEFAULT_CURSOR_TYPE: Final = "default"
 DISABLED_CURSOR_TYPE: Final = "disabled"
 
 # Entity & event attributes
 ATTR_CARDINAL: Final = "cardinal"
+ATTR_CODES: Final = "codes"
 ATTR_COMMAND_ID: Final = "command_id"
 ATTR_ENSURE_COMPLETE: Final = "ensure_complete"
 ATTR_EVENT_ID_PRIMARY: Final = "event_id_primary"
@@ -69,7 +70,7 @@ ATTR_TIMESTAMP: Final = "timestamp"
 ATTR_TITLE_PRIMARY: Final = "title_primary"
 ATTR_TITLE_SECONDARY: Final = "title_secondary"
 ATTR_TRACK_ID: Final = "track_id"
-ATTR_CODES: Final = "codes"
+ATTR_TRANSLATIONS: Final = "translations"
 
 # Home Assistant bus event identifiers
 EVENT_TYPE_COMMAND: Final = DOMAIN + "_command"
