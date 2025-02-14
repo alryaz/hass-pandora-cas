@@ -347,12 +347,9 @@ class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
                             error.code,
                         )
                     else:
-                        if (
-                            error.timestamp is not None
-                            and (
-                                existing_timestamp is None
-                                or error.timestamp > existing_timestamp
-                            )
+                        if error.timestamp is not None and (
+                            existing_timestamp is None
+                            or error.timestamp > existing_timestamp
                         ):
                             error_codes[error.code] = error.timestamp
             attributes[ATTR_CODES] = error_codes
