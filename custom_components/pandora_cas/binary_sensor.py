@@ -14,11 +14,18 @@ from homeassistant.components.binary_sensor import (
 )
 from homeassistant.const import EntityCategory
 
-from custom_components.pandora_cas.const import ATTR_CODES
+from custom_components.pandora_cas.const import (
+    ATTR_CODES,
+    ATTR_TRANSLATIONS,
+)
 from custom_components.pandora_cas.entity import (
     async_platform_setup_entry,
     PandoraCASBooleanEntity,
     PandoraCASBooleanEntityDescription,
+)
+from custom_components.pandora_cas.translations import (
+    get_web_translations_value,
+    get_config_entry_language,
 )
 from pandora_cas.data import CurrentState
 from pandora_cas.enums import BitStatus
@@ -295,6 +302,7 @@ class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
     def is_on(self) -> bool | None:
         if self.available:
             return self._attr_native_value
+        return None
 
     @property
     def extra_state_attributes(self) -> Mapping[str, Any] | None:
@@ -322,12 +330,22 @@ class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
 
         elif key == "obd_error_codes":
             latest_error_codes = {}
+            error_translations = {}
             if self.available and state and state.obd_error_codes:
+                language = get_config_entry_language(self.config_entry)
                 for error in state.obd_error_codes:
+                    # Since codes may be empty
+                    if not error.code:
+                        continue
                     try:
-                        existing_timestamp = latest_error_codes[error.code]
+                        existing_timestamp = error_codes[error.code]
                     except KeyError:
-                        latest_error_codes[error.code] = error.timestamp
+                        error_codes[error.code] = error.timestamp
+                        error_translations[error.code] = get_web_translations_value(
+                            self.hass,
+                            language,
+                            error.code,
+                        )
                     else:
                         if (
                             error.timestamp is not None
@@ -336,8 +354,9 @@ class PandoraCASBinarySensor(PandoraCASBooleanEntity, BinarySensorEntity):
                                 or error.timestamp > existing_timestamp
                             )
                         ):
-                            latest_error_codes[error.code] = error.timestamp
-            attributes[ATTR_CODES] = latest_error_codes
+                            error_codes[error.code] = error.timestamp
+            attributes[ATTR_CODES] = error_codes
+            attributes[ATTR_TRANSLATIONS] = error_translations
 
         # # @TODO: fix for StateType typing
         # elif key == "connection_state":
