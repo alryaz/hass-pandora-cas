@@ -236,7 +236,11 @@ class BasePandoraCASEntity(Entity):
         firmware_components = [d.firmware_version, d.voice_version]
         if d.state is not None:
             firmware_components.append(d.state.climate_firmware)
-        sw_version = " / ".join(filter(bool, firmware_components))
+        sw_version = " / ".join(
+            str(component)
+            for component in firmware_components
+            if component is not None
+        )
         return DeviceInfo(
             identifiers={(DOMAIN, str(d.device_id))},
             name=d.name,
