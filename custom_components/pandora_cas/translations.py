@@ -50,7 +50,7 @@ def get_web_translations_value(
     except KeyError:
         if language != DEFAULT_LANGUAGE:
             return get_web_translations_value(hass, DEFAULT_LANGUAGE, key)
-        return "!!!" + key + "!!!"
+        return None
 
 
 async def async_load_web_translations(
