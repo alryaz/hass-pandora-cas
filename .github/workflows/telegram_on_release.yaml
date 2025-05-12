@@ -47,11 +47,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           REPO="${GITHUB_REPOSITORY##*/}"
-          PROJECT_NAME="$REPO"
-          HASHTAG=$(echo "$REPO" | awk -F'-' '{for(i=1;i<=NF;i++) { $i = (i==1 ? $i : toupper(substr($i,1,1)) substr($i,2)) }; OFS=""; print }')
-          TAG="#$HASHTAG"
-          [[ "$REPO" == hass-* ]] && TAG="$TAG #homeassistant"
-          [[ "$REPO" == python-* ]] && TAG="$TAG #python"
 
           if [[ "${{ github.event_name }}" == "release" ]]; then
             URL="${{ github.event.release.html_url }}"
@@ -65,10 +60,17 @@ jobs:
             fi
           fi
 
-          ACTOR="${{ github.actor }}"
-          MESSAGE="$ACTOR опубликовал релиз:\n✅ Новый релиз проекта $PROJECT_NAME опубликован!\n\nСмотрите детали: $URL\n\n$TAG"
-
-          echo "message=$MESSAGE" >> $GITHUB_OUTPUT
+          {
+            echo "message<<EOF"
+            echo "✅ Новый релиз проекта *$REPO* опубликован!"
+            echo
+            echo "Ссылка на GitHub: $URL"
+            echo
+            echo "#$REPO" | awk -F'-' '{for(i=1;i<=NF;i++) { $i = (i==1 ? $i : toupper(substr($i,1,1)) substr($i,2)) }; OFS=""; print }'
+            [[ "$REPO" == hass-* ]] && echo "#homeassistant"
+            [[ "$REPO" == python-* ]] && echo "#python"
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
       - name: Send Telegram message
         if: steps.check.outputs.to != ''
