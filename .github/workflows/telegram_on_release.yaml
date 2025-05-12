@@ -19,7 +19,7 @@ jobs:
       - name: Install GitHub CLI
         run: |
           sudo apt-get update
-          sudo apt-get install -y gh
+          sudo apt-get install -y gh jq curl
 
       - name: Determine recipient and check secrets
         id: check
@@ -69,6 +69,11 @@ jobs:
             echo "✅ Новый релиз **$VERSION** проекта **$REPO** опубликован!"
             echo
             echo "Ссылка на GitHub: $URL"
+            [[ "$REPO" == hass-* ]] && {
+              HACS="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/$VERSION/hacs.json"
+              HAMIN=$(curl -s "$url" | jq -r '.homeassistant // empty')
+              [ -n "$HAMIN" ] && echo "Совместимость: HA ≥$HAMIN"
+            }
             echo
             echo "#$REPO" | awk -F'-' '{for (i=1; i<=NF; i++) printf i==1 ? tolower($i) : toupper(substr($i,1,1)) tolower(substr($i,2)); print ""}'
             [[ "$REPO" == hass-* ]] && echo "#homeassistant"
