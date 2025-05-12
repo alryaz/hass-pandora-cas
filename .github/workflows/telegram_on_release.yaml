@@ -66,7 +66,7 @@ jobs:
             echo
             echo "Ссылка на GitHub: $URL"
             echo
-            echo "#$REPO" | awk -F'-' '{for(i=1;i<=NF;i++) { $i = (i==1 ? $i : toupper(substr($i,1,1)) substr($i,2)) }; OFS=""; print }'
+            echo "#$REPO" | awk -F'-' '{for (i=1; i<=NF; i++) printf i==1 ? tolower($i) : toupper(substr($i,1,1)) tolower(substr($i,2)); print ""}'
             [[ "$REPO" == hass-* ]] && echo "#homeassistant"
             [[ "$REPO" == python-* ]] && echo "#python"
             echo "EOF"
