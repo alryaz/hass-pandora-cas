@@ -16,10 +16,15 @@ jobs:
     name: Notify Telegram
     runs-on: ubuntu-latest
     steps:
+      - name: Install GitHub CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gh
+
       - name: Determine recipient and check secrets
         id: check
         run: |
-          if [ "${{ secrets.TELEGRAM_TOKEN }}" == "" ]; then
+          if [ -z "${{ secrets.TELEGRAM_TOKEN }}" ]; then
             echo "Telegram token is not set. Skipping." && exit 0
           fi
 
@@ -30,14 +35,16 @@ jobs:
             TO="${{ secrets.TELEGRAM_TO_GROUP }}"
           fi
 
-          if [ "$TO" == "" ]; then
+          if [ -z "$TO" ]; then
             echo "Target Telegram ID is not set. Skipping." && exit 0
           fi
 
           echo "to=$TO" >> $GITHUB_OUTPUT
 
-      - name: Prepare message
+      - name: Determine release link and message content
         id: prepare
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           REPO="${GITHUB_REPOSITORY##*/}"
           PROJECT_NAME="$REPO"
@@ -46,11 +53,22 @@ jobs:
           [[ "$REPO" == hass-* ]] && TAG="$TAG #homeassistant"
           [[ "$REPO" == python-* ]] && TAG="$TAG #python"
 
-          URL="${{ github.event.release.html_url }}"
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            URL="${{ github.event.release.html_url }}"
+          else
+            # Try to get the latest release using gh CLI
+            URL=$(gh release view --repo "$GITHUB_REPOSITORY" --json url -q .url 2>/dev/null || echo "")
+            if [ -z "$URL" ]; then
+              # Fallback to main branch
+              BRANCH_URL="https://github.com/${GITHUB_REPOSITORY}/tree/$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name)"
+              URL="$BRANCH_URL"
+            fi
+          fi
+
           ACTOR="${{ github.actor }}"
           MESSAGE="$ACTOR опубликовал релиз:\n✅ Новый релиз проекта $PROJECT_NAME опубликован!\n\nСмотрите детали: $URL\n\n$TAG"
 
-          echo "message=$MESSAGE" | tee -a $GITHUB_OUTPUT
+          echo "message=$MESSAGE" >> $GITHUB_OUTPUT
 
       - name: Send Telegram message
         if: steps.check.outputs.to != ''
