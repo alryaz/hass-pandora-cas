@@ -60,7 +60,7 @@ jobs:
               BRANCH_URL="https://github.com/${GITHUB_REPOSITORY}/tree/$VERSION"
               URL="$BRANCH_URL"
             else
-              VERSION=$(gh release view --repo OWNER/REPO --json tagName -q .tagName)
+              VERSION=$(gh release view "$VERSION" --repo "$GITHUB_REPOSITORY" --json tagName -q .tagName)
             fi
           fi
 
@@ -70,7 +70,7 @@ jobs:
             echo
             echo "Ссылка на GitHub: $URL"
             [[ "$REPO" == hass-* ]] && {
-              HACS="https://raw.githubusercontent.com/alryaz/hass-pandora-cas/$VERSION/hacs.json"
+              HACS="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/$VERSION/hacs.json"
               HAMIN=$(curl -s "$url" | jq -r '.homeassistant // empty')
               [ -n "$HAMIN" ] && echo "Совместимость: HA ≥$HAMIN"
             }
