@@ -49,20 +49,24 @@ jobs:
           REPO="${GITHUB_REPOSITORY##*/}"
 
           if [[ "${{ github.event_name }}" == "release" ]]; then
+            VERSION="${{ github.event.release.tag_name }}"
             URL="${{ github.event.release.html_url }}"
           else
             # Try to get the latest release using gh CLI
             URL=$(gh release view --repo "$GITHUB_REPOSITORY" --json url -q .url 2>/dev/null || echo "")
             if [ -z "$URL" ]; then
               # Fallback to main branch
-              BRANCH_URL="https://github.com/${GITHUB_REPOSITORY}/tree/$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name)"
+              VERSION="$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name)"
+              BRANCH_URL="https://github.com/${GITHUB_REPOSITORY}/tree/$VERSION"
               URL="$BRANCH_URL"
+            else
+              VERSION=$(gh release view --repo OWNER/REPO --json tagName -q .tagName)
             fi
           fi
 
           {
             echo "message<<EOF"
-            echo "✅ Новый релиз проекта *$REPO* опубликован!"
+            echo "✅ Новый релиз **$VERSION** проекта **$REPO** опубликован!"
             echo
             echo "Ссылка на GitHub: $URL"
             echo
@@ -79,3 +83,4 @@ jobs:
           to: ${{ steps.check.outputs.to }}
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: ${{ steps.prepare.outputs.message }}
+          format: markdown
