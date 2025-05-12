@@ -1,0 +1,61 @@
+name: Publish telegram announcements about new releases
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      send_to_user:
+        description: 'Send message to user instead of group?'
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  notify:
+    name: Notify Telegram
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine recipient and check secrets
+        id: check
+        run: |
+          if [ "${{ secrets.TELEGRAM_TOKEN }}" == "" ]; then
+            echo "Telegram token is not set. Skipping." && exit 0
+          fi
+
+          TO=""
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ github.event.inputs.send_to_user }}" == "true" ]]; then
+            TO="${{ secrets.TELEGRAM_TO_USER }}"
+          else
+            TO="${{ secrets.TELEGRAM_TO_GROUP }}"
+          fi
+
+          if [ "$TO" == "" ]; then
+            echo "Target Telegram ID is not set. Skipping." && exit 0
+          fi
+
+          echo "to=$TO" >> $GITHUB_OUTPUT
+
+      - name: Prepare message
+        id: prepare
+        run: |
+          REPO="${GITHUB_REPOSITORY##*/}"
+          PROJECT_NAME="$REPO"
+          HASHTAG=$(echo "$REPO" | awk -F'-' '{for(i=1;i<=NF;i++) { $i = (i==1 ? $i : toupper(substr($i,1,1)) substr($i,2)) }; OFS=""; print }')
+          TAG="#$HASHTAG"
+          [[ "$REPO" == hass-* ]] && TAG="$TAG #homeassistant"
+          [[ "$REPO" == python-* ]] && TAG="$TAG #python"
+
+          URL="${{ github.event.release.html_url }}"
+          ACTOR="${{ github.actor }}"
+          MESSAGE="$ACTOR опубликовал релиз:\n✅ Новый релиз проекта $PROJECT_NAME опубликован!\n\nСмотрите детали: $URL\n\n$TAG"
+
+          echo "message=$MESSAGE" | tee -a $GITHUB_OUTPUT
+
+      - name: Send Telegram message
+        if: steps.check.outputs.to != ''
+        uses: appleboy/telegram-action@master
+        with:
+          to: ${{ steps.check.outputs.to }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: ${{ steps.prepare.outputs.message }}
