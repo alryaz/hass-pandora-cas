@@ -783,6 +783,14 @@
           }
         }
       },
+      "soh": {
+        "name": "Здоровье батареи (SOH)",
+        "state_attributes": {
+          "device_id": {
+            "name": "Устройство Pandora"
+          }
+        }
+      },
       "speed": {
         "name": "Скорость",
         "state_attributes": {

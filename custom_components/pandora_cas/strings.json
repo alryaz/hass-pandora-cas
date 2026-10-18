@@ -723,6 +723,14 @@
           }
         }
       },
+      "soh": {
+        "name": "State Of Health",
+        "state_attributes": {
+          "device_id": {
+            "name": "Pandora Device"
+          }
+        }
+      },
       "speed": {
         "name": "Speed",
         "state_attributes": {

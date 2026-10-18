@@ -157,6 +157,16 @@ ENTITY_TYPES = [
         suggested_display_precision=0,
     ),
     PandoraCASSensorEntityDescription(
+        key="soh",
+        name="State Of Health",
+        icon="mdi:battery-heart-variant",
+        native_unit_of_measurement=PERCENTAGE,
+        attribute=CurrentState.ev_state_of_health,
+        state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=1,
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
+    PandoraCASSensorEntityDescription(
         key="interior_temperature",
         name="Interior Temperature",
         icon="mdi:thermometer",
